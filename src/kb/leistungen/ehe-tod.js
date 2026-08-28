@@ -355,7 +355,7 @@ export const LEISTUNGEN = [
     cluster: 'ehe-tod',
     name: 'Kirchenaustritt erklären',
     sprechName: 'Kirchenaustritt erklären',
-    synonyme: ['kirchenaustritt', 'aus der kirche austreten', 'kirchensteuer sparen', 'austritt religionsgemeinschaft', 'kirche verlassen'],
+    synonyme: ['kirchenaustritt', 'aus der kirche austreten', 'kirche austreten', 'austreten', 'austritt', 'kirche', 'kirchensteuer sparen', 'austritt religionsgemeinschaft', 'kirche verlassen'],
     leikaBezug: 'Kirchenaustritt - Erklärung (LeiKa 99000000)',
     kurzbeschreibung: 'Der Austritt aus einer Religionsgemeinschaft des öffentlichen Rechts wird persönlich vor dem Standesamt oder Amtsgericht erklärt - je nach Bundesland. Er beendet die Kirchensteuerpflicht mit Wirkung ab dem Folgemonat.',
     zustaendigkeit: {

@@ -8,6 +8,7 @@
 import { Dialog } from './dialog.js';
 import { Zuhoerer, Sprecher, spracheingabeVerfuegbar, sprachausgabeVerfuegbar } from './speech.js';
 import { kennzahlen } from './kb/index.js';
+import { regionalKennzahlen, LAENDER } from './kb/regional/index.js';
 import { verstehe, entscheide, erkenneBefehl, erkenneZiffer } from './nlu.js';
 
 const dialog = new Dialog();
@@ -29,6 +30,7 @@ const el = {
   optTempo: document.getElementById('opt-tempo'),
   tempoWert: document.getElementById('tempo-wert'),
   optStimme: document.getElementById('opt-stimme'),
+  optRegion: document.getElementById('opt-region'),
   diagnose: document.getElementById('diagnose'),
 };
 
@@ -39,6 +41,9 @@ const el = {
 const sprecher = new Sprecher({
   onStart: () => zuhoerer.pausieren(),
   onEnde: () => zuhoerer.fortsetzen(),
+  onNichtVerfuegbar: () => {
+    systemhinweis('Die Sprachausgabe scheint in dieser Umgebung blockiert zu sein. Alle Antworten stehen vollständig auf dem Bildschirm. Ein Klick auf den Schalter "Sprachausgabe" versucht es erneut.');
+  },
 });
 
 const zuhoerer = new Zuhoerer({
@@ -76,6 +81,38 @@ function blase(text, art, stufe) {
 
 function systemhinweis(text) {
   blase(text, 'system');
+}
+
+// ---------------------------------------------------------------------------
+// Denk-Indikator
+//
+// Die Klassifikation selbst ist in Millisekunden fertig. Die kurze sichtbare
+// Pause mit den drei Punkten gibt dem Blick Zeit, der eigenen Eingabe zu
+// folgen, bevor die Antwort erscheint - und macht am Bildschirm sichtbar,
+// dass gearbeitet wird. Sie skaliert leicht mit der Antwortlaenge und faellt
+// weg, wenn der Nutzer waehrenddessen schon weitertippt.
+// ---------------------------------------------------------------------------
+
+let denkIndikator = null;
+let denkTimer = null;
+
+function denkenZeigen() {
+  denkenVerbergen();
+  denkIndikator = document.createElement('div');
+  denkIndikator.className = 'denkt';
+  denkIndikator.setAttribute('aria-label', 'Der Assistent denkt nach');
+  for (let i = 0; i < 3; i += 1) {
+    const punkt = document.createElement('span');
+    punkt.className = 'denkt-punkt';
+    denkIndikator.append(punkt);
+  }
+  el.verlauf.append(denkIndikator);
+  el.verlauf.scrollTop = el.verlauf.scrollHeight;
+}
+
+function denkenVerbergen() {
+  if (denkTimer) { clearTimeout(denkTimer); denkTimer = null; }
+  if (denkIndikator) { denkIndikator.remove(); denkIndikator = null; }
 }
 
 function tastenfeldZeichnen(optionen) {
@@ -230,6 +267,9 @@ function diagnoseZeichnen(text) {
 // ---------------------------------------------------------------------------
 
 function antwortAusgeben(antwort) {
+  // Landeswahl kann auch per Sprache erfolgt sein - Select nachziehen.
+  if (el.optRegion.value !== (dialog.land ?? '')) el.optRegion.value = dialog.land ?? '';
+
   blase(antwort.sprich, 'bot', antwort.stufe);
   tastenfeldZeichnen(antwort.optionen ?? []);
   pfadZeichnen(antwort.pfad ?? []);
@@ -245,14 +285,22 @@ function eingabeVerarbeiten(text, quelle) {
   const eingabe = (text ?? '').trim();
   if (!eingabe) return;
 
-  // Barge-in: Wer spricht oder tippt, unterbricht die laufende Ausgabe.
+  // Barge-in: Wer spricht oder tippt, unterbricht die laufende Ausgabe -
+  // und eine noch ausstehende Antwort wird sofort abgeraeumt.
   sprecher.abbrechen();
+  denkenVerbergen();
 
   blase(eingabe, 'nutzer');
   if (quelle !== 'taste') diagnoseZeichnen(eingabe);
 
   const antwort = dialog.verarbeite(eingabe);
-  antwortAusgeben(antwort);
+
+  denkenZeigen();
+  const pause = Math.min(1100, 380 + antwort.sprich.length * 1.2 + Math.random() * 180);
+  denkTimer = setTimeout(() => {
+    denkenVerbergen();
+    antwortAusgeben(antwort);
+  }, pause);
 }
 
 // ---------------------------------------------------------------------------
@@ -282,6 +330,7 @@ el.info.addEventListener('click', () => {
 
 el.optSprachausgabe.addEventListener('change', () => {
   sprecher.stummSchalten(!el.optSprachausgabe.checked);
+  if (el.optSprachausgabe.checked) sprecher.reaktivieren();
 });
 
 el.optTempo.addEventListener('input', () => {
@@ -292,6 +341,17 @@ el.optTempo.addEventListener('input', () => {
 
 el.optStimme.addEventListener('change', () => {
   sprecher.stimmeSetzen(el.optStimme.value);
+});
+
+el.optRegion.addEventListener('change', () => {
+  const geaendert = dialog.landSetzen(el.optRegion.value || null);
+  if (geaendert && dialog.land) {
+    const antwort = dialog.landBestaetigen();
+    dialog.merke(antwort);
+    antwortAusgeben(antwort);
+  } else if (geaendert) {
+    systemhinweis('Regionale Angaben sind abgeschaltet - es gelten wieder die bundesweiten Spannen.');
+  }
 });
 
 // Ziffernwahl auch ueber die Tastatur - wie am Telefon.
@@ -338,8 +398,9 @@ if (sprachausgabeVerfuegbar) {
 
 function start() {
   const k = kennzahlen();
+  const rk = regionalKennzahlen();
   el.kennzahlen.textContent =
-    `${k.leistungen} Leistungen · ${k.cluster} Bereiche · ${k.prozessschritte} Prozessschritte · ${k.leistungen * k.aspekte} Detailauskünfte`;
+    `${k.leistungen} Leistungen · ${k.cluster} Bereiche · ${k.leistungen * k.aspekte} Detailauskünfte · ${rk.registerbereiche} Registerbereiche mit Landesdaten (${Object.keys(rk.jeLand).map((c) => LAENDER[c].kuerzel).join(', ')})`;
 
   auskunftLeeren();
 

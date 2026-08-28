@@ -133,6 +133,23 @@ body {
 .kopf-status { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
 .kennzahlen { font-size: .78rem; color: var(--text-still); font-variant-numeric: tabular-nums; }
 
+.region-wahl {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .8rem;
+  color: var(--text-still);
+}
+.region-wahl select {
+  font: inherit;
+  font-size: .82rem;
+  padding: .3rem .4rem;
+  border-radius: var(--radius-klein);
+  border: 1px solid var(--rand-stark);
+  background: var(--flaeche);
+  color: var(--text);
+}
+
 /* ---------- Infopanel ---------- */
 
 .info-panel {
@@ -255,6 +272,36 @@ body {
   letter-spacing: .05em;
   color: var(--text-still);
   margin-bottom: .25rem;
+}
+
+/* ---------- Denk-Indikator ---------- */
+
+.denkt {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  background: var(--flaeche-still);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  border-bottom-left-radius: 3px;
+  padding: .72rem .95rem;
+  min-height: 1.1rem;
+}
+.denkt-punkt {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text-still);
+  animation: denken 1.15s ease-in-out infinite;
+}
+.denkt-punkt:nth-child(2) { animation-delay: .18s; }
+.denkt-punkt:nth-child(3) { animation-delay: .36s; }
+@keyframes denken {
+  0%, 60%, 100% { opacity: .3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .denkt-punkt { animation: none; opacity: .6; }
 }
 
 /* ---------- Zwischenergebnis ---------- */

@@ -5,7 +5,7 @@ export const LEISTUNGEN = [
     cluster: 'melde-ausweis',
     name: 'Wohnsitz anmelden oder ummelden',
     sprechName: 'Wohnsitz anmelden oder ummelden',
-    synonyme: ['anmelden', 'ummelden', 'ummeldung', 'anmeldung wohnsitz', 'umgezogen', 'neue wohnung anmelden', 'adresse ändern', 'adressänderung', 'wohnsitz ändern', 'einwohnermeldeamt anmelden', 'nach umzug anmelden', 'zweitwohnsitz anmelden'],
+    synonyme: ['anmelden', 'ummelden', 'ummeldung', 'anmeldung wohnsitz', 'umgezogen', 'gezogen', 'hergezogen', 'zugezogen', 'neue wohnung anmelden', 'adresse ändern', 'adressänderung', 'wohnsitz ändern', 'einwohnermeldeamt anmelden', 'nach umzug anmelden', 'zweitwohnsitz anmelden'],
     leikaBezug: 'Meldebescheinigung/Anmeldung einer Wohnung (LeiKa 99083016)',
     kurzbeschreibung: 'Wer eine Wohnung bezieht, muss sich innerhalb von zwei Wochen bei der Meldebehörde der neuen Gemeinde anmelden. Das gilt für den Zuzug von außerhalb ebenso wie für den Umzug innerhalb der Gemeinde und für Neben- oder Zweitwohnungen.',
     zustaendigkeit: {

@@ -18,7 +18,8 @@ import {
   CLUSTER_BY_ID, LEISTUNG_BY_ID, ASPEKT_BY_ID, ASPEKT_MENUE,
   topLeistungen, leistungenImCluster,
 } from './kb/index.js';
-import { verstehe, entscheide, erkenneZiffer, erkenneBefehl, erkenneAspekt } from './nlu.js';
+import { verstehe, entscheide, erkenneZiffer, erkenneBefehl, erkenneAspekt, erkenneLand, istReineOrtsangabe } from './nlu.js';
+import { regional, LAENDER, registerbereichFuer } from './kb/regional/index.js';
 
 export const ZUSTAND = {
   START: 'start',
@@ -56,6 +57,9 @@ function ziffernansage(optionen) {
 
 export class Dialog {
   constructor() {
+    /** Bundesland des Anrufers - ueberdauert ein "neues Anliegen" bewusst. */
+    this.land = null;
+    this.landHinweisGegeben = false;
     this.zuruecksetzen();
   }
 
@@ -149,7 +153,20 @@ export class Dialog {
       }
     }
 
-    // 3. Innerhalb einer Leistung: direkte Frage nach einem Aspekt.
+    // 3. Landesangabe: als Nebeneffekt setzen; ist der Satz NUR eine
+    //    Landesangabe, wird bestaetigt und der Kontext regional neu gerendert.
+    const landTreffer = erkenneLand(text);
+    if (landTreffer) {
+      this.landSetzen(landTreffer.code);
+      if (istReineOrtsangabe(text, landTreffer.stichwort)) {
+        this.missverstaendnisse = 0;
+        return this.merke(this.landBestaetigen());
+      }
+      // Sonst laeuft die Klassifikation normal weiter - der Satz enthaelt
+      // neben dem Ort auch ein Anliegen ("bin nach Koeln gezogen").
+    }
+
+    // 4. Innerhalb einer Leistung: direkte Frage nach einem Aspekt.
     if (this.leistungId) {
       const aspekt = erkenneAspekt(text);
       if (aspekt) {
@@ -185,6 +202,13 @@ export class Dialog {
       return this.merke(this.zeigeBereichswahl(ergebnis.clusterIds));
     }
 
+    // Der Satz trug zwar kein erkennbares Anliegen, aber eine Ortsangabe -
+    // dann ist die Landesbestaetigung die richtige Antwort, kein Fehlversuch.
+    if (landTreffer) {
+      this.missverstaendnisse = 0;
+      return this.merke(this.landBestaetigen());
+    }
+
     return this.merke(this.nichtVerstanden());
   }
 
@@ -194,6 +218,118 @@ export class Dialog {
     this.zustand = antwort.zustand;
     this.verlauf.push({ rolle: 'bot', text: antwort.sprich, stufe: antwort.stufe });
     return antwort;
+  }
+
+  // -------------------------------------------------------------------------
+  // Regionale Schicht
+  // -------------------------------------------------------------------------
+
+  /** Setzt das Bundesland; liefert true, wenn sich etwas geaendert hat. */
+  landSetzen(code) {
+    const neu = LAENDER[code] ? code : null;
+    if (neu === this.land) return false;
+    this.land = neu;
+    return true;
+  }
+
+  /**
+   * Antwort auf eine reine Landesangabe ("Ich wohne in Koeln"): bestaetigen
+   * und - wenn gerade eine Leistung offen ist - die aktuelle Auskunft mit dem
+   * Regionalblock neu aufbauen, damit die Angabe sofort sichtbar wirkt.
+   */
+  landBestaetigen() {
+    const land = LAENDER[this.land];
+    if (this.leistungId && this.aspektId && this.aspektId !== 'alles') {
+      const a = this.zeigeAspekt(this.leistungId, this.aspektId);
+      return { ...a, sprich: `Verstanden, ${land.name}. ${a.sprich}` };
+    }
+    if (this.leistungId) {
+      const a = this.zeigeLeistung(this.leistungId, { kurz: true });
+      return { ...a, sprich: `Verstanden, ${land.name}. ${a.sprich}` };
+    }
+    const a = this.letzteAntwort ?? this.begruessung();
+    return {
+      ...a,
+      sprich: `Verstanden, ich berücksichtige jetzt die Angaben für ${land.name}. Worum geht es?`,
+    };
+  }
+
+  /**
+   * Baut den Regionalblock einer Leistung fuer das gesetzte Land.
+   * aspektId begrenzt auf die zum Aspekt passenden Felder; ohne aspektId
+   * (Leistungs- und Vollansicht) wird alles Hinterlegte gezeigt.
+   */
+  regionalTeile(leistungId, aspektId = null) {
+    if (!this.land) return null;
+    const r = regional(leistungId, this.land);
+    if (!r) return null;
+    const { land, eintrag, profil, bereich } = r;
+
+    const eintraege = [];
+    const will = (feld) => !aspektId || ASPEKT_REGIONALFELDER[aspektId]?.includes(feld);
+
+    if (eintrag) {
+      if (eintrag.zustaendigkeit && will('zustaendigkeit')) {
+        eintraege.push(`Zuständig in ${land.kuerzel}: ${eintrag.zustaendigkeit.stelle}${eintrag.zustaendigkeit.hinweis ? ` — ${eintrag.zustaendigkeit.hinweis}` : ''}`);
+      }
+      if (eintrag.gebuehren && will('gebuehren')) {
+        for (const g of eintrag.gebuehren) eintraege.push(`${g.position}: ${g.betrag}`);
+      }
+      if (eintrag.fristen && will('fristen')) {
+        for (const f of eintrag.fristen) eintraege.push(f);
+      }
+      if (eintrag.online && will('online')) eintraege.push(`Online in ${land.kuerzel}: ${eintrag.online}`);
+      if (eintrag.besonderheiten && will('besonderheiten')) {
+        for (const b of eintrag.besonderheiten) eintraege.push(b);
+      }
+      if (eintrag.rechtsgrundlagen && will('rechtsgrundlagen')) {
+        for (const rg of eintrag.rechtsgrundlagen) eintraege.push(`Rechtsgrundlage: ${rg}`);
+      }
+    }
+    // Ohne konkreten Leistungseintrag traegt das Registerbereichsprofil.
+    if (!eintraege.length && profil) {
+      eintraege.push(profil.kurz);
+      for (const f of profil.fakten ?? []) eintraege.push(f);
+    }
+    if (!eintraege.length) return null;
+
+    if (profil?.portal && !aspektId) eintraege.push(`Portal: ${profil.portal}`);
+    const quelle = eintrag?.rechtsgrundlagen?.[0] ?? profil?.quelleHinweis;
+    const standsatz = `Stand ${eintrag?.stand ?? land.stand}${quelle && !aspektId ? ` · ${quelle}` : ''}`;
+
+    // Kurzer Sprechsatz: die wichtigste Landesabweichung, nicht die Liste.
+    let sprichSatz = '';
+    if (eintrag?.zustaendigkeit && will('zustaendigkeit')) {
+      sprichSatz = `In ${land.name} ist dafür ${eintrag.zustaendigkeit.stelle} zuständig.`;
+    } else if (eintrag?.gebuehren?.length && will('gebuehren')) {
+      sprichSatz = `In ${land.name}: ${eintrag.gebuehren[0].position} ${eintrag.gebuehren[0].betrag}.`;
+    } else if (eintrag?.fristen?.length && will('fristen')) {
+      sprichSatz = `In ${land.name} gilt: ${eintrag.fristen[0]}`;
+    } else if (eintrag?.besonderheiten?.length) {
+      sprichSatz = `Für ${land.name} wichtig: ${eintrag.besonderheiten[0]}`;
+    } else if (profil) {
+      sprichSatz = `Für ${land.name}: ${profil.kurz}`;
+    }
+
+    return {
+      liste: {
+        titel: `Regional: ${land.name}${bereich ? ` · ${bereich.name}` : ''} (${standsatz})`,
+        eintraege,
+      },
+      sprichSatz,
+    };
+  }
+
+  /**
+   * Hinweis, dass Landesdaten existieren - einmal pro Gespraech, und nur wenn
+   * die Leistung tatsaechlich landes- oder ortsabhaengig ist.
+   */
+  landAngebot(l) {
+    if (this.land || this.landHinweisGegeben) return null;
+    if (l.belastbarkeit.quelle === 'bundesrecht') return null;
+    if (!regional(l.id, 'nw') && !regional(l.id, 'rp')) return null;
+    this.landHinweisGegeben = true;
+    return 'Für NRW und Rheinland-Pfalz habe ich Landesdaten - nennen Sie dazu Ihr Bundesland.';
   }
 
   // -------------------------------------------------------------------------
@@ -463,6 +599,9 @@ export class Dialog {
     const pflichtUnterlagen = l.unterlagen.filter((u) => u.pflicht);
     const hauptgebuehr = l.gebuehren[0];
 
+    const regionalL = this.regionalTeile(leistungId);
+    const angebot = this.landAngebot(l);
+
     const sprichTeile = [];
     if (!kurz) {
       sprichTeile.push(`${l.sprechName}.`);
@@ -472,6 +611,8 @@ export class Dialog {
     } else {
       sprichTeile.push(`Zurück zu ${l.sprechName}.`);
     }
+    if (regionalL?.sprichSatz) sprichTeile.push(regionalL.sprichSatz);
+    if (angebot) sprichTeile.push(angebot);
     sprichTeile.push('Was möchten Sie wissen?');
     sprichTeile.push(ziffernansage(optionen.slice(0, 3)));
     sprichTeile.push('Für Fristen, Voraussetzungen oder Online-Wege sagen Sie 4, 5 oder 6.');
@@ -493,6 +634,7 @@ export class Dialog {
             `Online möglich: ${l.online.moeglich ? 'ja' : 'nein'}`,
             `Prozessschritte: ${l.ablauf.length}`,
           ] },
+          ...(regionalL ? [regionalL.liste] : []),
         ],
         hinweis: this.belastbarkeitHinweis(l),
       },
@@ -517,6 +659,8 @@ export class Dialog {
     this.gehoerteAspekte.add(aspektId);
 
     const inhalt = aspektInhalt(l, aspektId);
+    const regionalA = this.regionalTeile(leistungId, aspektId);
+    const angebotA = this.landAngebot(l);
 
     const naechste = ASPEKT_MENUE.filter((id) => id !== aspektId && !this.gehoerteAspekte.has(id)).slice(0, 3);
     const optionen = naechste.map((id, i) => ({
@@ -532,6 +676,8 @@ export class Dialog {
     const sprichTeile = [];
     if (mitEinordnung) sprichTeile.push(`Es geht um ${l.sprechName}.`);
     sprichTeile.push(inhalt.sprich);
+    if (regionalA?.sprichSatz) sprichTeile.push(regionalA.sprichSatz);
+    if (angebotA) sprichTeile.push(angebotA);
     if (naechste.length) {
       sprichTeile.push('Wenn Sie mehr brauchen:');
       sprichTeile.push(ziffernansage(optionen.slice(0, naechste.length)));
@@ -547,7 +693,7 @@ export class Dialog {
         titel: `${a.name}: ${l.name}`,
         untertitel: c.name,
         absaetze: inhalt.absaetze,
-        listen: inhalt.listen,
+        listen: [...inhalt.listen, ...(regionalA ? [regionalA.liste] : [])],
         hinweis: this.belastbarkeitHinweis(l),
       },
       optionen,
@@ -568,7 +714,9 @@ export class Dialog {
     this.leistungId = leistungId;
     for (const id of ASPEKT_MENUE) this.gehoerteAspekte.add(id);
 
+    const regionalV = this.regionalTeile(leistungId);
     const listen = [
+      ...(regionalV ? [regionalV.liste] : []),
       { titel: 'Voraussetzungen', eintraege: l.voraussetzungen },
       { titel: 'Benötigte Unterlagen', eintraege: l.unterlagen.map(formatUnterlage) },
       { titel: 'Kosten', eintraege: l.gebuehren.map(formatGebuehr) },
@@ -592,6 +740,7 @@ export class Dialog {
     const pflicht = l.unterlagen.filter((u) => u.pflicht).map((u) => u.was);
     const sprich = [
       `Die vollständige Auskunft zu ${l.sprechName} steht jetzt auf dem Bildschirm.`,
+      regionalV?.sprichSatz ?? '',
       `Das Wichtigste in Kürze: Sie brauchen ${sprichListe(pflicht, 3)}.`,
       l.gebuehren[0] ? `${l.gebuehren[0].position} kostet ${satzEnde(l.gebuehren[0].betrag)}` : '',
       `Zur Dauer: ${satzEnde(l.bearbeitungsdauer)}`,
@@ -833,6 +982,20 @@ function formatGebuehr(g) {
 function formatSchritt(s) {
   return `Schritt ${s.nr} — ${s.titel}: ${s.detail}${s.akteur ? ` [${s.akteur}]` : ''}`;
 }
+
+/** Welche Regionalfelder zu welchem Detailaspekt gehoeren. */
+export const ASPEKT_REGIONALFELDER = {
+  unterlagen: ['besonderheiten'],
+  kosten: ['gebuehren', 'besonderheiten'],
+  ablauf: ['besonderheiten', 'online'],
+  voraussetzungen: ['besonderheiten'],
+  fristen: ['fristen', 'besonderheiten'],
+  zustaendigkeit: ['zustaendigkeit', 'besonderheiten'],
+  online: ['online', 'besonderheiten'],
+  rechtsgrundlagen: ['rechtsgrundlagen'],
+  fehler: ['besonderheiten'],
+  faq: ['besonderheiten'],
+};
 
 /**
  * Erzeugt fuer einen Aspekt sowohl den kurzen Sprechtext als auch die

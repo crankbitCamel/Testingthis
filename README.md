@@ -84,6 +84,33 @@ Erziehung · Eheschließung und Sterbefall · Arbeit und Soziales · Gewerbe und
 Bauen und Wohnen · Aufenthalt und Einbürgerung · Umwelt, Abfall und Tiere · Ordnung und
 Bußgeld · Steuern und Abgaben · Bildung und Schule
 
+### Regionalschicht: 20 Registerbereiche mit Landesdaten
+
+Über die bundesweite Basis legt sich eine Regionalschicht (`src/kb/regional/`), die
+20 Registerbereiche — Meldewesen, Pass- und Ausweisregister, Standesamtsregister,
+Fahrzeugregister, Gewerberegister, Bauaufsicht und weitere — mit Landesdaten füllt.
+Hinterlegt sind **Nordrhein-Westfalen** und **Rheinland-Pfalz**, je 20 Registerprofile
+plus konkrete Leistungs-Overlays.
+
+Das Land wird per Sprache gesetzt („Ich wohne in Köln", „in Mainz", „NRW") oder über die
+Regionsauswahl im Kopf; es überdauert ein „neues Anliegen". Danach ergänzt jede Antwort
+einen ausgewiesenen Regionalblock mit Stand und Rechtsgrundlage — die bundesweite Basis
+bleibt unangetastet, ein fehlendes Overlay fällt sauber auf die Spanne zurück. Beispiele
+für fachlich gegensätzliche Landesantworten, durch Tests abgesichert:
+
+| Frage | NRW | Rheinland-Pfalz |
+| --- | --- | --- |
+| Kirchenaustritt — wo? | Amtsgericht, 30 € | Standesamt, 30 € |
+| Bestattungsfrist | spätestens 10 Tage (frühestens 24 h) | spätestens 14 Tage (BestG 2025) |
+| Schwerbehindertenfeststellung | kommunalisiert (Kreis/Stadt) | zentral beim LSJV |
+| Schulstichtag / Grundschulwahl | 30. September, freie Wahl | 31. August, Schulbezirke |
+| Gartenhaus verfahrensfrei | bis 75 m³ | bis 50 m³ (Außenbereich 10 m³) |
+| Kita-Beitrag | letzte 2 Jahre frei | ab 2 Jahren frei, Anspruch ab 2 |
+
+Ein Overlay überschreibt nur einzelne Felder (`zustaendigkeit`, `gebuehren`, `fristen`,
+`besonderheiten`, `online`, `rechtsgrundlagen`) und trägt verpflichtend `stand` und
+Quellenhinweis; der Validator prüft jede Referenz gegen die Basis.
+
 ### Aufbau einer Leistung
 
 Jede Leistung ist bis in die Verfahrensdetails beschrieben — das war die Vorgabe „jeden
@@ -134,6 +161,7 @@ src/
     cluster.js          Stufe 1: zwölf Bereiche mit Grundsatzwissen
     index.js            Aggregation, Indizes, Kennzahlen
     leistungen/*.js     Stufe 2: 72 Leistungen, nach Bereich getrennt
+    regional/           20 Registerbereiche, Landesprofile NRW und RP
 scripts/
   server.mjs            statischer Server ohne Abhängigkeiten
   validate-kb.mjs       Konsistenzprüfung der Wissensbasis
@@ -141,6 +169,7 @@ scripts/
 tests/
   nlu.test.mjs          Erkennung inkl. Klassifikationstabelle
   dialog.test.mjs       Gesprächsführung und Antwortqualität
+  regional.test.mjs     Landeserkennung, Overlays, NRW/RP-Gegensatzpaare
 ```
 
 ### Erkennung ohne Sprachmodell
@@ -176,7 +205,7 @@ dieselben zwölf Unterlagen genau richtig.
 ```bash
 npm run validate   # 20 Pflichtfelder je Leistung, Querverweise, Ablauf-Nummerierung,
                    # Gebührenarten, Synonym-Dubletten, Menüfähigkeit jedes Bereichs
-npm test           # 110 Tests
+npm test           # 137 Tests
 ```
 
 Die Testsuite enthält unter anderem:

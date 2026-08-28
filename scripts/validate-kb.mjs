@@ -9,6 +9,7 @@
  */
 import { CLUSTER, LEISTUNGEN, LEISTUNG_BY_ID, kennzahlen, leistungenImCluster, topLeistungen } from '../src/kb/index.js';
 import { ASPEKT_BY_ID, ASPEKT_MENUE } from '../src/kb/schema.js';
+import { REGISTERBEREICHE, LAENDER_LISTE, regionalKennzahlen } from '../src/kb/regional/index.js';
 
 const fehler = [];
 const warnungen = [];
@@ -118,6 +119,45 @@ for (const c of CLUSTER) {
   if (topLeistungen(c.id, 3).length < 3) fehler.push(`Cluster ${c.id}: kann kein vollstaendiges 1/2/3-Menue bilden`);
 }
 
+// --- Regionalschicht ---------------------------------------------------------
+// Ein Overlay, das auf eine falsche Leistungs-ID zeigt, ueberschreibt still
+// ins Leere - deshalb wird jede Referenz geprueft.
+
+const bereichIds = new Set();
+for (const b of REGISTERBEREICHE) {
+  if (bereichIds.has(b.id)) fehler.push(`Registerbereich-ID doppelt: ${b.id}`);
+  bereichIds.add(b.id);
+  for (const lid of b.leistungen) {
+    if (!LEISTUNG_BY_ID[lid]) fehler.push(`Registerbereich ${b.id}: unbekannte Leistung "${lid}"`);
+  }
+}
+if (REGISTERBEREICHE.length !== 20) {
+  fehler.push(`Es sind ${REGISTERBEREICHE.length} Registerbereiche definiert - erwartet werden 20.`);
+}
+
+for (const land of LAENDER_LISTE) {
+  const pfad = `Land ${land.kuerzel}`;
+  if (!land.code || !land.name || !land.stichworte?.length) fehler.push(`${pfad}: Kopfdaten unvollstaendig`);
+  for (const bid of bereichIds) {
+    if (!land.registerprofile[bid]) fehler.push(`${pfad}: Registerprofil "${bid}" fehlt - alle 20 Bereiche muessen gefuellt sein`);
+  }
+  for (const [bid, profil] of Object.entries(land.registerprofile)) {
+    if (!bereichIds.has(bid)) fehler.push(`${pfad}: Registerprofil verweist auf unbekannten Bereich "${bid}"`);
+    if (!profil.kurz || !(profil.fakten?.length >= 1)) fehler.push(`${pfad}/${bid}: kurz oder fakten fehlen`);
+  }
+  for (const [lid, eintrag] of Object.entries(land.leistungen)) {
+    if (!LEISTUNG_BY_ID[lid]) fehler.push(`${pfad}: Leistungs-Overlay verweist auf unbekannte ID "${lid}"`);
+    if (!eintrag.stand) fehler.push(`${pfad}/${lid}: Overlay ohne Stand`);
+    for (const g of eintrag.gebuehren ?? []) {
+      if (!g.position || !g.betrag || !gebuehrenArten.has(g.art)) fehler.push(`${pfad}/${lid}: Gebuehrenposition unvollstaendig oder Art unbekannt`);
+    }
+    const erlaubt = new Set(['zustaendigkeit', 'gebuehren', 'fristen', 'besonderheiten', 'online', 'rechtsgrundlagen', 'quelleHinweis', 'stand']);
+    for (const k of Object.keys(eintrag)) {
+      if (!erlaubt.has(k)) fehler.push(`${pfad}/${lid}: unbekanntes Overlay-Feld "${k}"`);
+    }
+  }
+}
+
 // --- Ausgabe ---------------------------------------------------------------
 const k = kennzahlen();
 console.log('Wissensbasis Verwaltungs-Voice-Agent');
@@ -133,6 +173,12 @@ console.log(`FAQ-Eintraege:            ${k.faq}`);
 console.log(`Synonyme:                 ${k.synonyme}`);
 console.log('');
 console.log(`Adressierbare Wissensknoten (Cluster + Leistung x Aspekt): ${k.cluster + k.leistungen * k.aspekte}`);
+const rk = regionalKennzahlen();
+console.log('');
+console.log(`Regionalschicht: ${rk.registerbereiche} Registerbereiche, ${rk.laender} Laender`);
+for (const [code, l] of Object.entries(rk.jeLand)) {
+  console.log(`  ${l.name}: ${l.registerprofile} Registerprofile, ${l.leistungen} Leistungs-Overlays`);
+}
 console.log('');
 
 if (warnungen.length) {

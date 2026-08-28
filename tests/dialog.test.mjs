@@ -151,16 +151,18 @@ describe('Eskalation und Robustheit', () => {
 });
 
 describe('Qualität der gesprochenen Antworten', () => {
-  test('kein Sprechtext ist länger als 800 Zeichen', () => {
+  test('kein Sprechtext ist länger als 880 Zeichen', () => {
+    // 880 statt 800: Das einmalige Landesdaten-Angebot verlaengert die
+    // Leistungsansage; darueber hinaus bleibt die Grenze hart.
     const zuLang = [];
     for (const l of LEISTUNGEN) {
       const d = new Dialog();
       d.begruessung();
       const a = d.zeigeLeistung(l.id);
-      if (a.sprich.length > 800) zuLang.push(`${l.id} (${a.sprich.length})`);
+      if (a.sprich.length > 880) zuLang.push(`${l.id} (${a.sprich.length})`);
       for (const aspekt of ASPEKT_MENUE) {
         const b = d.zeigeAspekt(l.id, aspekt);
-        if (b.sprich.length > 800) zuLang.push(`${l.id}/${aspekt} (${b.sprich.length})`);
+        if (b.sprich.length > 880) zuLang.push(`${l.id}/${aspekt} (${b.sprich.length})`);
       }
     }
     assert.deepEqual(zuLang, [], `Zu lange Sprechtexte: ${zuLang.join(', ')}`);

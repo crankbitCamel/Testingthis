@@ -15,6 +15,7 @@
  *      Klassifikation, bevor per Ziffernwahl praezisiert wird
  */
 import { CLUSTER, LEISTUNGEN, ASPEKTE, HAEUFIGKEIT, suchbegriffe } from './kb/index.js';
+import { LAENDER_LISTE } from './kb/regional/index.js';
 
 // ---------------------------------------------------------------------------
 // Normalisierung
@@ -252,6 +253,44 @@ export function erkenneBefehl(text) {
     }
   }
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// Landeserkennung
+// ---------------------------------------------------------------------------
+
+/**
+ * Erkennt eine Landesangabe in der Aeusserung: Landesname, Kuerzel oder eine
+ * hinterlegte Stadt ("ich wohne in Koeln"). Kurze Kuerzel wie "rp" werden nur
+ * als eigenstaendiges Wort akzeptiert, sonst faende sich "rp" in "Koerper".
+ */
+export function erkenneLand(text) {
+  const t = ` ${normalisieren(text)} `;
+  for (const land of LAENDER_LISTE) {
+    for (const stichwort of land.stichworte) {
+      const sn = normalisieren(stichwort);
+      if (sn.length <= 3) {
+        if (t.includes(` ${sn} `)) return { code: land.code, stichwort: sn };
+      } else if (t.includes(sn)) {
+        return { code: land.code, stichwort: sn };
+      }
+    }
+  }
+  return null;
+}
+
+/** Woerter, die eine reine Wohnortangabe bilden ("ich wohne in Koeln"). */
+const ORTSANGABE_WOERTER = new Set(['wohn', 'leb', 'komm', 'stamm', 'stadt', 'gemeind', 'heimat', 'bundesland', 'land']);
+
+/**
+ * True, wenn der Satz nur den Wohnort mitteilt und kein Anliegen enthaelt.
+ * "Ich wohne in Koeln" - ja. "Ich bin nach Koeln gezogen" - nein, das ist
+ * ein Umzugsanliegen und gehoert in die Klassifikation.
+ */
+export function istReineOrtsangabe(text, stichwort) {
+  const rest = normalisieren(text).replace(stichwort, ' ');
+  const tokens = tokenisieren(rest);
+  return tokens.every((t) => ORTSANGABE_WOERTER.has(t));
 }
 
 // ---------------------------------------------------------------------------

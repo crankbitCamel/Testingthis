@@ -102,6 +102,13 @@
         <select id="opt-stimme"><option value="">Standard</option></select>
       </label>
     </div>
+    <div class="leiste-gruppe" id="ki-gruppe" hidden>
+      <label class="schalter" title="Antworten formuliert Claude auf Basis der Wissensbasis (RAG)">
+        <input type="checkbox" id="opt-ki">
+        <span>KI-Modus</span>
+      </label>
+      <span id="ki-status" class="diagnose"></span>
+    </div>
     <div class="leiste-gruppe leiste-diagnose">
       <span class="diagnose-titel">Erkennung</span>
       <span id="diagnose" class="diagnose">–</span>

@@ -265,6 +265,23 @@ body {
   font-size: .82rem;
   max-width: 95%;
 }
+.mikro-inaktiv { opacity: .55; }
+.mikro-inaktiv:hover { border-color: var(--warnung); }
+
+.vorlesen {
+  display: block;
+  margin-top: .45rem;
+  padding: .2rem .55rem;
+  font: inherit;
+  font-size: .72rem;
+  color: var(--akzent-dunkel);
+  background: var(--akzent-hell);
+  border: 1px solid var(--rand);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.vorlesen:hover { border-color: var(--akzent); }
+
 .blase-stufe {
   display: block;
   font-size: .68rem;

@@ -219,6 +219,33 @@ Die Testsuite enthält unter anderem:
 - den Nachweis, dass unklare Eingaben **nicht** falsch zugeordnet werden
 - den Nachweis, dass kommunal variierende Angaben **immer** den Behördenvorbehalt tragen
 
+## Rechtsebenen-Klärung
+
+Der Anrufer muss nicht wissen, ob sein Anliegen Bundes-, Landes- oder
+Kommunalrecht ist — das System leitet die Ebene nach der Qualifizierung selbst
+aus der Wissensbasis ab (`src/kb/ebenen.js`). Bundesrecht wird sofort und ohne
+Ortsfrage beantwortet; bei Landes- oder Kommunalrecht folgt **genau eine**
+gezielte Rückfrage nach Bundesland bzw. Kommune, mit Ausweichoption auf die
+bundesweite Spanne. Unbekannte Orte erhalten die ehrliche Spanne mit
+Satzungsvorbehalt.
+
+## KI-Modus (LLM + RAG)
+
+Optional führt Claude das Gespräch — mit der Wissensbasis als einziger
+Faktenquelle: vier Werkzeuge (`wissen_suchen` über 736 RAG-Chunks,
+`leistung_auskunft`, `rechtsebene_pruefen`, `anliegen_klassifizieren`), harte
+Grounding-Regeln im System-Prompt, jede Antwort mit Belegen und Stand.
+
+```bash
+npm run build:chunks                 # RAG-Korpus erzeugen (dist/chunks.jsonl)
+ANTHROPIC_API_KEY=sk-... npm start   # KI-Modus "Claude (claude-opus-5)"
+npm start                            # ohne Schlüssel: Testmodus aus dem Retrieval
+```
+
+Der Schalter erscheint in der Fußleiste, sobald die Anwendung über ihren
+Node-Server läuft. Architektur, Chunking-Regeln, Retrieval-Aufbau und
+Kostenrahmen: **`docs/llm-rag-architektur.md`**.
+
 ## Grenzen
 
 - Die Wissensbasis ist redaktionell gepflegt und trägt einen Stand (`2026-08`). Beträge

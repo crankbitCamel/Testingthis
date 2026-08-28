@@ -31,6 +31,9 @@ const el = {
   tempoWert: document.getElementById('tempo-wert'),
   optStimme: document.getElementById('opt-stimme'),
   optRegion: document.getElementById('opt-region'),
+  kiGruppe: document.getElementById('ki-gruppe'),
+  optKi: document.getElementById('opt-ki'),
+  kiStatus: document.getElementById('ki-status'),
   diagnose: document.getElementById('diagnose'),
 };
 
@@ -74,6 +77,26 @@ function blase(text, art, stufe) {
     div.append(marke);
   }
   div.append(document.createTextNode(text));
+
+  // Jede Bot-Antwort bekommt einen Vorlesen-Knopf. Der Klick ist eine direkte
+  // Nutzergeste - der zuverlaessigste Weg, die Sprachausgabe auch dort zu
+  // starten, wo automatisches Sprechen blockiert wird.
+  if (art === 'bot' && sprachausgabeVerfuegbar) {
+    const vorlesen = document.createElement('button');
+    vorlesen.type = 'button';
+    vorlesen.className = 'vorlesen';
+    vorlesen.title = 'Diese Antwort vorlesen';
+    vorlesen.setAttribute('aria-label', 'Antwort vorlesen');
+    vorlesen.textContent = '🔊 Vorlesen';
+    vorlesen.addEventListener('click', () => {
+      sprecher.reaktivieren();
+      sprecher.stummSchalten(false);
+      el.optSprachausgabe.checked = true;
+      sprecher.sprich(text);
+    });
+    div.append(vorlesen);
+  }
+
   el.verlauf.append(div);
   // Erst nach dem Layout scrollen, sonst ist scrollHeight noch der alte Wert.
   requestAnimationFrame(() => { el.verlauf.scrollTop = el.verlauf.scrollHeight; });
@@ -281,6 +304,75 @@ function antwortAusgeben(antwort) {
   sprecher.sprich(antwort.sprich);
 }
 
+// ---------------------------------------------------------------------------
+// KI-Modus (LLM + RAG ueber den lokalen Server)
+//
+// Der regelbasierte Dialog bleibt der Standard: deterministisch, offline,
+// kostenfrei. Der KI-Modus schaltet die Gespraechsfuehrung auf Claude um -
+// das Modell formuliert frei, holt aber jede Fachaussage per Werkzeug aus
+// derselben Wissensbasis. Verfuegbar nur, wenn die Anwendung ueber ihren
+// Node-Server laeuft (nicht in der eingebetteten Einzeldatei).
+// ---------------------------------------------------------------------------
+
+let kiModus = false;
+let kiVerlauf = [];
+
+async function kiVerfuegbarkeitPruefen() {
+  try {
+    const antwort = await fetch('/api/status');
+    if (!antwort.ok) return;
+    const status = await antwort.json();
+    el.kiGruppe.hidden = false;
+    el.kiStatus.textContent = status.llm === 'bereit'
+      ? `Claude (${status.modell})`
+      : 'Testmodus - kein API-Schlüssel';
+    el.kiStatus.title = status.llm === 'bereit'
+      ? 'Antworten formuliert Claude; Fachdaten kommen per Werkzeugaufruf aus der Wissensbasis.'
+      : 'ANTHROPIC_API_KEY ist nicht gesetzt. Der Testmodus antwortet direkt aus dem Retrieval.';
+  } catch {
+    // Kein Server (z. B. Einzeldatei/Artifact) - Schalter bleibt verborgen.
+  }
+}
+
+async function kiVerarbeiten(eingabe) {
+  denkenZeigen();
+  try {
+    const antwort = await fetch('/api/assistent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nachricht: eingabe, verlauf: kiVerlauf.slice(-12), land: dialog.land }),
+    });
+    const daten = await antwort.json();
+    denkenVerbergen();
+    if (!antwort.ok || daten.fehler) {
+      systemhinweis(`KI-Modus: ${daten.fehler ?? antwort.status}. Ich antworte regelbasiert weiter.`);
+      el.optKi.checked = false;
+      kiModus = false;
+      antwortAusgeben(dialog.verarbeite(eingabe));
+      return;
+    }
+    kiVerlauf.push({ rolle: 'nutzer', text: eingabe }, { rolle: 'bot', text: daten.text });
+    blase(daten.text, 'bot');
+    auskunftZeichnen({
+      titel: 'KI-Auskunft',
+      untertitel: daten.modus === 'mock' ? 'Testmodus ohne Sprachmodell' : `Formuliert von Claude · Fachdaten aus der Wissensbasis`,
+      absaetze: [daten.text],
+      listen: [
+        ...(daten.quellen?.length ? [{ titel: 'Belege aus der Wissensbasis', eintraege: daten.quellen }] : []),
+        ...(daten.werkzeuge?.length ? [{ titel: 'Aufgerufene Werkzeuge', eintraege: daten.werkzeuge.map((w) => `${w.name}(${JSON.stringify(w.eingabe)})`) }] : []),
+      ],
+      hinweis: 'KI-formulierte Auskunft auf Basis der geprüften Wissensbasis. Verbindlich entscheidet die zuständige Behörde.',
+    }, 3);
+    sprecher.sprich(daten.text);
+  } catch (fehler) {
+    denkenVerbergen();
+    systemhinweis(`KI-Modus nicht erreichbar (${fehler.message}). Ich antworte regelbasiert weiter.`);
+    el.optKi.checked = false;
+    kiModus = false;
+    antwortAusgeben(dialog.verarbeite(eingabe));
+  }
+}
+
 function eingabeVerarbeiten(text, quelle) {
   const eingabe = (text ?? '').trim();
   if (!eingabe) return;
@@ -292,6 +384,11 @@ function eingabeVerarbeiten(text, quelle) {
 
   blase(eingabe, 'nutzer');
   if (quelle !== 'taste') diagnoseZeichnen(eingabe);
+
+  if (kiModus && quelle !== 'taste') {
+    kiVerarbeiten(eingabe);
+    return;
+  }
 
   const antwort = dialog.verarbeite(eingabe);
 
@@ -315,6 +412,10 @@ el.textForm.addEventListener('submit', (ereignis) => {
 });
 
 el.mikro.addEventListener('click', () => {
+  if (!spracheingabeVerfuegbar) {
+    systemhinweis('Die Spracherkennung ist in dieser Umgebung nicht verfügbar - eingebettete Ansichten sperren häufig das Mikrofon. Der Assistent ist über Texteingabe und Zifferntasten vollständig bedienbar; für echte Spracheingabe öffnen Sie die Anwendung direkt in Chrome, Edge oder Safari.');
+    return;
+  }
   if (zuhoerer.aktiv) {
     zuhoerer.stoppen();
   } else {
@@ -341,6 +442,14 @@ el.optTempo.addEventListener('input', () => {
 
 el.optStimme.addEventListener('change', () => {
   sprecher.stimmeSetzen(el.optStimme.value);
+});
+
+el.optKi.addEventListener('change', () => {
+  kiModus = el.optKi.checked;
+  if (kiModus) kiVerlauf = [];
+  systemhinweis(kiModus
+    ? 'KI-Modus aktiv: Claude führt das Gespräch und belegt jede Fachaussage aus der Wissensbasis. Zifferntasten steuern weiter das regelbasierte Menü.'
+    : 'Zurück im regelbasierten Modus.');
 });
 
 el.optRegion.addEventListener('change', () => {
@@ -410,16 +519,18 @@ function start() {
   pfadZeichnen([]);
 
   if (!spracheingabeVerfuegbar) {
-    systemhinweis('Dieser Browser unterstützt keine Spracherkennung. Der Assistent ist über die Texteingabe und die Zifferntasten vollständig bedienbar. Für Spracheingabe eignen sich Chrome, Edge oder Safari.');
-    el.mikro.disabled = true;
-    el.mikro.title = 'Spracherkennung in diesem Browser nicht verfügbar';
+    // Bewusst NICHT deaktivieren: Ein toter Knopf ohne Erklaerung wirkt wie
+    // ein Fehler. Der Klick erklaert stattdessen, woran es liegt.
+    el.mikro.classList.add('mikro-inaktiv');
+    el.mikro.title = 'Spracherkennung ist in dieser Umgebung nicht verfügbar - Klick für Details';
   }
   if (!sprachausgabeVerfuegbar) {
-    el.optSprachausgabe.disabled = true;
     el.optSprachausgabe.checked = false;
+    el.optSprachausgabe.title = 'Sprachausgabe wird von diesem Browser nicht unterstützt';
   }
 
   el.textEingabe.focus();
+  kiVerfuegbarkeitPruefen();
 }
 
 start();

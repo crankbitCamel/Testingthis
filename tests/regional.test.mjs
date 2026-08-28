@@ -139,14 +139,17 @@ describe('Dialog mit gesetztem Land', () => {
     assert.ok(rp.sprich.includes('Standesamt'), rp.sprich);
   });
 
-  test('ohne Land: bundesweite Spanne plus einmaliges Landesangebot', () => {
+  test('ohne Land: erst die Ortsfrage, nach Verzicht die bundesweite Spanne', () => {
     const d = dialogMit(null);
-    const a = d.verarbeite('Was kostet die Hundesteuer');
-    assert.ok(a.sprich.includes('30 bis 180'));
-    assert.ok(a.sprich.includes('Landesdaten'), 'Angebot fehlt');
-    d.verarbeite('zurück');
-    const b = d.verarbeite('Was kostet ein Bewohnerparkausweis');
-    assert.ok(!b.sprich.includes('Landesdaten hinterlegt'), 'Angebot darf nur einmal kommen');
+    const frage = d.verarbeite('Was kostet die Hundesteuer');
+    assert.equal(frage.zustand, 'ortsklaerung');
+    assert.ok(frage.sprich.includes('kommunal geregelt'), frage.sprich);
+    assert.ok(frage.sprich.includes('Stadt oder Gemeinde'), frage.sprich);
+    const antwort = d.verarbeite('3');
+    assert.ok(antwort.sprich.includes('30 bis 180'), antwort.sprich);
+    // Nach dem Verzicht wird nicht erneut gefragt.
+    const zweite = d.verarbeite('Was kostet ein Bewohnerparkausweis');
+    assert.notEqual(zweite.zustand, 'ortsklaerung');
   });
 
   test('das Land überdauert ein neues Anliegen', () => {
@@ -175,6 +178,37 @@ describe('Dialog mit gesetztem Land', () => {
     const a = d.verarbeite('alles');
     assert.ok(a.anzeige.listen[0].titel.startsWith('Regional: Rheinland-Pfalz'));
     assert.ok(a.anzeige.listen[0].eintraege.some((e) => e.includes('beitragsfrei')));
+  });
+
+  test('Rechtsebenen-Klärung: Bundesrecht wird nie mit einer Ortsfrage belastet', () => {
+    const d = dialogMit(null);
+    const a = d.verarbeite('Was kostet ein Personalausweis');
+    assert.notEqual(a.zustand, 'ortsklaerung');
+    assert.ok(a.sprich.includes('37,00 Euro'));
+  });
+
+  test('Rechtsebenen-Klärung: Stadtname in der Rückfrage löst direkt auf', () => {
+    const d = dialogMit(null);
+    d.verarbeite('Was kostet die Hundesteuer');
+    const a = d.verarbeite('ich wohne in Bonn');
+    assert.equal(d.land, 'nw');
+    assert.ok(a.sprich.startsWith('Nordrhein-Westfalen, verstanden'), a.sprich.slice(0, 60));
+    assert.ok(a.sprich.includes('96 bis 180') || a.anzeige.listen.some((l) => l.titel.startsWith('Regional:')));
+  });
+
+  test('Rechtsebenen-Klärung: unbekannter Ort fällt ehrlich auf die Spanne zurück', () => {
+    const d = dialogMit(null);
+    d.verarbeite('Was kostet die Hundesteuer');
+    const a = d.verarbeite('München');
+    assert.ok(a.sprich.includes('keine eigenen Daten'), a.sprich.slice(0, 120));
+    assert.ok(a.sprich.includes('30 bis 180'));
+  });
+
+  test('Rechtsebenen-Klärung: neues Anliegen während der Rückfrage verwirft sie', () => {
+    const d = dialogMit(null);
+    d.verarbeite('Was kostet die Hundesteuer');
+    const a = d.verarbeite('Ich habe ein Auto gekauft');
+    assert.equal(a.quelle?.leistungId ?? a.quelle?.clusterId, 'kfz-ummeldung');
   });
 
   test('keine Regionalantwort enthält undefined', () => {

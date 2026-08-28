@@ -240,6 +240,8 @@ describe('Vollständige Erreichbarkeit der Wissensbasis', () => {
 
   test('kommunal variierende Angaben tragen immer einen Vorbehalt', () => {
     const d = new Dialog();
+    // Die Ortsfrage ist hier nicht Gegenstand - direkt zur Antwort.
+    d.ortsfrageAbgelehnt = true;
     for (const l of LEISTUNGEN.filter((x) => x.belastbarkeit.quelle !== 'bundesrecht')) {
       const a = d.zeigeAspekt(l.id, 'kosten');
       assert.ok(a.anzeige.hinweis?.includes('zuständige Behörde'),

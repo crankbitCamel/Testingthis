@@ -8,6 +8,7 @@ import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { gespraechsschritt, llmKonfiguriert } from '../server/assistent.mjs';
 
 const WURZEL = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const PORT = Number(process.env.PORT ?? 4115);
@@ -24,9 +25,47 @@ const TYPEN = {
   '.md': 'text/markdown; charset=utf-8',
 };
 
+function json(antwort, status, daten) {
+  antwort.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' })
+    .end(JSON.stringify(daten));
+}
+
+async function koerperLesen(anfrage, maxBytes = 64 * 1024) {
+  let groesse = 0;
+  const teile = [];
+  for await (const teil of anfrage) {
+    groesse += teil.length;
+    if (groesse > maxBytes) throw new Error('Anfrage zu groß');
+    teile.push(teil);
+  }
+  return JSON.parse(Buffer.concat(teile).toString('utf8') || '{}');
+}
+
 const server = createServer(async (anfrage, antwort) => {
   try {
     const url = new URL(anfrage.url, `http://${anfrage.headers.host}`);
+
+    // --- API: LLM-Assistenzmodus ------------------------------------------
+    if (url.pathname === '/api/status') {
+      json(antwort, 200, { llm: llmKonfiguriert() ? 'bereit' : 'mock', modell: process.env.ASSISTENT_MODELL ?? 'claude-opus-5' });
+      return;
+    }
+    if (url.pathname === '/api/assistent' && anfrage.method === 'POST') {
+      try {
+        const { nachricht, verlauf, land } = await koerperLesen(anfrage);
+        if (!nachricht || typeof nachricht !== 'string') {
+          json(antwort, 400, { fehler: 'Feld "nachricht" fehlt' });
+          return;
+        }
+        const ergebnis = await gespraechsschritt({ nachricht, verlauf: Array.isArray(verlauf) ? verlauf : [], land: land || null });
+        json(antwort, 200, ergebnis);
+      } catch (fehler) {
+        json(antwort, 500, { fehler: fehler.message });
+      }
+      return;
+    }
+
+    // --- Statische Dateien -------------------------------------------------
     let pfad = decodeURIComponent(url.pathname);
     if (pfad === '/') pfad = '/index.html';
 

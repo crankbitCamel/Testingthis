@@ -20,6 +20,7 @@ import {
 } from './kb/index.js';
 import { verstehe, entscheide, erkenneZiffer, erkenneBefehl, erkenneAspekt, erkenneLand, istReineOrtsangabe } from './nlu.js';
 import { regional, LAENDER, registerbereichFuer } from './kb/regional/index.js';
+import { rechtsebene, ebenenAnsage } from './kb/ebenen.js';
 
 export const ZUSTAND = {
   START: 'start',
@@ -27,9 +28,25 @@ export const ZUSTAND = {
   CLUSTER: 'cluster',
   LEISTUNG: 'leistung',
   ASPEKT: 'aspekt',
+  ORTSKLAERUNG: 'ortsklaerung',
   MENSCH: 'mensch',
   ENDE: 'ende',
 };
+
+/**
+ * Formulierungsvariation. Ein Bot, der jede Antwort mit demselben Satz
+ * einleitet, klingt nach Blechstimme. Die Varianten rotieren deterministisch
+ * ueber einen Zaehler - deterministisch, damit Tests reproduzierbar bleiben,
+ * rotierend, damit das Gespraech lebt.
+ */
+class Varianten {
+  constructor() { this.zaehler = new Map(); }
+  waehle(schluessel, varianten) {
+    const n = this.zaehler.get(schluessel) ?? 0;
+    this.zaehler.set(schluessel, n + 1);
+    return varianten[n % varianten.length];
+  }
+}
 
 const DISCLAIMER = 'Ich gebe allgemeine Auskunft. Gebühren und Fristen können in Ihrer Gemeinde abweichen. Verbindlich entscheidet immer die zuständige Behörde.';
 
@@ -60,11 +77,16 @@ export class Dialog {
     /** Bundesland des Anrufers - ueberdauert ein "neues Anliegen" bewusst. */
     this.land = null;
     this.landHinweisGegeben = false;
+    /** Der Anrufer hat die Ortsfrage abgelehnt - nicht erneut fragen. */
+    this.ortsfrageAbgelehnt = false;
+    this.varianten = new Varianten();
     this.zuruecksetzen();
   }
 
   zuruecksetzen() {
     this.zustand = ZUSTAND.START;
+    /** Waehrend der Ortsklaerung: die Antwort, die danach gegeben wird. */
+    this.ausstehend = null;
     this.clusterId = null;
     this.leistungId = null;
     this.aspektId = null;
@@ -139,7 +161,25 @@ export class Dialog {
       if (antwort) return this.merke(antwort);
     }
 
-    // 2. Ziffernwahl auf ein zuvor angebotenes Menue.
+    // 2. Laeuft eine Ortsklaerung, ist jede Eingabe zuerst deren Antwort -
+    //    ausser sie ist erkennbar ein neues Anliegen.
+    if (this.zustand === ZUSTAND.ORTSKLAERUNG && this.ausstehend) {
+      const ziffernwahl = erkenneZiffer(text);
+      if (ziffernwahl !== null && this.optionen.some((o) => o.ziffer === ziffernwahl)) {
+        const option = this.optionen.find((o) => o.ziffer === ziffernwahl);
+        this.missverstaendnisse = 0;
+        return this.merke(this.folgeOption(option));
+      }
+      const neuesAnliegen = entscheide(verstehe(text));
+      if (neuesAnliegen.art === 'unklar' || erkenneLand(text)) {
+        this.missverstaendnisse = 0;
+        return this.merke(this.ortsklaerungAufloesen(text));
+      }
+      // Der Anrufer hat ein anderes Anliegen begonnen - Klaerung verwerfen.
+      this.ausstehend = null;
+    }
+
+    // 3. Ziffernwahl auf ein zuvor angebotenes Menue.
     const ziffer = erkenneZiffer(text);
     if (ziffer !== null && this.optionen.length > 0) {
       const option = this.optionen.find((o) => o.ziffer === ziffer);
@@ -333,6 +373,94 @@ export class Dialog {
   }
 
   // -------------------------------------------------------------------------
+  // Rechtsebenen-Klaerung
+  //
+  // Der Ablauf, den ein Anrufer erlebt: Er nennt sein Anliegen, das System
+  // qualifiziert es, stellt selbst fest, auf welcher Ebene das Recht sitzt -
+  // und fragt erst dann nach dem Ort, wenn die konkrete Antwort wirklich
+  // davon abhaengt. Bundesrecht wird nie mit einer Ortsfrage belastet.
+  // -------------------------------------------------------------------------
+
+  /**
+   * Prueft vor einer Aspektantwort, ob zuerst der Ort geklaert werden muss.
+   * Liefert die Klaerungsfrage - oder null, wenn direkt geantwortet wird.
+   */
+  ortsklaerungNoetig(leistungId, aspektId) {
+    if (this.land || this.ortsfrageAbgelehnt) return null;
+    const e = rechtsebene(leistungId, aspektId);
+    if (!e?.ortsabhaengig) return null;
+    // Nur fragen, wenn wir die Antwort auch verfeinern koennten.
+    if (!regional(leistungId, 'nw') && !regional(leistungId, 'rp')) return null;
+    return e;
+  }
+
+  /** Stellt die Ortsfrage und merkt sich, welche Antwort danach faellig ist. */
+  frageNachOrt(leistungId, aspektId, ebenenInfo) {
+    const l = LEISTUNG_BY_ID[leistungId];
+    this.ausstehend = { leistungId, aspektId };
+    const nachLand = ebenenInfo.aufloesung === 'land';
+
+    const frage = nachLand
+      ? 'In welchem Bundesland wohnen Sie?'
+      : 'Für welche Stadt oder Gemeinde fragen Sie?';
+
+    const optionen = [
+      { ziffer: 1, label: 'Nordrhein-Westfalen', sprechLabel: 'Nordrhein-Westfalen', ziel: { art: 'ort', land: 'nw' } },
+      { ziffer: 2, label: 'Rheinland-Pfalz', sprechLabel: 'Rheinland-Pfalz', ziel: { art: 'ort', land: 'rp' } },
+      { ziffer: 3, label: 'Anderes Bundesland / weiter mit bundesweiter Auskunft', sprechLabel: 'ein anderes Bundesland', ziel: { art: 'ort', land: null } },
+    ];
+
+    return {
+      stufe: 3,
+      zustand: ZUSTAND.ORTSKLAERUNG,
+      sprich: [
+        satzEnde(ebenenAnsage(leistungId, aspektId)),
+        `Damit ich Ihnen die Werte für Ihren Ort nennen kann: ${frage}`,
+        'Sie können auch einfach die Stadt sagen - oder 3 für die bundesweite Auskunft.',
+      ].join(' '),
+      anzeige: {
+        titel: `Kurze Rückfrage: ${nachLand ? 'Ihr Bundesland' : 'Ihre Kommune'}`,
+        untertitel: `${l.name} — ${ebenenInfo.ebene.name}`,
+        absaetze: [
+          ebenenInfo.ebene.erklaerung,
+          'Hinterlegt sind Landesdaten für Nordrhein-Westfalen und Rheinland-Pfalz. Für andere Orte nenne ich die bundesweite Spanne.',
+        ],
+        listen: [],
+        hinweis: null,
+      },
+      optionen,
+      pfad: [
+        { ebene: 'Leistung', label: l.name },
+        { ebene: 'Rückfrage', label: nachLand ? 'Bundesland' : 'Kommune' },
+      ],
+      quelle: { stufe: 3, leistungId, aspektId, klaerung: true },
+    };
+  }
+
+  /** Verarbeitet die Antwort auf die Ortsfrage. */
+  ortsklaerungAufloesen(text) {
+    const offen = this.ausstehend;
+    this.ausstehend = null;
+    if (!offen) return this.nichtVerstanden();
+
+    const treffer = erkenneLand(text);
+    if (treffer) {
+      this.landSetzen(treffer.code);
+      const a = this.zeigeAspekt(offen.leistungId, offen.aspektId);
+      return { ...a, sprich: `${LAENDER[this.land].name}, verstanden. ${a.sprich}` };
+    }
+
+    // Ort genannt, aber nicht hinterlegt - oder Verzicht ("egal", "weiter").
+    this.ortsfrageAbgelehnt = true;
+    const a = this.zeigeAspekt(offen.leistungId, offen.aspektId);
+    const istVerzicht = /(egal|weiter|ohne|weiss nicht|weiß nicht|keine ahnung|3|anderes)/i.test(text);
+    const vorspann = istVerzicht
+      ? 'Gut, dann bundesweit.'
+      : 'Für diesen Ort habe ich keine eigenen Daten hinterlegt - ich nenne Ihnen die bundesweite Spanne; verbindlich ist Ihre örtliche Satzung.';
+    return { ...a, sprich: `${vorspann} ${a.sprich}` };
+  }
+
+  // -------------------------------------------------------------------------
   // Steuerbefehle
   // -------------------------------------------------------------------------
 
@@ -481,14 +609,21 @@ export class Dialog {
 
     // Gesprochen: Einordnung, ein bis zwei Faustregeln, dann das Ziffernmenue.
     const sprichTeile = [
-      kurz ? `Zurück zum Bereich ${c.sprechName}.` : `Verstanden, es geht um ${c.sprechName}.`,
+      kurz
+        ? `Zurück zum Bereich ${c.sprechName}.`
+        : this.varianten.waehle('clusterEinstieg', [
+            `Verstanden, es geht um ${c.sprechName}.`,
+            `Alles klar - ${c.sprechName}.`,
+            `${c.sprechName}, gut.`,
+            `Das gehört zu ${c.sprechName}.`,
+          ]),
     ];
     if (!kurz) {
       sprichTeile.push(satzEnde(g.kurz));
       sprichTeile.push(`Grob gilt hier: ${satzEnde(g.faustregeln[0])}`);
       if (g.faustregeln[1]) sprichTeile.push(satzEnde(g.faustregeln[1]));
     }
-    sprichTeile.push('Damit ich genauer werden kann:');
+    sprichTeile.push(this.varianten.waehle('clusterMenue', ['Damit ich genauer werden kann:', 'Um das einzugrenzen:', 'Sagen Sie mir, worum genau es geht:']));
     sprichTeile.push(ziffernansage(optionen.filter((o) => o.ziffer >= 1 && o.ziffer <= 3)));
 
     return {
@@ -613,7 +748,7 @@ export class Dialog {
     }
     if (regionalL?.sprichSatz) sprichTeile.push(regionalL.sprichSatz);
     if (angebot) sprichTeile.push(angebot);
-    sprichTeile.push('Was möchten Sie wissen?');
+    sprichTeile.push(this.varianten.waehle('leistungFrage', ['Was möchten Sie wissen?', 'Womit kann ich weiterhelfen?', 'Was davon brauchen Sie?', 'Wo soll ich einsteigen?']));
     sprichTeile.push(ziffernansage(optionen.slice(0, 3)));
     sprichTeile.push('Für Fristen, Voraussetzungen oder Online-Wege sagen Sie 4, 5 oder 6.');
 
@@ -633,6 +768,7 @@ export class Dialog {
             `Bearbeitungsdauer: ${l.bearbeitungsdauer}`,
             `Online möglich: ${l.online.moeglich ? 'ja' : 'nein'}`,
             `Prozessschritte: ${l.ablauf.length}`,
+            `Rechtsebene: ${rechtsebene(l.id)?.ebene.name ?? 'unbestimmt'}${rechtsebene(l.id)?.ortsabhaengig ? ' — Details hängen vom Ort ab' : ''}`,
           ] },
           ...(regionalL ? [regionalL.liste] : []),
         ],
@@ -652,6 +788,15 @@ export class Dialog {
     const l = LEISTUNG_BY_ID[leistungId];
     const a = ASPEKT_BY_ID[aspektId];
     if (!l || !a) return this.nichtVerstanden();
+
+    // Haengt die Antwort vom Ort ab und ist keiner bekannt, kommt zuerst die
+    // gezielte Rueckfrage - das ist die Rechtsebenen-Klaerung.
+    const klaerung = this.ortsklaerungNoetig(leistungId, aspektId);
+    if (klaerung) {
+      this.clusterId = l.cluster;
+      this.leistungId = leistungId;
+      return this.frageNachOrt(leistungId, aspektId, klaerung);
+    }
     const c = CLUSTER_BY_ID[l.cluster];
     this.clusterId = l.cluster;
     this.leistungId = leistungId;
@@ -677,9 +822,13 @@ export class Dialog {
     if (mitEinordnung) sprichTeile.push(`Es geht um ${l.sprechName}.`);
     sprichTeile.push(inhalt.sprich);
     if (regionalA?.sprichSatz) sprichTeile.push(regionalA.sprichSatz);
+    else if (this.ortsfrageAbgelehnt || this.land) {
+      const ansage = ebenenAnsage(leistungId, aspektId);
+      if (ansage && rechtsebene(leistungId, aspektId)?.ortsabhaengig) sprichTeile.push(ansage);
+    }
     if (angebotA) sprichTeile.push(angebotA);
     if (naechste.length) {
-      sprichTeile.push('Wenn Sie mehr brauchen:');
+      sprichTeile.push(this.varianten.waehle('aspektWeiter', ['Wenn Sie mehr brauchen:', 'Weiter im Thema?', 'Dazu passt noch:', 'Falls noch etwas offen ist:']));
       sprichTeile.push(ziffernansage(optionen.slice(0, naechste.length)));
     } else {
       sprichTeile.push('Sagen Sie 7 für die vollständige Auskunft oder beschreiben Sie ein neues Anliegen.');
@@ -776,6 +925,24 @@ export class Dialog {
       case 'leistung': return this.zeigeLeistung(z.leistungId);
       case 'aspekt': return this.zeigeAspekt(z.leistungId, z.aspektId);
       case 'vollauskunft': return this.zeigeVollauskunft(z.leistungId);
+      case 'ort': {
+        const offen = this.ausstehend;
+        this.ausstehend = null;
+        if (z.land) {
+          this.landSetzen(z.land);
+          if (offen) {
+            const a = this.zeigeAspekt(offen.leistungId, offen.aspektId);
+            return { ...a, sprich: `${LAENDER[z.land].name}, verstanden. ${a.sprich}` };
+          }
+          return this.landBestaetigen();
+        }
+        this.ortsfrageAbgelehnt = true;
+        if (offen) {
+          const a = this.zeigeAspekt(offen.leistungId, offen.aspektId);
+          return { ...a, sprich: `Gut, dann bundesweit. ${a.sprich}` };
+        }
+        return this.letzteAntwort ?? this.begruessung();
+      }
       case 'mensch': return this.anMenschen('Sie haben die Weiterleitung gewählt.');
       case 'neu': {
         this.clusterId = null;

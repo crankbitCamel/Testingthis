@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verwaltungsassistent · KI-Voice-Agent für Verwaltungsdienstleistungen</title>
+  <meta name="description" content="Sprachgesteuerter Assistent für Verwaltungsdienstleistungen nach dem Leistungskatalog der Behördennummer 115.">
+  <link rel="stylesheet" href="styles/app.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+</head>
+<body>
+  <a class="sprungmarke" href="#dialog">Zum Dialog springen</a>
+
+  <header class="kopf">
+    <div class="kopf-marke">
+      <span class="kopf-logo" aria-hidden="true">115</span>
+      <div>
+        <h1>Verwaltungsassistent</h1>
+        <p class="kopf-unterzeile">Sprachdialog für Verwaltungsdienstleistungen</p>
+      </div>
+    </div>
+    <div class="kopf-status">
+      <span id="kb-kennzahlen" class="kennzahlen" aria-live="polite"></span>
+      <button type="button" id="btn-info" class="knopf knopf-still" aria-expanded="false" aria-controls="info-panel">Über das System</button>
+    </div>
+  </header>
+
+  <section id="info-panel" class="info-panel" hidden>
+    <div class="info-raster">
+      <article>
+        <h2>Wie der Assistent arbeitet</h2>
+        <p>Der Bot klassifiziert eine frei gesprochene Frage zunächst nur <strong>grob</strong> auf Bereichsebene. Er nennt dann, was in diesem Bereich allgemein gilt, und lässt Sie per Ziffernwahl präzisieren — bis hinunter zum einzelnen Detailaspekt einer Leistung.</p>
+        <ol class="stufen-liste">
+          <li><strong>Stufe 1 — Bereich:</strong> zwölf Cluster entlang der Lebenslagen, jeweils mit Faustregeln, typischen Unterlagen, Fristen, Kosten und häufigen Irrtümern.</li>
+          <li><strong>Stufe 2 — Leistung:</strong> die konkrete Verwaltungsdienstleistung mit Zuständigkeit, Kurzprofil und Kennzahlen.</li>
+          <li><strong>Stufe 3 — Aspekt:</strong> Unterlagen, Kosten und Dauer, Ablauf, Voraussetzungen, Fristen, Online-Weg, Rechtsgrundlagen, Fehler, FAQ.</li>
+        </ol>
+      </article>
+      <article>
+        <h2>Datenverarbeitung</h2>
+        <p>Erkennung und Dialogsteuerung laufen vollständig lokal im Browser. Es wird kein Anliegen an einen Server übertragen und kein Sprachmodell aufgerufen. Nur die Spracherkennung des Browsers kann je nach Hersteller eine Netzverbindung nutzen — die Texteingabe funktioniert immer offline.</p>
+        <h2>Verbindlichkeit</h2>
+        <p>Alle Angaben sind allgemeine Auskünfte auf dem Stand der hinterlegten Wissensbasis. Kommunale Gebühren und landesrechtliche Fristen weichen ab. Verbindlich entscheidet die zuständige Behörde.</p>
+      </article>
+    </div>
+  </section>
+
+  <main class="huelle">
+    <!-- Linke Spalte: Gesprächsverlauf und Eingabe -->
+    <section class="spalte spalte-dialog" id="dialog" aria-label="Gesprächsverlauf">
+      <div class="pfad" id="pfad" aria-label="Aktuelle Position im Dialog"></div>
+
+      <div class="verlauf" id="verlauf" role="log" aria-live="polite" aria-relevant="additions"></div>
+
+      <div class="zwischenergebnis" id="zwischenergebnis" aria-live="polite"></div>
+
+      <div class="eingabe">
+        <button type="button" id="btn-mikro" class="mikro" aria-pressed="false" title="Mikrofon ein- oder ausschalten">
+          <span class="mikro-symbol" aria-hidden="true"></span>
+          <span class="mikro-text">Sprechen</span>
+        </button>
+        <form id="text-form" class="text-form" autocomplete="off">
+          <label class="visuell-versteckt" for="text-eingabe">Ihr Anliegen</label>
+          <input type="text" id="text-eingabe" placeholder="Anliegen beschreiben oder Ziffer sagen …" aria-describedby="eingabe-hilfe">
+          <button type="submit" class="knopf knopf-primaer">Senden</button>
+        </form>
+      </div>
+      <p id="eingabe-hilfe" class="eingabe-hilfe">
+        Befehle jederzeit: <em>zurück</em>, <em>neues Anliegen</em>, <em>wiederholen</em>, <em>alles</em>, <em>Mitarbeiter</em>, <em>beenden</em>
+      </p>
+
+      <div class="tastenfeld" id="tastenfeld" aria-label="Ziffernauswahl"></div>
+    </section>
+
+    <!-- Rechte Spalte: strukturierte Auskunft -->
+    <section class="spalte spalte-auskunft" aria-label="Auskunft im Detail">
+      <div class="auskunft" id="auskunft"></div>
+    </section>
+  </main>
+
+  <aside class="leiste" aria-label="Einstellungen und Diagnose">
+    <div class="leiste-gruppe">
+      <label class="schalter">
+        <input type="checkbox" id="opt-sprachausgabe" checked>
+        <span>Sprachausgabe</span>
+      </label>
+      <label class="regler">
+        <span>Tempo</span>
+        <input type="range" id="opt-tempo" min="0.6" max="1.6" step="0.1" value="1">
+        <output id="tempo-wert">1,0×</output>
+      </label>
+      <label class="regler regler-stimme">
+        <span>Stimme</span>
+        <select id="opt-stimme"><option value="">Standard</option></select>
+      </label>
+    </div>
+    <div class="leiste-gruppe leiste-diagnose">
+      <span class="diagnose-titel">Erkennung</span>
+      <span id="diagnose" class="diagnose">–</span>
+    </div>
+  </aside>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

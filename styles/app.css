@@ -23,8 +23,11 @@
   --schrift: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+/* Drei Theme-Zustaende: Systemvorgabe, ausdruecklich hell, ausdruecklich dunkel.
+   Farben werden ausschliesslich ueber Token gesetzt, damit jeder Zustand als
+   geschlossener Satz aufgeht. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --grund: #10151c;
     --flaeche: #1a212b;
     --flaeche-still: #222b37;
@@ -40,6 +43,23 @@
     --warnung-flaeche: #2c2415;
     --schatten: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
   }
+}
+
+:root[data-theme="dark"] {
+  --grund: #10151c;
+  --flaeche: #1a212b;
+  --flaeche-still: #222b37;
+  --rand: #313d4c;
+  --rand-stark: #435265;
+  --text: #e7ecf3;
+  --text-still: #a3b1c2;
+  --akzent: #6aa9e9;
+  --akzent-hell: #1c2a3b;
+  --akzent-dunkel: #9cc6f2;
+  --signal: #4cc38a;
+  --warnung: #e0b25c;
+  --warnung-flaeche: #2c2415;
+  --schatten: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
 }
 
 * { box-sizing: border-box; }
@@ -107,7 +127,7 @@ body {
   letter-spacing: .01em;
 }
 
-.kopf h1 { font-size: 1.15rem; margin: 0; font-weight: 650; }
+.kopf h1 { font-size: 1.15rem; margin: 0; font-weight: 650; letter-spacing: -.01em; }
 .kopf-unterzeile { margin: 0; font-size: .82rem; color: var(--text-still); }
 
 .kopf-status { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
@@ -129,7 +149,7 @@ body {
 }
 .info-panel h2 { font-size: .95rem; margin: 0 0 .4rem; }
 .info-panel h2 + h2 { margin-top: 1rem; }
-.info-panel p { margin: 0 0 .7rem; font-size: .88rem; color: var(--text-still); }
+.info-panel p { margin: 0 0 .7rem; font-size: .88rem; color: var(--text-still); max-width: 68ch; }
 .stufen-liste { margin: 0; padding-left: 1.2rem; font-size: .88rem; color: var(--text-still); }
 .stufen-liste li { margin-bottom: .35rem; }
 .stufen-liste strong { color: var(--text); }
@@ -201,7 +221,7 @@ body {
 }
 
 .blase {
-  max-width: 88%;
+  max-width: min(88%, 64ch);
   padding: .65rem .85rem;
   border-radius: var(--radius);
   font-size: .92rem;
@@ -397,9 +417,9 @@ body {
 .auskunft-leer p { margin: 0; font-size: .88rem; max-width: 34ch; }
 
 .auskunft-kopf { border-bottom: 1px solid var(--rand); padding-bottom: .7rem; margin-bottom: .9rem; }
-.auskunft h2 { margin: 0; font-size: 1.12rem; }
+.auskunft h2 { margin: 0; font-size: 1.12rem; letter-spacing: -.01em; text-wrap: balance; }
 .auskunft-untertitel { margin: .2rem 0 0; font-size: .78rem; color: var(--text-still); }
-.auskunft-absatz { margin: 0 0 .8rem; font-size: .92rem; }
+.auskunft-absatz { margin: 0 0 .8rem; font-size: .92rem; max-width: 68ch; }
 
 .auskunft-stufe {
   display: inline-block;

@@ -70,7 +70,8 @@ function blase(text, art, stufe) {
   }
   div.append(document.createTextNode(text));
   el.verlauf.append(div);
-  el.verlauf.scrollTop = el.verlauf.scrollHeight;
+  // Erst nach dem Layout scrollen, sonst ist scrollHeight noch der alte Wert.
+  requestAnimationFrame(() => { el.verlauf.scrollTop = el.verlauf.scrollHeight; });
 }
 
 function systemhinweis(text) {

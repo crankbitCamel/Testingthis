@@ -27,12 +27,20 @@ Stufe 3  ASPEKT         Benötigte Unterlagen · Kosten und Dauer · Ablauf ·
 ## Schnellstart
 
 ```bash
-npm start          # startet http://127.0.0.1:4115
-npm run check      # Wissensbasis validieren + 110 Tests
+npm start           # startet http://127.0.0.1:4115
+npm run check       # Wissensbasis validieren + 110 Tests
+npm run build:single # optional: alles in eine HTML-Datei bündeln
 ```
 
 Es gibt keinen Build-Schritt und **keine Laufzeitabhängigkeiten**: Die Anwendung besteht
 aus ES-Modulen, die der Browser direkt lädt. `npm start` liefert sie nur aus.
+
+Wo kein Server zur Verfügung steht — Weitergabe per Mail, Ablage im Intranet, statisches
+Hosting — erzeugt `npm run build:single` eine einzelne, autarke HTML-Datei unter
+`dist/`. Das Bündeln nutzt esbuild über `npx`; das Projekt selbst bleibt abhängigkeitsfrei.
+
+Bewusst **keine Webfonts**: Für eine Verwaltungsanwendung wäre das Nachladen von
+Schriften bei einem Drittanbieter datenschutzrechtlich heikel, deshalb Systemschriften.
 
 Spracheingabe braucht Chrome, Edge oder Safari (Web Speech API). Ohne Mikrofon oder in
 Firefox ist die Anwendung über Texteingabe und Zifferntasten **vollständig** bedienbar —
@@ -129,6 +137,7 @@ src/
 scripts/
   server.mjs            statischer Server ohne Abhängigkeiten
   validate-kb.mjs       Konsistenzprüfung der Wissensbasis
+  build-single-file.mjs optionales Bündeln zu einer HTML-Datei (esbuild via npx)
 tests/
   nlu.test.mjs          Erkennung inkl. Klassifikationstabelle
   dialog.test.mjs       Gesprächsführung und Antwortqualität

@@ -8,6 +8,7 @@
     "start": "node scripts/server.mjs",
     "dev": "node scripts/server.mjs",
     "validate": "node scripts/validate-kb.mjs",
+    "build:single": "node scripts/build-single-file.mjs",
     "test": "node --test tests/*.test.mjs",
     "check": "node scripts/validate-kb.mjs && node --test tests/*.test.mjs"
   },

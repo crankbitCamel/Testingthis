@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "verwaltungsassistent/kommune.schema.json",
+  "title": "Kommunen-Overlay",
+  "description": "Ortswissen einer einzelnen Kommune. Überlagert die bundesweite Leistungsbeschreibung mit konkreten Werten (Beträge, Adressen, Terminlinks) und trägt für jede Angabe Herkunft und Prüfdatum. Eine Datei je Kommune, benannt nach dem AGS: 05315000-koeln.json. AGS = Amtlicher Gemeindeschlüssel, die achtstellige eindeutige Nummer jeder Gemeinde in Deutschland.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ags", "name", "land", "stand", "stellen", "leistungen"],
+  "properties": {
+    "ags": {
+      "type": "string",
+      "pattern": "^[0-9]{8}$",
+      "description": "Amtlicher Gemeindeschlüssel, 8-stellig. Die ersten beiden Ziffern sind das Bundesland (05 = NRW, 07 = RP)."
+    },
+    "name": { "type": "string", "minLength": 2, "description": "Amtlicher Name der Kommune." },
+    "land": {
+      "type": "string",
+      "enum": ["bw", "by", "be", "bb", "hb", "hh", "he", "mv", "ni", "nw", "rp", "sl", "sn", "st", "sh", "th"],
+      "description": "Bundesland-Code. Muss zum AGS-Präfix passen; der Validator prüft das."
+    },
+    "stand": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}$",
+      "description": "Redaktionsstand der Datei insgesamt, Format JJJJ-MM."
+    },
+    "stellen": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Die konkreten Anlaufstellen dieser Kommune. Leistungen verweisen per stelleRef darauf - so wird eine Adresse nur einmal gepflegt.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "adresse"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$", "description": "Interner Schlüssel, z. B. \"buergeramt-mitte\"." },
+          "name": { "type": "string", "description": "Anzeigename, z. B. \"Bürgeramt Mitte\"." },
+          "adresse": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["strasse", "plz", "ort"],
+            "properties": {
+              "strasse": { "type": "string" },
+              "plz": { "type": "string", "pattern": "^[0-9]{5}$" },
+              "ort": { "type": "string" }
+            }
+          },
+          "telefon": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "terminLink": { "type": "string", "format": "uri", "description": "URL der Online-Terminvergabe dieser Stelle." },
+          "oeffnungszeiten": { "type": "string", "description": "Klartext, wird vorgelesen - kurz halten." },
+          "barrierefrei": { "type": "boolean" }
+        }
+      }
+    },
+    "leistungen": {
+      "type": "object",
+      "description": "Ortskonkrete Überlagerungen je Leistungs-ID der Basis (z. B. \"hundesteuer\"). Nur belegen, was vor Ort wirklich abweicht oder konkretisiert wird - alles andere erbt von Land und Bund.",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["quelle"],
+        "properties": {
+          "stelleRef": {
+            "type": "string",
+            "description": "Verweis auf stellen[].id - wo diese Leistung erbracht wird."
+          },
+          "terminLink": { "type": "string", "format": "uri", "description": "Abweichender Terminlink nur für diese Leistung." },
+          "gebuehren": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["position", "betrag"],
+              "properties": {
+                "position": { "type": "string" },
+                "betrag": { "type": "string", "description": "Konkreter Betrag als Klartext, z. B. \"162,00 Euro/Jahr\"." },
+                "betragCent": { "type": "integer", "minimum": 0, "description": "Derselbe Betrag maschinenlesbar in Cent - für Vergleiche und Plausibilitätsprüfungen." },
+                "fundstelle": { "type": "string", "description": "Wo in der Quelle der Wert steht, z. B. \"§ 4 Abs. 1 Hundesteuersatzung\" oder \"S. 3\"." }
+              }
+            }
+          },
+          "fristen": { "type": "array", "items": { "type": "string" } },
+          "besonderheiten": { "type": "array", "items": { "type": "string" } },
+          "online": { "type": "string", "description": "Ortskonkreter Online-Weg, z. B. Link zum Serviceportal-Formular." },
+          "quelle": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["rechtsgrundlage", "geprueftAm"],
+            "description": "Ohne Herkunft ist eine Gebührenauskunft im Zweifel wertlos - deshalb Pflicht.",
+            "properties": {
+              "rechtsgrundlage": { "type": "string", "description": "Satzung/Verordnung mit Fassungsdatum." },
+              "fundstelleUrl": { "type": "string", "format": "uri" },
+              "gueltigAb": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+              "geprueftAm": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$", "description": "Wann ein Mensch den Wert zuletzt gegen die Quelle geprüft hat. Steuert die Verfallslogik." },
+              "pruefintervallMonate": { "type": "integer", "minimum": 1, "maximum": 36, "default": 12 }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["entwurf", "geprueft", "freigegeben"],
+            "default": "entwurf",
+            "description": "Redaktioneller Zustand. Nur \"freigegeben\" darf ins Laufzeitsystem; LLM-Extraktionen starten immer als \"entwurf\"."
+          }
+        }
+      }
+    }
+  }
+}

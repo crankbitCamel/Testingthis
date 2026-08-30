@@ -1,0 +1,57 @@
+{
+  "ags": "99999999",
+  "name": "Musterstadt (fiktives Beispiel)",
+  "land": "nw",
+  "stand": "2026-08",
+  "stellen": [
+    {
+      "id": "buergeramt-mitte",
+      "name": "Bürgeramt Mitte",
+      "adresse": { "strasse": "Rathausplatz 1", "plz": "99990", "ort": "Musterstadt" },
+      "telefon": "0999 123-0",
+      "email": "buergeramt@musterstadt.example",
+      "terminLink": "https://termine.musterstadt.example/buergeramt",
+      "oeffnungszeiten": "Mo bis Fr 8 bis 13 Uhr, Do zusätzlich 14 bis 18 Uhr",
+      "barrierefrei": true
+    },
+    {
+      "id": "steueramt",
+      "name": "Steueramt / Stadtkasse",
+      "adresse": { "strasse": "Kämmereigasse 4", "plz": "99990", "ort": "Musterstadt" },
+      "telefon": "0999 123-400",
+      "terminLink": "https://termine.musterstadt.example/steueramt"
+    }
+  ],
+  "leistungen": {
+    "hundesteuer": {
+      "stelleRef": "steueramt",
+      "gebuehren": [
+        { "position": "Erster Hund", "betrag": "126,00 Euro/Jahr", "betragCent": 12600, "fundstelle": "§ 4 Abs. 1 Hundesteuersatzung" },
+        { "position": "Zweiter und jeder weitere Hund", "betrag": "168,00 Euro/Jahr", "betragCent": 16800, "fundstelle": "§ 4 Abs. 1 Hundesteuersatzung" },
+        { "position": "Gefährlicher Hund", "betrag": "900,00 Euro/Jahr", "betragCent": 90000, "fundstelle": "§ 4 Abs. 2 Hundesteuersatzung" }
+      ],
+      "fristen": ["Anmeldung innerhalb von 14 Tagen nach Aufnahme des Hundes (§ 7 der Satzung)."],
+      "besonderheiten": ["Hunde aus dem Musterstädter Tierheim sind im ersten Jahr steuerfrei (§ 5 Abs. 3)."],
+      "online": "https://serviceportal.musterstadt.example/hundesteuer-anmeldung",
+      "quelle": {
+        "rechtsgrundlage": "Hundesteuersatzung der Stadt Musterstadt in der Fassung vom 12.12.2025",
+        "fundstelleUrl": "https://musterstadt.example/satzungen/hundesteuer.pdf",
+        "gueltigAb": "2026-01-01",
+        "geprueftAm": "2026-08-15",
+        "pruefintervallMonate": 12
+      },
+      "status": "freigegeben"
+    },
+    "wohnsitz-anmeldung": {
+      "stelleRef": "buergeramt-mitte",
+      "besonderheiten": ["Spontankontingent: werktags ab 7:30 Uhr werden Tagestermine im Portal freigeschaltet."],
+      "online": "https://serviceportal.musterstadt.example/ewa",
+      "quelle": {
+        "rechtsgrundlage": "Terminorganisation lt. Auskunft Bürgeramt",
+        "geprueftAm": "2026-08-15",
+        "pruefintervallMonate": 6
+      },
+      "status": "geprueft"
+    }
+  }
+}

@@ -10,8 +10,9 @@
     "validate": "node scripts/validate-kb.mjs",
     "build:single": "node scripts/build-single-file.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node scripts/validate-kb.mjs && node scripts/build-chunks.mjs && node --test tests/*.test.mjs",
-    "build:chunks": "node scripts/build-chunks.mjs"
+    "check": "node scripts/validate-kb.mjs && node scripts/build-chunks.mjs && node scripts/validate-kommune.mjs beispiele/kommunen/*.json && node --test tests/*.test.mjs",
+    "build:chunks": "node scripts/build-chunks.mjs",
+    "validate:kommune": "node scripts/validate-kommune.mjs beispiele/kommunen/*.json"
   },
   "engines": {
     "node": ">=20"

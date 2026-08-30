@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "verwaltungsassistent/leistung.schema.json",
+  "title": "Verwaltungsleistung (bundesweite Basisbeschreibung)",
+  "description": "Das fachliche Wissen zu EINER Verwaltungsleistung, ortsunabhängig. Konkrete Beträge, Adressen und Terminlinks gehören NICHT hierher, sondern in die Landes- und Kommunen-Overlays. Dieses Schema formalisiert das Datenmodell aus src/kb/schema.js für den Datenaustausch (Erfassungsbögen, LLM-Extraktion, Import).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "cluster", "name", "sprechName", "synonyme", "kurzbeschreibung", "zustaendigkeit", "voraussetzungen", "unterlagen", "gebuehren", "fristen", "bearbeitungsdauer", "ablauf", "rechtsgrundlagen", "online", "haeufigeFehler", "faq", "eskalation", "belastbarkeit", "stand"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$", "description": "Stabiler Schlüssel, z. B. \"hundesteuer\". Ändert sich nie." },
+    "cluster": { "type": "string", "description": "Bereichs-ID der Stufe 1, z. B. \"umwelt-abfall-tiere\"." },
+    "name": { "type": "string" },
+    "sprechName": { "type": "string", "description": "Für die Sprachausgabe optimierte Kurzform." },
+    "synonyme": {
+      "type": "array", "minItems": 4, "items": { "type": "string" },
+      "description": "Umgangssprachliche Formulierungen echter Anrufer - das Eingangstor der Spracherkennung. Je mehr, desto besser."
+    },
+    "leikaBezug": { "type": "string", "description": "LeiKa-Bezeichnung und -Schlüssel zur Orientierung." },
+    "kurzbeschreibung": { "type": "string", "description": "1-2 Sätze; die gesprochene Stufe-2-Antwort." },
+    "zustaendigkeit": {
+      "type": "object", "additionalProperties": false, "required": ["stelle", "ebene"],
+      "properties": {
+        "stelle": { "type": "string", "description": "Der TYP der Stelle (\"Bürgeramt der Wohnsitzgemeinde\") - nie eine konkrete Adresse." },
+        "ebene": { "type": "string", "enum": ["kommunal", "land", "bund", "sonstige"] },
+        "hinweis": { "type": "string" }
+      }
+    },
+    "voraussetzungen": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "unterlagen": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["was", "pflicht"],
+        "properties": {
+          "was": { "type": "string" },
+          "pflicht": { "type": "boolean" },
+          "hinweis": { "type": "string" }
+        }
+      }
+    },
+    "gebuehren": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["position", "betrag", "art"],
+        "properties": {
+          "position": { "type": "string" },
+          "betrag": { "type": "string", "description": "Auf Bundesebene: exakter Betrag NUR bei bundeseinheitlichen Gebühren, sonst ehrliche Spanne (\"etwa 30 bis 180 Euro\")." },
+          "art": {
+            "type": "string",
+            "enum": ["bundeseinheitlich", "landesrecht", "kommunal", "einkommensabhaengig", "keine", "sonstige"],
+            "description": "WER die Gebühr festsetzt. Steuert die Rechtsebenen-Klärung: \"kommunal\" löst die Ortsfrage aus."
+          },
+          "hinweis": { "type": "string" }
+        }
+      }
+    },
+    "fristen": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "bearbeitungsdauer": { "type": "string" },
+    "ablauf": {
+      "type": "array", "minItems": 3,
+      "description": "Der Prozess Schritt für Schritt, lückenlos nummeriert.",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["nr", "titel", "detail"],
+        "properties": {
+          "nr": { "type": "integer", "minimum": 1 },
+          "titel": { "type": "string" },
+          "detail": { "type": "string" },
+          "akteur": { "type": "string", "enum": ["Bürger", "Behörde", "Dritte"] }
+        }
+      }
+    },
+    "rechtsgrundlagen": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "online": {
+      "type": "object", "additionalProperties": false, "required": ["moeglich", "hinweis"],
+      "properties": {
+        "moeglich": { "type": "boolean" },
+        "hinweis": { "type": "string" },
+        "voraussetzungen": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "haeufigeFehler": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "faq": {
+      "type": "array", "minItems": 2,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["frage", "antwort"],
+        "properties": { "frage": { "type": "string" }, "antwort": { "type": "string" } }
+      }
+    },
+    "verwandt": { "type": "array", "items": { "type": "string" }, "description": "IDs verwandter Leistungen." },
+    "eskalation": { "type": "string", "description": "Wann an einen Menschen übergeben wird." },
+    "belastbarkeit": {
+      "type": "object", "additionalProperties": false, "required": ["quelle", "hinweis"],
+      "properties": {
+        "quelle": { "type": "string", "enum": ["bundesrecht", "landesrecht-variiert", "kommunal-variiert"] },
+        "hinweis": { "type": "string" }
+      }
+    },
+    "stand": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}$" }
+  }
+}

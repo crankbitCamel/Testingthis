@@ -1,0 +1,35 @@
+{
+  "ags": "",
+  "name": "",
+  "land": "",
+  "stand": "",
+  "stellen": [
+    {
+      "id": "",
+      "name": "",
+      "adresse": { "strasse": "", "plz": "", "ort": "" },
+      "telefon": "",
+      "terminLink": "",
+      "oeffnungszeiten": ""
+    }
+  ],
+  "leistungen": {
+    "LEISTUNGS-ID-HIER": {
+      "stelleRef": "",
+      "gebuehren": [
+        { "position": "", "betrag": "", "betragCent": 0, "fundstelle": "" }
+      ],
+      "fristen": [],
+      "besonderheiten": [],
+      "online": "",
+      "quelle": {
+        "rechtsgrundlage": "",
+        "fundstelleUrl": "",
+        "gueltigAb": "",
+        "geprueftAm": "",
+        "pruefintervallMonate": 12
+      },
+      "status": "entwurf"
+    }
+  }
+}

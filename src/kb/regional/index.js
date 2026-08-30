@@ -37,10 +37,12 @@ export const REGISTERBEREICHE = [
   { id: 'denkmalliste', name: 'Denkmalliste', leistungen: ['denkmalschutz-erlaubnis'] },
   { id: 'auslaenderregister', name: 'Ausländerwesen', leistungen: ['auslaender-aufenthaltserlaubnis', 'niederlassungserlaubnis', 'verpflichtungserklaerung', 'anerkennung-berufsabschluss'] },
   { id: 'einbuergerung', name: 'Einbürgerung und Staatsangehörigkeit', leistungen: ['einbuergerung'] },
-  { id: 'sozialregister', name: 'Sozialleistungen und Wohnraumförderung', leistungen: ['buergergeld', 'wohngeld', 'sozialhilfe', 'wohnberechtigungsschein', 'schwerbehindertenausweis'] },
+  { id: 'sozialregister', name: 'Sozialleistungen und Wohnraumförderung', leistungen: ['buergergeld', 'wohngeld', 'sozialhilfe', 'wohnberechtigungsschein', 'schwerbehindertenausweis', 'rente-altersrente'] },
   { id: 'schulwesen', name: 'Schulwesen', leistungen: ['schulanmeldung', 'schuelerbefoerderung', 'bafoeg'] },
   { id: 'kindertagesbetreuung', name: 'Kindertagesbetreuung', leistungen: ['kita-platz', 'kindergeld', 'elterngeld', 'unterhaltsvorschuss'] },
   { id: 'kommunalsteuern-ordnung', name: 'Kommunale Steuern und Ordnungswesen', leistungen: ['hundesteuer', 'grundsteuer', 'zweitwohnungsteuer', 'bussgeldbescheid-einspruch', 'veranstaltung-anmelden', 'sondernutzungserlaubnis', 'baumfaellgenehmigung'] },
+  { id: 'finanzverwaltung', name: 'Finanzamt und Steuerverwaltung', leistungen: ['einkommensteuererklaerung', 'steuerklassenwechsel', 'steuer-identifikationsnummer', 'gewerbesteuer'] },
+  { id: 'jagd-fischerei', name: 'Jagd- und Fischereiwesen', leistungen: ['jagdschein', 'fischereischein'] },
 ];
 
 export const REGISTERBEREICH_BY_ID = Object.fromEntries(REGISTERBEREICHE.map((b) => [b.id, b]));

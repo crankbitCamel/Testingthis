@@ -169,6 +169,24 @@ export const LAND = {
       portal: 'kita.rlp.de; kommunale Vormerksysteme',
       quelleHinweis: 'Kita-Zukunftsgesetz Rheinland-Pfalz (KiTaG), in Kraft seit 1. Juli 2021',
     },
+    finanzverwaltung: {
+      kurz: 'Zuständig sind die Finanzämter des Landes unter dem Landesamt für Steuern in Koblenz. Erklärungen, Steuerklassenwechsel und Anträge laufen über ELSTER.',
+      fakten: [
+        'Das Landesamt für Steuern Rheinland-Pfalz steuert die Finanzämter zentral; die örtliche Zuständigkeit zeigt die Finanzamtssuche.',
+        'Rheinland-Pfalz bietet für Rentnerinnen und Rentner die vereinfachte "Erklärung zur Veranlagung" an - ein stark verkürzter Vordruck.',
+      ],
+      portal: 'lfst-rlp.de; Mein ELSTER',
+    },
+    'jagd-fischerei': {
+      kurz: 'Jagd- und Fischereischeine erteilen die unteren Jagd- bzw. Fischereibehörden der Kreisverwaltungen und kreisfreien Städte.',
+      fakten: [
+        'Fischereischein RP: Erstausstellung 9 Euro für ein Jahr, 35 Euro für fünf Jahre; die staatliche Fischerprüfung (29 Euro) setzt einen mindestens 35-stündigen Vorbereitungslehrgang voraus.',
+        'Die Fischerprüfung ist ab vollendetem 13. Lebensjahr möglich; die Fischereischeinpflicht beginnt mit 14. Für Jüngere gibt es den Jugendfischereischein.',
+        'Jagdscheine stellt die untere Jagdbehörde der Kreisverwaltung aus; Prüfung und Gebühren richten sich nach dem Landesjagdgesetz RP.',
+      ],
+      portal: 'bus.rlp.de - Fischereischein/Jagdschein',
+      quelleHinweis: 'Landesfischereigesetz RP; Landesjagdgesetz RP',
+    },
     'kommunalsteuern-ordnung': {
       kurz: 'Rheinland-Pfalz wendet bei der Grundsteuer das Bundesmodell an. Beim Hunderecht kennt RP - anders als NRW - keine Regeln für "große Hunde", sondern nur die Erlaubnispflicht für gefährliche Hunde bestimmter Rassen.',
       fakten: [
@@ -278,6 +296,19 @@ export const LAND = {
       zustaendigkeit: { stelle: 'Gewerbeamt der Verbandsgemeinde- oder Stadtverwaltung', hinweis: 'Außerhalb der Städte ist die Verbandsgemeinde zuständig, nicht die Ortsgemeinde.' },
       gebuehren: [{ position: 'Gewerbeanmeldung', betrag: 'in RP typisch etwa 20 bis 50 Euro', art: 'kommunal' }],
       online: 'Online über service.rlp.de',
+      stand: '2026-08',
+    },
+    fischereischein: {
+      gebuehren: [
+        { position: 'Fischereischein Erstausstellung (1 Jahr)', betrag: '9,00 Euro', art: 'landesrecht' },
+        { position: 'Fischereischein Erstausstellung (5 Jahre)', betrag: '35,00 Euro', art: 'landesrecht' },
+        { position: 'Fischerprüfung', betrag: '29,00 Euro', art: 'landesrecht' },
+      ],
+      besonderheiten: [
+        'Voraussetzung ist ein mindestens 35-stündiger Vorbereitungslehrgang mit praktischem Teil.',
+        'Prüfung ab vollendetem 13. Lebensjahr; Fischereischeinpflicht ab 14. Jugendfischereischein für Jüngere (1 Jahr: 5,60 Euro).',
+      ],
+      rechtsgrundlagen: ['Landesfischereigesetz Rheinland-Pfalz'],
       stand: '2026-08',
     },
     'wohnsitz-anmeldung': {

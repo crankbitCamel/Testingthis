@@ -158,6 +158,12 @@ const KLASSIFIKATION = [
   ['Ich habe meine Steuer-Identifikationsnummer verloren', 'steuern-abgaben'],
   ['Muss ich Zweitwohnungsteuer zahlen', 'steuern-abgaben'],
 
+  ['Ich möchte meine Rente beantragen', 'arbeit-soziales'],
+  ['Wann muss ich meine Steuererklärung abgeben', 'steuern-abgaben'],
+  ['Wir wollen die Steuerklasse wechseln', 'steuern-abgaben'],
+  ['Ich brauche einen Angelschein', 'umwelt-abfall-tiere'],
+  ['Ich will den Jagdschein machen', 'umwelt-abfall-tiere'],
+
   ['Mein Kind wird nächstes Jahr eingeschult', 'bildung-kultur'],
   ['Ich möchte BAföG beantragen', 'bildung-kultur'],
   ['Wer zahlt das Schülerticket', 'bildung-kultur'],

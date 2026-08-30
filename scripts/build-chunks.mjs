@@ -10,7 +10,7 @@
  *
  *   node scripts/build-chunks.mjs            -> dist/chunks.jsonl
  */
-import { writeFile, mkdir } from 'node:fs/promises';
+import { writeFile, mkdir, readdir, readFile } from 'node:fs/promises';
 import { LEISTUNGEN, CLUSTER, CLUSTER_BY_ID } from '../src/kb/index.js';
 import { ASPEKT_MENUE, ASPEKT_BY_ID } from '../src/kb/schema.js';
 import { LAENDER_LISTE, registerbereichFuer } from '../src/kb/regional/index.js';
@@ -102,6 +102,40 @@ for (const land of LAENDER_LISTE) {
     });
   }
 }
+
+// --- Kommunen-Overlays -------------------------------------------------------
+// Nur redaktionell geprueftes Ortswissen erreicht das Korpus; Entwuerfe bleiben
+// in extern/eingang/ und werden hier bewusst nicht eingelesen.
+try {
+  const ordner = new URL('../beispiele/kommunen/', import.meta.url);
+  for (const datei of await readdir(ordner)) {
+    if (!datei.endsWith('.json')) continue;
+    const k = JSON.parse(await readFile(new URL(datei, ordner), 'utf8'));
+    const stellen = Object.fromEntries((k.stellen ?? []).map((st) => [st.id, st]));
+    for (const [leistungId, l] of Object.entries(k.leistungen ?? {})) {
+      if (!['geprueft', 'freigegeben'].includes(l.status)) continue;
+      const teile = [];
+      const stelle = l.stelleRef ? stellen[l.stelleRef] : null;
+      if (stelle) teile.push(`Anlaufstelle: ${stelle.name}, ${stelle.adresse.strasse}, ${stelle.adresse.plz} ${stelle.adresse.ort}.${stelle.telefon ? ` Telefon ${stelle.telefon}.` : ''}${stelle.oeffnungszeiten ? ` ${stelle.oeffnungszeiten}.` : ''}`);
+      const terminLink = l.terminLink ?? stelle?.terminLink;
+      if (terminLink) teile.push(`Termin: ${terminLink}.`);
+      for (const g of l.gebuehren ?? []) teile.push(`${g.position}: ${g.betrag}${g.fundstelle ? ` (${g.fundstelle})` : ''}.`);
+      for (const fr of l.fristen ?? []) teile.push(fr);
+      for (const b of l.besonderheiten ?? []) teile.push(b);
+      if (l.online) teile.push(`Online: ${l.online}`);
+      chunk({
+        id: `kommune:${k.ags}:${leistungId}`,
+        typ: 'kommunaloverlay',
+        text: `${k.name} — ${leistungId}. ${teile.join(' ')}`,
+        meta: {
+          ags: k.ags, land: k.land, leistung: leistungId, ebene: 'kommune',
+          stand: k.stand, quelle: l.quelle?.rechtsgrundlage ?? null,
+          geprueftAm: l.quelle?.geprueftAm ?? null,
+        },
+      });
+    }
+  }
+} catch { /* Ordner darf fehlen */ }
 
 await mkdir('dist', { recursive: true });
 const jsonl = chunks.map((c) => JSON.stringify(c)).join('\n');

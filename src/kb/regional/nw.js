@@ -184,6 +184,24 @@ export const LAND = {
       portal: 'Kita-Portale der Jugendämter; ElterngeldDigital',
       quelleHinweis: 'Kinderbildungsgesetz NRW (KiBiz)',
     },
+    finanzverwaltung: {
+      kurz: 'Einkommensteuer, Lohnsteuer und Steuerklassen bearbeitet das Finanzamt des Wohnsitzes - in NRW gibt es rund 100 Finanzämter unter dem Landesfinanzministerium. Erklärungen und Anträge laufen über ELSTER.',
+      fakten: [
+        'Zuständig ist das Finanzamt des Wohnorts; die Zuordnung zeigt die Finanzamtssuche der Finanzverwaltung NRW.',
+        'Für Rückfragen betreibt die Finanzverwaltung NRW zentrale Servicehotlines; einfache Anliegen (Steuerklassenwechsel, Adressänderung) gehen vollständig über Mein ELSTER.',
+      ],
+      portal: 'finanzverwaltung.nrw.de; Mein ELSTER',
+    },
+    'jagd-fischerei': {
+      kurz: 'Jagd- und Fischereischeine stellen die unteren Jagd- bzw. Fischereibehörden der Kreise und kreisfreien Städte aus. Die Jägerprüfung läuft in NRW landeseinheitlich; die Fischerprüfung nehmen die unteren Fischereibehörden ab.',
+      fakten: [
+        'Fischereischein NRW: bisher als Jahresschein (16 Euro) oder Fünfjahresschein (48 Euro), jeweils inklusive Fischereiabgabe; die Fischerprüfung kostet 50 Euro und ist ab vollendetem 12. Lebensjahr möglich (Scheinerteilung ab 13).',
+        'Nach der jüngsten Novelle des Landesfischereirechts wird der Fischereischein digital angeboten und künftig auf Lebenszeit ausgestellt; die Fischereiabgabe wird dann getrennt für ein oder fünf Jahre entrichtet.',
+        'Jägerprüfung NRW: landeseinheitlich nach der Durchführungsverordnung zum Landesjagdgesetz, mit schriftlichem, mündlich-praktischem Teil und Schießprüfung; Prüfungs- und Scheingebühren setzen die Kreise in Spannen fest (Prüfung typisch 200 bis 350 Euro).',
+      ],
+      portal: 'Onlineanträge der unteren Jagd-/Fischereibehörden; Serviceportale der Kreise',
+      quelleHinweis: 'Landesjagdgesetz NRW; Landesfischereigesetz NRW (Novelle 2026)',
+    },
     'kommunalsteuern-ordnung': {
       kurz: 'Drei NRW-Besonderheiten: eigene Regeln für große Hunde, ein eigenes Versammlungsgesetz und seit 2025 die Möglichkeit differenzierter Grundsteuer-Hebesätze für Wohn- und Nichtwohngrundstücke.',
       fakten: [
@@ -320,6 +338,27 @@ export const LAND = {
     'wohnsitz-anmeldung': {
       besonderheiten: ['Die elektronische Wohnsitzanmeldung ist in vielen NRW-Kommunen verfügbar, darunter Köln, Düsseldorf und Dortmund.'],
       online: 'wohnsitzanmeldung.gov.de - elektronische Wohnsitzanmeldung',
+      stand: '2026-08',
+    },
+    fischereischein: {
+      gebuehren: [
+        { position: 'Jahresfischereischein', betrag: '16,00 Euro (8 Euro Gebühr + 8 Euro Fischereiabgabe)', art: 'landesrecht' },
+        { position: 'Fünfjahresfischereischein', betrag: '48,00 Euro (24 Euro Gebühr + 24 Euro Fischereiabgabe)', art: 'landesrecht' },
+        { position: 'Fischerprüfung', betrag: '50,00 Euro', art: 'landesrecht' },
+      ],
+      besonderheiten: [
+        'Prüfungszulassung ab vollendetem 12. Lebensjahr; der Fischereischein wird ab 13 erteilt.',
+        'Nach der Novelle des Landesfischereirechts: digitaler Fischereischein, künftig Ausstellung auf Lebenszeit mit separat entrichteter Fischereiabgabe für ein oder fünf Jahre.',
+      ],
+      rechtsgrundlagen: ['Landesfischereigesetz NRW'],
+      stand: '2026-08',
+    },
+    jagdschein: {
+      besonderheiten: [
+        'Die Jägerprüfung wird in NRW landeseinheitlich nach der Verordnung zum Landesjagdgesetz abgenommen (schriftlich, mündlich-praktisch, Schießprüfung).',
+        'Gebühren für Prüfung und Jagdschein setzen die Kreise und kreisfreien Städte in landesrechtlichen Spannen fest; die Jägerprüfung liegt typisch bei 200 bis 350 Euro.',
+      ],
+      rechtsgrundlagen: ['Landesjagdgesetz NRW', 'DVO Landesjagdgesetz NRW'],
       stand: '2026-08',
     },
     meldebescheinigung: {

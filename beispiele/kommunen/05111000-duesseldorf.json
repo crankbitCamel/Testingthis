@@ -1,0 +1,91 @@
+{
+  "ags": "05111000",
+  "name": "Landeshauptstadt Düsseldorf",
+  "land": "nw",
+  "stand": "2026-08",
+  "stellen": [
+    {
+      "id": "dienstleistungszentrum",
+      "name": "Bürgerbüro im Dienstleistungszentrum (Hauptstelle)",
+      "adresse": { "strasse": "Willi-Becker-Allee 7", "plz": "40227", "ort": "Düsseldorf" },
+      "telefon": "0211 89-91",
+      "email": "einwohnermeldeamt@duesseldorf.de",
+      "terminLink": "https://termine.duesseldorf.de",
+      "oeffnungszeiten": "Montag bis Freitag, nur mit vorab gebuchtem Termin",
+      "barrierefrei": true
+    }
+  ],
+  "leistungen": {
+    "hundesteuer": {
+      "gebuehren": [
+        { "position": "Erster Hund", "betrag": "96,00 Euro/Jahr", "betragCent": 9600, "fundstelle": "Hundesteuersatzung 22/101, Steuersätze" },
+        { "position": "Zweiter Hund", "betrag": "150,00 Euro/Jahr", "betragCent": 15000, "fundstelle": "Hundesteuersatzung 22/101, Steuersätze" },
+        { "position": "Jeder weitere Hund", "betrag": "180,00 Euro/Jahr", "betragCent": 18000, "fundstelle": "Hundesteuersatzung 22/101, Steuersätze" },
+        { "position": "Gefährlicher Hund (erster)", "betrag": "600,00 Euro/Jahr", "betragCent": 60000, "fundstelle": "Hundesteuersatzung 22/101, erhöhter Steuersatz" },
+        { "position": "Gefährlicher Hund (jeder weitere)", "betrag": "900,00 Euro/Jahr", "betragCent": 90000, "fundstelle": "Hundesteuersatzung 22/101, erhöhter Steuersatz" }
+      ],
+      "besonderheiten": [
+        "Blindenführ-, Assistenz- und Rettungshunde sind von der Steuer befreit.",
+        "Für gefährliche Hunde gelten zusätzlich die Pflichten des Landeshundegesetzes NRW (Erlaubnis, Wesenstest, Chip, Haftpflicht)."
+      ],
+      "online": "https://service.duesseldorf.de - Hundesteuer An- und Abmeldung",
+      "quelle": {
+        "rechtsgrundlage": "Satzung über die Erhebung der Hundesteuer in der Landeshauptstadt Düsseldorf (Stadtrecht 22/101), Fassung ab 01.01.2024",
+        "fundstelleUrl": "https://www.duesseldorf.de/stadtrecht/2/22/22-101/",
+        "gueltigAb": "2024-01-01",
+        "geprueftAm": "2026-08-28",
+        "pruefintervallMonate": 12
+      },
+      "status": "geprueft"
+    },
+    "bewohnerparkausweis": {
+      "gebuehren": [
+        { "position": "Bewohnerparkausweis 1 Jahr (Online-Antrag)", "betrag": "25,00 Euro", "betragCent": 2500, "fundstelle": "Serviceportal Düsseldorf, Dienstleistung Bewohnerparkausweis" },
+        { "position": "Bewohnerparkausweis 1 Jahr (Bürgerbüro)", "betrag": "30,00 Euro", "betragCent": 3000, "fundstelle": "Serviceportal Düsseldorf" },
+        { "position": "Bewohnerparkausweis 2 Jahre (Online-Antrag)", "betrag": "50,00 Euro", "betragCent": 5000, "fundstelle": "Serviceportal Düsseldorf" },
+        { "position": "Bewohnerparkausweis 2 Jahre (Bürgerbüro)", "betrag": "55,00 Euro", "betragCent": 5500, "fundstelle": "Serviceportal Düsseldorf" }
+      ],
+      "besonderheiten": [
+        "Voraussetzung ist der gemeldete Wohnsitz in einer Düsseldorfer Bewohnerparkzone.",
+        "Der Online-Antrag ist günstiger als der Gang ins Bürgerbüro."
+      ],
+      "online": "https://service.duesseldorf.de - Bewohnerparkausweis online beantragen",
+      "quelle": {
+        "rechtsgrundlage": "Gebührenfestsetzung der Landeshauptstadt Düsseldorf auf Grundlage der Bewohnerparkgebührenverordnung NRW",
+        "fundstelleUrl": "https://service.duesseldorf.de/suche/-/egov-bis-detail/dienstleistung/40/show",
+        "geprueftAm": "2026-08-28",
+        "pruefintervallMonate": 12
+      },
+      "status": "geprueft"
+    },
+    "wohnsitz-anmeldung": {
+      "stelleRef": "dienstleistungszentrum",
+      "terminLink": "https://termine.duesseldorf.de",
+      "besonderheiten": [
+        "Alle Bürgerbüro-Leistungen nur mit vorab gebuchtem Online-Termin; neben der Hauptstelle gibt es Bürgerbüros in den Stadtbezirken.",
+        "Die elektronische Wohnsitzanmeldung (wohnsitzanmeldung.gov.de) ist für Umzüge innerhalb Deutschlands verfügbar."
+      ],
+      "online": "https://service.duesseldorf.de - Terminvergabe und elektronische Wohnsitzanmeldung",
+      "quelle": {
+        "rechtsgrundlage": "Organisationsinformationen der Landeshauptstadt Düsseldorf (Einwohnerangelegenheiten)",
+        "fundstelleUrl": "https://www.duesseldorf.de/einwohnerangelegenheiten",
+        "geprueftAm": "2026-08-28",
+        "pruefintervallMonate": 6
+      },
+      "status": "geprueft"
+    },
+    "jagdschein": {
+      "besonderheiten": [
+        "Ausstellung und Verlängerung laufen über das Serviceportal der Landeshauptstadt (untere Jagdbehörde)."
+      ],
+      "online": "https://service.duesseldorf.de/suche/-/egov-bis-detail/dienstleistung/400/show",
+      "quelle": {
+        "rechtsgrundlage": "Serviceportal Düsseldorf, Dienstleistung Jagdscheinausstellung/-verlängerung",
+        "fundstelleUrl": "https://service.duesseldorf.de/suche/-/egov-bis-detail/dienstleistung/400/show",
+        "geprueftAm": "2026-08-28",
+        "pruefintervallMonate": 12
+      },
+      "status": "geprueft"
+    }
+  }
+}

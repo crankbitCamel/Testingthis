@@ -38,8 +38,8 @@ describe('Landeserkennung', () => {
 });
 
 describe('Struktur der Regionalschicht', () => {
-  test('es gibt genau 20 Registerbereiche und jede referenzierte Leistung existiert', () => {
-    assert.equal(REGISTERBEREICHE.length, 20);
+  test('es gibt mindestens 20 Registerbereiche und jede referenzierte Leistung existiert', () => {
+    assert.ok(REGISTERBEREICHE.length >= 20, String(REGISTERBEREICHE.length));
     for (const b of REGISTERBEREICHE) {
       for (const lid of b.leistungen) {
         assert.ok(LEISTUNG_BY_ID[lid], `${b.id}: unbekannte Leistung ${lid}`);

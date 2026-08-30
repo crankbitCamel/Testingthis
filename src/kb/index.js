@@ -62,6 +62,8 @@ export const HAEUFIGKEIT = {
   'veranstaltung-anmelden': 46,
   grundsteuer: 85, 'steuer-identifikationsnummer': 72, zweitwohnungsteuer: 62, gewerbesteuer: 56,
   schulanmeldung: 82, bafoeg: 76, schuelerbefoerderung: 58,
+  'rente-altersrente': 88, einkommensteuererklaerung: 84, steuerklassenwechsel: 68,
+  fischereischein: 46, jagdschein: 38,
 };
 
 /** Die drei bis fuenf haeufigsten Leistungen eines Clusters - Basis des Ziffernmenues. */

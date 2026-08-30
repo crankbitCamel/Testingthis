@@ -131,8 +131,17 @@ for (const b of REGISTERBEREICHE) {
     if (!LEISTUNG_BY_ID[lid]) fehler.push(`Registerbereich ${b.id}: unbekannte Leistung "${lid}"`);
   }
 }
-if (REGISTERBEREICHE.length !== 20) {
-  fehler.push(`Es sind ${REGISTERBEREICHE.length} Registerbereiche definiert - erwartet werden 20.`);
+if (REGISTERBEREICHE.length < 20) {
+  fehler.push(`Nur ${REGISTERBEREICHE.length} Registerbereiche definiert - mindestens 20 sind vereinbart.`);
+}
+{
+  const gesehen = new Map();
+  for (const b of REGISTERBEREICHE) {
+    for (const lid of b.leistungen) {
+      if (gesehen.has(lid)) fehler.push(`Leistung "${lid}" ist zwei Registerbereichen zugeordnet: ${gesehen.get(lid)} und ${b.id}`);
+      gesehen.set(lid, b.id);
+    }
+  }
 }
 
 for (const land of LAENDER_LISTE) {

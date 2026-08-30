@@ -471,6 +471,8 @@ export const CLUSTER = [
       'hund', 'hundesteuer', 'hundemarke', 'listenhund', 'kampfhund', 'katze', 'tierhaltung',
       'baum fällen', 'baumfällgenehmigung', 'baumschutz', 'fundbüro', 'fundsache', 'gefunden',
       'lärm', 'ruhestörung', 'schrottauto', 'wespennest', 'taubenplage',
+      'angeln', 'angelschein', 'fischereischein', 'fischerprüfung', 'jagd', 'jagdschein',
+      'jägerprüfung', 'jagen', 'revier', 'wild',
     ],
     grundsatzwissen: {
       kurz: 'Abfall, Tierhaltung und Ortsbild sind klassisch kommunale Themen - hier entscheiden Satzungen der Gemeinde oder des Kreises, weshalb sich Regeln und Preise von Ort zu Ort deutlich unterscheiden.',
@@ -524,7 +526,7 @@ export const CLUSTER = [
       'punkte', 'flensburg', 'fahrverbot', 'blitzer', 'anhörungsbogen', 'ordnungsamt',
       'veranstaltung', 'straßenfest', 'demonstration', 'versammlung', 'sondernutzung',
       'sondernutzungserlaubnis', 'umzug anmelden', 'container', 'gerüst', 'halteverbot',
-      'waffenbesitzkarte', 'jagdschein', 'kleiner waffenschein', 'sperrzeit', 'lärmschutz',
+      'waffenbesitzkarte', 'kleiner waffenschein', 'sperrzeit', 'lärmschutz',
     ],
     grundsatzwissen: {
       kurz: 'Ordnungsangelegenheiten liegen beim Ordnungsamt der Gemeinde oder der Bußgeldstelle des Kreises - entscheidend sind hier meist kurze Rechtsbehelfsfristen von genau zwei Wochen.',

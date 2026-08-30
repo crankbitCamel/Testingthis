@@ -45,7 +45,8 @@ export const STOPPWOERTER = new Set([
 export function normalisieren(text) {
   let t = (text ?? '').toLowerCase();
   for (const [re, ersatz] of UMLAUTE) t = t.replace(re, ersatz);
-  t = t.replace(/[^a-z0-9\s-]/g, ' ');
+  t = t.replace(/-/g, ' ');
+  t = t.replace(/[^a-z0-9\s]/g, ' ');
   t = t.replace(/\s+/g, ' ').trim();
   return t;
 }

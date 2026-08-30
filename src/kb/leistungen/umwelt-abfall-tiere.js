@@ -200,7 +200,7 @@ export const LEISTUNGEN = [
     cluster: 'umwelt-abfall-tiere',
     name: 'Baumfällgenehmigung beantragen',
     sprechName: 'Baum fällen',
-    synonyme: ['baum fällen', 'baumfällgenehmigung', 'baumschutzsatzung', 'baum entfernen', 'hecke schneiden', 'gehölzschnitt', 'baum krank'],
+    synonyme: ['baum fällen', 'baumfällgenehmigung', 'baumfällantrag', 'fällgenehmigung', 'fällantrag', 'baumfällung', 'baumschutzsatzung', 'baum entfernen', 'hecke schneiden', 'gehölzschnitt', 'baum krank'],
     leikaBezug: 'Fällgenehmigung nach Baumschutzsatzung (LeiKa 99061006)',
     kurzbeschreibung: 'Viele Gemeinden schützen Bäume ab einem bestimmten Stammumfang durch Satzung. Das Fällen, starke Rückschnitte und Eingriffe im Wurzelbereich brauchen dann eine Genehmigung - auch auf dem eigenen Grundstück.',
     zustaendigkeit: {

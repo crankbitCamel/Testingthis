@@ -16,6 +16,21 @@ Merkregel: **Fachwissen nach oben, Organisationswissen nach unten.**
 „Bürgeramt Mitte, Rathausplatz 1, Termin unter …" ist Kommunenwissen.
 Wer beides mischt, pflegt 11.000-fach, was einmal reichen würde.
 
+## Schritt 0: Externe Leistungsliste abgleichen
+
+Bevor irgendetwas extrahiert wird, die eigene Liste gegen die Wissensbasis
+prüfen - der Abgleich nutzt dieselbe Erkennung wie der Dialog:
+
+```bash
+node scripts/leistungen-abgleich.mjs meine-liste.txt --json ergebnis.json
+```
+
+Der Bericht sortiert jede Zeile in **vorhanden** (mit dem konkreten
+Erfassungsbedarf: nichts / Landeswerte / Kommunen-Overlay), **unsicher**
+(Kandidaten prüfen), **fehlt** (Neuerfassung nach
+`schema/leistung.schema.json`) und **Dubletten**. Nur für "fehlt" und den
+ausgewiesenen Bedarf wird anschließend gearbeitet.
+
 ## Ablauf für eine neue Kommune
 
 1. `vorlagen/kommune.vorlage.json` kopieren nach

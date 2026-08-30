@@ -12,14 +12,17 @@
     "test": "node --test tests/*.test.mjs",
     "check": "node scripts/validate-kb.mjs && node scripts/build-chunks.mjs && node scripts/validate-kommune.mjs beispiele/kommunen/*.json && node --test tests/*.test.mjs",
     "build:chunks": "node scripts/build-chunks.mjs",
-    "validate:kommune": "node scripts/validate-kommune.mjs beispiele/kommunen/*.json"
+    "validate:kommune": "node scripts/validate-kommune.mjs beispiele/kommunen/*.json",
+    "db:provision": "node scripts/neon-provision.mjs",
+    "db:import": "node scripts/build-chunks.mjs && node scripts/db-import.mjs",
+    "db:dry-run": "node scripts/db-import.mjs --dry-run"
   },
   "engines": {
     "node": ">=20"
   },
   "license": "MIT",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.122.0"
+    "@neondatabase/serverless": "^1.1.0"
   },
   "optionalDependencies": {
     "@anthropic-ai/sdk": "^0.122.0"

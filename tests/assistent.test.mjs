@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { ladeIndex } from '../server/retrieval.mjs';
-import { gespraechsschritt, werkzeugAusfuehren, llmKonfiguriert, WERKZEUGE } from '../server/assistent.mjs';
+import { gespraechsschritt, werkzeugAusfuehren, llmKonfiguriert, WERKZEUGE, MOCK_VERWARNUNG } from '../server/assistent.mjs';
 
 before(() => {
   if (!existsSync(new URL('../dist/chunks.jsonl', import.meta.url))) {
@@ -92,5 +92,41 @@ describe('Gesprächsschritt (Mock ohne Schlüssel)', () => {
     assert.equal(r.modus, 'mock');
     assert.ok(r.text.includes('14 Tage'), r.text);
     assert.ok(r.quellen.length >= 1);
+  });
+});
+
+describe('Interaktionsschleife (Bewertung -> Antwort / Rückfrage / Auflegen)', () => {
+  test('das Auflege-Werkzeug existiert und verlangt Grund plus Abschiedssatz', () => {
+    const w = WERKZEUGE.find((x) => x.name === 'gespraech_beenden');
+    assert.ok(w, 'gespraech_beenden fehlt im Werkzeugsatz');
+    assert.deepEqual(w.input_schema.required, ['grund', 'abschied']);
+    assert.deepEqual(w.input_schema.properties.grund.enum, ['missbrauch', 'erledigt']);
+  });
+
+  test('Missbrauch führt erst zur Verwarnung, nicht sofort zum Auflegen (Mock)', async (t) => {
+    if (llmKonfiguriert()) return t.skip('API-Schlüssel gesetzt - Mock nicht aktiv');
+    const r = await gespraechsschritt({ nachricht: 'Du bist doch ein Idiot', verlauf: [] });
+    assert.equal(r.text, MOCK_VERWARNUNG);
+    assert.ok(!r.beendet);
+  });
+
+  test('Missbrauch nach Verwarnung beendet das Gespräch (Mock)', async (t) => {
+    if (llmKonfiguriert()) return t.skip('API-Schlüssel gesetzt - Mock nicht aktiv');
+    const r = await gespraechsschritt({
+      nachricht: 'Halt die Klappe',
+      verlauf: [
+        { rolle: 'nutzer', text: 'Du bist doch ein Idiot' },
+        { rolle: 'bot', text: MOCK_VERWARNUNG },
+      ],
+    });
+    assert.equal(r.beendet, true);
+    assert.equal(r.grund, 'missbrauch');
+  });
+
+  test('ernst gemeinter Frust über eine Behörde ist kein Missbrauch (Mock)', async (t) => {
+    if (llmKonfiguriert()) return t.skip('API-Schlüssel gesetzt - Mock nicht aktiv');
+    const r = await gespraechsschritt({ nachricht: 'Ich ärgere mich so über die lange Wartezeit, was kostet denn nun der Personalausweis?' });
+    assert.ok(!r.beendet);
+    assert.notEqual(r.text, MOCK_VERWARNUNG);
   });
 });

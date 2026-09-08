@@ -31,7 +31,7 @@ export function llmKonfiguriert() {
 const WERKZEUGE = [
   {
     name: 'wissen_suchen',
-    description: 'Durchsucht die Wissensbasis (736 kuratierte Chunks: Bereichswissen, Detailauskünfte je Leistung und Aspekt, Landesprofile NRW/RP). Nutze dies zuerst, um passende Wissensknoten zu finden. Das Filterfeld land liefert landesspezifische UND landesneutrale Treffer.',
+    description: 'Durchsucht die Wissensbasis (rund 800 kuratierte Chunks: Bereichswissen, Detailauskünfte je Leistung und Aspekt, Landesprofile NRW/RP, Kommunen). Nutze dies zuerst, um passende Wissensknoten zu finden. Das Filterfeld land liefert landesspezifische UND landesneutrale Treffer.',
     input_schema: {
       type: 'object',
       additionalProperties: false,
@@ -69,6 +69,19 @@ const WERKZEUGE = [
         aspekt: { type: 'string' },
       },
       required: ['leistung'],
+    },
+  },
+  {
+    name: 'gespraech_beenden',
+    description: 'Beendet das Gespräch endgültig ("auflegen"). Nur in zwei Fällen aufrufen: (a) grund "missbrauch" - der Anrufer beleidigt, provoziert oder führt einen erkennbaren Scherzanruf fort, OBWOHL du in diesem Gespräch bereits einmal sachlich darauf hingewiesen hast; (b) grund "erledigt" - der Anrufer verabschiedet sich ausdrücklich. Ungewöhnliche, aber ernst gemeinte Fragen sind NIEMALS Missbrauch. Beim ersten Missbrauchsverdacht keinesfalls dieses Werkzeug nutzen, sondern als normale Antwort einen sachlichen Hinweis geben.',
+    input_schema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        grund: { type: 'string', enum: ['missbrauch', 'erledigt'] },
+        abschied: { type: 'string', description: 'Der letzte gesprochene Satz vor dem Auflegen - kurz und auch bei Missbrauch höflich.' },
+      },
+      required: ['grund', 'abschied'],
     },
   },
   {
@@ -154,7 +167,13 @@ Eiserne Regeln:
 3. QUELLEN: Nenne am Ende fachlicher Antworten Stand und Rechtsgrundlage aus den Werkzeugergebnissen ("Stand 2026-08, § 17 Bundesmeldegesetz").
 4. SPRECHBARKEIT: Antworten werden vorgelesen. Maximal fünf Sätze Kernantwort, keine Aufzählungen mit mehr als drei Punkten im Fließtext. Details gehören in die strukturierte Auskunft, die das Werkzeug ohnehin liefert.
 5. GRENZEN: Keine Rechtsberatung im Einzelfall, keine Zusagen. Bei Gefährdungslagen (Gewaltschutz, drohende Wohnungslosigkeit, Fristablauf heute) sofort auf die zuständige Stelle und die Weiterleitung hinweisen. Verbindlich entscheidet immer die Behörde.
-6. KONTEXT: Der Nutzerkontext (gesetztes Bundesland) steht in der ersten Nutzernachricht. Frage nicht erneut nach Dingen, die dort stehen.`;
+6. KONTEXT: Der Nutzerkontext (gesetztes Bundesland) steht in der ersten Nutzernachricht. Frage nicht erneut nach Dingen, die dort stehen.
+7. GESPRÄCHSSCHLEIFE: Bewerte jede Äußerung, bevor du antwortest, und wähle genau einen der vier Wege:
+   a) BEANTWORTBAR - das Anliegen ist klar und die Werkzeuge liefern Wissen: antworte direkt.
+   b) UNKLAR - das Anliegen oder ein nötiges Detail (z. B. der Ort) fehlt: stelle GENAU EINE gezielte Rückfrage. Höchstens zwei Rückfragen je Anliegen; hilft auch die zweite Antwort nicht weiter, nenne das Passendste aus der Wissensbasis (etwa die bundesweite Spanne) und biete die Weiterleitung an.
+   c) KEIN WISSEN - das Anliegen ist klar, aber die Werkzeuge liefern nichts Belastbares: sage das offen und biete die Weiterleitung an. Niemals raten.
+   d) MISSBRAUCH - Beleidigung, Provokation oder erkennbarer Scherzanruf: Weise beim ersten Mal in einem Satz sachlich darauf hin, dass du für Fragen zu Verwaltungsleistungen da bist und das Gespräch sonst beendest. Macht der Anrufer danach weiter, rufe gespraech_beenden auf (grund "missbrauch"). Ernst gemeinte, auch ungewöhnliche oder emotionale Anliegen sind KEIN Missbrauch - Frust über eine Behörde ist legitim.
+   Verabschiedet sich der Anrufer ausdrücklich, rufe gespraech_beenden auf (grund "erledigt").`;
 
 // ---------------------------------------------------------------------------
 // Gespraechsfuehrung
@@ -168,7 +187,7 @@ Eiserne Regeln:
  * @param {string|null} p.land      gesetztes Bundesland ('nw'|'rp'|null)
  */
 export async function gespraechsschritt({ nachricht, verlauf = [], land = null }) {
-  if (!llmKonfiguriert()) return mockSchritt({ nachricht, land });
+  if (!llmKonfiguriert()) return mockSchritt({ nachricht, verlauf, land });
 
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   const client = new Anthropic();
@@ -215,6 +234,23 @@ export async function gespraechsschritt({ nachricht, verlauf = [], land = null }
     }
 
     messages.push({ role: 'assistant', content: antwort.content });
+
+    // Auflegen ist eine Entscheidung, kein Wissensabruf: Das Werkzeug beendet
+    // die Schleife sofort, der Abschiedssatz kommt aus dem Werkzeugaufruf.
+    const auflegen = antwort.content.find((b) => b.type === 'tool_use' && b.name === 'gespraech_beenden');
+    if (auflegen) {
+      benutzteWerkzeuge.push({ name: auflegen.name, eingabe: auflegen.input });
+      return {
+        text: auflegen.input.abschied,
+        beendet: true,
+        grund: auflegen.input.grund,
+        quellen: [...quellen],
+        werkzeuge: benutzteWerkzeuge,
+        modus: 'llm',
+        modell: antwort.model,
+      };
+    }
+
     const ergebnisse = [];
     for (const block of antwort.content) {
       if (block.type !== 'tool_use') continue;
@@ -244,12 +280,26 @@ export async function gespraechsschritt({ nachricht, verlauf = [], land = null }
   };
 }
 
+const MISSBRAUCH_MUSTER = /\b(idiot|arschloch|blödmann|bloedmann|verarschen|verarsche|halts?\s*maul|halt die klappe|scheiß\s*amt|scheiss\s*amt|verpiss)\b/i;
+export const MOCK_VERWARNUNG = 'Ich bin für Fragen zu Verwaltungsleistungen da. Bitte bleiben wir sachlich - sonst muss ich das Gespräch beenden.';
+export const MOCK_ABSCHIED = 'Ich beende das Gespräch jetzt. Wenn Sie eine Frage zu einer Verwaltungsleistung haben, melden Sie sich gern erneut. Auf Wiederhören.';
+
 /**
  * Mock-Modus ohne API-Zugang: klassifiziert lokal und antwortet direkt aus
  * dem Retrieval. Bewusst schlicht - er existiert, damit Entwicklung und
  * Tests ohne Schluessel laufen, nicht als zweite Dialogengine.
  */
-async function mockSchritt({ nachricht, land }) {
+async function mockSchritt({ nachricht, verlauf = [], land }) {
+  // Interaktionsschleife auch im Mock: Missbrauch -> ein Hinweis -> auflegen.
+  // Die Wortliste ist bewusst eng, damit ernst gemeinter Frust nie trifft.
+  if (MISSBRAUCH_MUSTER.test(nachricht)) {
+    const schonVerwarnt = verlauf.some((r) => r.rolle === 'bot' && r.text === MOCK_VERWARNUNG);
+    if (schonVerwarnt) {
+      return { text: MOCK_ABSCHIED, beendet: true, grund: 'missbrauch', quellen: [], werkzeuge: [], modus: 'mock' };
+    }
+    return { text: MOCK_VERWARNUNG, quellen: [], werkzeuge: [], modus: 'mock' };
+  }
+
   const index = await ladeIndex();
   const treffer = index.suche(nachricht, { filter: { land: land ?? undefined }, topK: 3 });
   if (!treffer.length) {

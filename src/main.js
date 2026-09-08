@@ -316,6 +316,7 @@ function antwortAusgeben(antwort) {
 
 let kiModus = false;
 let kiVerlauf = [];
+let kiAufgelegt = false; // das Modell hat das Gespraech beendet ("aufgelegt")
 
 async function kiVerfuegbarkeitPruefen() {
   try {
@@ -352,6 +353,25 @@ async function kiVerarbeiten(eingabe) {
       return;
     }
     kiVerlauf.push({ rolle: 'nutzer', text: eingabe }, { rolle: 'bot', text: daten.text });
+
+    // Auflegen: Das Modell hat das Gespraech beendet (Missbrauch oder
+    // Verabschiedung). Wie am Telefon endet damit dieser Anruf - die
+    // naechste Eingabe beginnt ein neues Gespraech ohne Vorgeschichte.
+    if (daten.beendet) {
+      kiAufgelegt = true;
+      if (zuhoerer.aktiv) zuhoerer.stoppen();
+      blase(daten.text, 'bot');
+      auskunftZeichnen({
+        titel: 'Gespräch beendet',
+        untertitel: daten.grund === 'missbrauch' ? 'Beendet nach wiederholtem Hinweis' : 'Der Anrufer hat sich verabschiedet',
+        absaetze: [daten.text, 'Die nächste Eingabe beginnt ein neues Gespräch.'],
+        listen: [],
+      }, 3);
+      sprecher.sprich(daten.text);
+      systemhinweis('Das Gespräch wurde beendet. Schreiben oder sagen Sie einfach etwas, um ein neues zu beginnen.');
+      return;
+    }
+
     blase(daten.text, 'bot');
     auskunftZeichnen({
       titel: 'KI-Auskunft',
@@ -386,6 +406,11 @@ function eingabeVerarbeiten(text, quelle) {
   if (quelle !== 'taste') diagnoseZeichnen(eingabe);
 
   if (kiModus && quelle !== 'taste') {
+    if (kiAufgelegt) {
+      kiAufgelegt = false;
+      kiVerlauf = [];
+      systemhinweis('Neues Gespräch begonnen.');
+    }
     kiVerarbeiten(eingabe);
     return;
   }
@@ -446,7 +471,7 @@ el.optStimme.addEventListener('change', () => {
 
 el.optKi.addEventListener('change', () => {
   kiModus = el.optKi.checked;
-  if (kiModus) kiVerlauf = [];
+  if (kiModus) { kiVerlauf = []; kiAufgelegt = false; }
   systemhinweis(kiModus
     ? 'KI-Modus aktiv: Claude führt das Gespräch und belegt jede Fachaussage aus der Wissensbasis. Zifferntasten steuern weiter das regelbasierte Menü.'
     : 'Zurück im regelbasierten Modus.');

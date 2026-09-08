@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -fsSL -o cloudflared *)",
+      "Bash(*/cloudflared tunnel --url http://127.0.0.1:4115*)",
+      "Bash(npx --yes localtunnel --port 4115*)"
+    ]
+  }
+}

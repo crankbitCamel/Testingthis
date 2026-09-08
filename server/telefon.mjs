@@ -58,14 +58,22 @@ const twiml = (inhalt) => `<?xml version="1.0" encoding="UTF-8"?>\n<Response>${i
 const sag = (text) => `<Say voice="${STIMME}" language="${SPRACHE}">${xmlEscape(text)}</Say>`;
 
 /**
+ * Zuhoer-Parameter: bis zu 6 s auf Sprechbeginn warten, 2 s nach der letzten
+ * Sprechpause abschliessen und den Server auch ohne erkannte Sprache aufrufen.
+ * speechTimeout="auto" liess Anrufe in der Praxis stumm haengen, wenn Twilio
+ * das Ende der Aeusserung nicht sauber erkannte.
+ */
+const ZUHOEREN = `input="speech" language="${SPRACHE}" timeout="6" speechTimeout="2" actionOnEmptyResult="true" action="/api/telefon/eingabe" method="POST"`;
+
+/**
  * Sprich den Text und hoere danach zu. Antwortet der Anrufer nicht, laeuft
  * das TwiML hinter dem Gather weiter: ein Hinweis, zweite Chance, dann Ende.
  */
 function sagUndZuhoeren(text) {
   return twiml(
-    `<Gather input="speech" language="${SPRACHE}" speechTimeout="auto" action="/api/telefon/eingabe" method="POST">${sag(text)}</Gather>`
+    `<Gather ${ZUHOEREN}>${sag(text)}</Gather>`
     + sag('Ich habe nichts gehört. Sagen Sie Ihr Anliegen bitte noch einmal - oder legen Sie einfach auf.')
-    + `<Gather input="speech" language="${SPRACHE}" speechTimeout="auto" action="/api/telefon/eingabe" method="POST"/>`
+    + `<Gather ${ZUHOEREN}/>`
     + sag('Vielen Dank für Ihren Anruf. Auf Wiederhören.')
     + '<Hangup/>',
   );

@@ -58,6 +58,9 @@ function xml(antwort, inhalt) {
 const server = createServer(async (anfrage, antwort) => {
   try {
     const url = new URL(anfrage.url, `http://${anfrage.headers.host}`);
+    if (url.pathname.startsWith('/api/')) {
+      console.log(new Date().toISOString(), anfrage.method, url.pathname);
+    }
 
     // --- API: LLM-Assistenzmodus ------------------------------------------
     if (url.pathname === '/api/status') {

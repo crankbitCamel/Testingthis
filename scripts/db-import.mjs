@@ -126,8 +126,9 @@ const j = (wert) => JSON.stringify(wert);
 // Schema anwenden: Statement fuer Statement, damit ein Fehlschlag der
 // pgvector-Extension den Rest nicht mitreisst (dann ohne Embedding-Spalte).
 let vektorVerfuegbar = true;
-const schemaText = readFileSync(join(WURZEL, 'db', 'schema.sql'), 'utf8');
-const statements = schemaText.split(';').map((s) => s.trim()).filter((s) => s.replace(/^--.*$/gm, '').trim());
+// Kommentare vor dem Split entfernen - sie duerfen Semikola enthalten.
+const schemaText = readFileSync(join(WURZEL, 'db', 'schema.sql'), 'utf8').replace(/--[^\n]*/g, '');
+const statements = schemaText.split(';').map((s) => s.trim()).filter(Boolean);
 for (let statement of statements) {
   if (!vektorVerfuegbar) statement = statement.replace(/^\s*embedding\s+vector\(\d+\),\s*$/m, '');
   try {

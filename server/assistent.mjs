@@ -19,6 +19,9 @@ import { aspektInhalt } from '../src/dialog.js';
 import { verstehe, entscheide, erkenneLand } from '../src/nlu.js';
 
 const MODELL = process.env.ASSISTENT_MODELL ?? 'claude-opus-5';
+// Kurze Antworten halten die Latenz telefontauglich (Twilio bricht Webhooks
+// nach ~15 s ab). Fuer den Browser laesst sich der Wert per Env erhoehen.
+const MAX_TOKENS = Number(process.env.ASSISTENT_MAX_TOKENS ?? 512);
 
 export function llmKonfiguriert() {
   return Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
@@ -215,7 +218,7 @@ export async function gespraechsschritt({ nachricht, verlauf = [], land = null }
   for (let runde = 0; runde < 6; runde += 1) {
     const antwort = await client.messages.create({
       model: MODELL,
-      max_tokens: 2048,
+      max_tokens: MAX_TOKENS,
       // Dialogantworten sind kurz und werkzeuggetrieben - niedriger Aufwand
       // haelt die Latenz telefontauglich; die Fachlichkeit liefern die Tools.
       output_config: { effort: 'low' },

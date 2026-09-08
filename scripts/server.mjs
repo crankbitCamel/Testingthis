@@ -9,7 +9,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gespraechsschritt, llmKonfiguriert } from '../server/assistent.mjs';
-import { anrufBeginn, anrufEingabe } from '../server/telefon.mjs';
+import { anrufBeginn, anrufEingabe, anrufWarten } from '../server/telefon.mjs';
 
 const WURZEL = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const PORT = Number(process.env.PORT ?? 4115);
@@ -99,6 +99,10 @@ const server = createServer(async (anfrage, antwort) => {
     }
     if (url.pathname === '/api/telefon/eingabe' && anfrage.method === 'POST') {
       xml(antwort, await anrufEingabe(await formularLesen(anfrage), basis));
+      return;
+    }
+    if (url.pathname === '/api/telefon/warten' && anfrage.method === 'POST') {
+      xml(antwort, await anrufWarten(await formularLesen(anfrage), basis));
       return;
     }
 

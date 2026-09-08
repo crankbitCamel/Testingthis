@@ -16,7 +16,7 @@
  * Media Streams (fuer Barge-in und geringere Latenz) ersetzt nur diese
  * Datei, nicht die Gespraechslogik.
  */
-import { gespraechsschritt } from './assistent.mjs';
+import { gespraechsschritt, llmKonfiguriert } from './assistent.mjs';
 import { erkenneLand } from '../src/nlu.js';
 
 const STIMME = process.env.TELEFON_STIMME ?? 'Polly.Vicki-Neural';
@@ -95,6 +95,19 @@ function sagUndZuhoeren(text, basis = '') {
   );
 }
 
+// --- Hintergrund-Antworten (LLM) -------------------------------------------
+// Der LLM-Aufruf dauert einige Sekunden. Wuerde der Server so lange warten,
+// bevor er Twilio antwortet, bricht der Anruf ab - Twilio und der Tunnel
+// halten eine einzelne Verbindung nicht ~15 s offen. Deshalb: sofort mit
+// "Einen Moment" antworten, im Hintergrund rechnen und per <Redirect> so
+// lange nachfragen, bis die Antwort bereitliegt. Jede einzelne Antwort ist
+// dadurch sofort da, ein Timeout kann nicht mehr entstehen.
+const jobs = new Map(); // CallSid -> { status, ergebnis, fehler, polls }
+const MAX_POLLS = 12;   // bis zu ~12 * 2 s = 24 s Rechenzeit
+
+const wartenRedirect = (basis = '') =>
+  `<Redirect method="POST">${basis}/api/telefon/warten</Redirect>`;
+
 /** TwiML fuer den Anrufbeginn (Twilio-Webhook "A call comes in"). */
 export function anrufBeginn({ CallSid } = {}, basis = '') {
   if (CallSid) zustandFuer(CallSid); // Zustand anlegen, Verlauf beginnt leer
@@ -127,27 +140,76 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
   const landTreffer = erkenneLand(gesagt);
   if (landTreffer) z.land = landTreffer.code;
 
-  let ergebnis;
-  try {
-    ergebnis = await gespraechsschritt({ nachricht: gesagt, verlauf: z.verlauf, land: z.land });
-  } catch (fehler) {
-    return twiml(
-      sag('Entschuldigung, es gab gerade eine technische Störung. Bitte versuchen Sie es in einem Moment erneut. Auf Wiederhören.')
-      + '<Hangup/>',
-    );
+  // Mock-Modus: schnell und synchron - kein Timeout-Risiko, deckt die Tests ab.
+  if (!llmKonfiguriert()) {
+    let ergebnis;
+    try {
+      ergebnis = await gespraechsschritt({ nachricht: gesagt, verlauf: z.verlauf, land: z.land });
+    } catch (fehler) {
+      return twiml(
+        sag('Entschuldigung, es gab gerade eine technische Störung. Bitte versuchen Sie es in einem Moment erneut. Auf Wiederhören.')
+        + '<Hangup/>',
+      );
+    }
+    z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
+    if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
+    if (ergebnis.beendet) {
+      anrufe.delete(CallSid);
+      return twiml(sag(ergebnis.text) + '<Hangup/>');
+    }
+    return sagUndZuhoeren(ergebnis.text, basis);
   }
 
-  z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
-  if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
+  // LLM-Modus: Antwort im Hintergrund berechnen, Twilio sofort vertroesten.
+  const schluessel = CallSid ?? 'ohne-sid';
+  const job = { status: 'pending', ergebnis: null, fehler: null, polls: 0 };
+  jobs.set(schluessel, job);
+  gespraechsschritt({ nachricht: gesagt, verlauf: z.verlauf, land: z.land })
+    .then((ergebnis) => {
+      job.ergebnis = ergebnis;
+      job.status = 'done';
+      z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
+      if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
+    })
+    .catch((fehler) => { job.fehler = fehler; job.status = 'error'; });
 
-  // Auflegen: die Interaktionsschleife hat das Gespraech beendet
-  // (Verabschiedung oder Missbrauch nach Verwarnung).
-  if (ergebnis.beendet) {
-    anrufe.delete(CallSid);
-    return twiml(sag(ergebnis.text) + '<Hangup/>');
+  return twiml(sag('Einen Moment, ich schaue das für Sie nach.') + wartenRedirect(basis));
+}
+
+/**
+ * Poll-Endpunkt: Twilio kehrt per <Redirect> hierher zurueck, bis die im
+ * Hintergrund berechnete Antwort bereitliegt. Jede Antwort kommt sofort,
+ * sodass nie eine Zeitueberschreitung entsteht.
+ */
+export async function anrufWarten({ CallSid } = {}, basis = '') {
+  const schluessel = CallSid ?? 'ohne-sid';
+  const job = jobs.get(schluessel);
+
+  if (!job) {
+    // Kein laufender Job (etwa nach Server-Neustart): einfach weiter zuhoeren.
+    return sagUndZuhoeren('Entschuldigung, bitte wiederholen Sie Ihre Frage.', basis);
+  }
+  if (job.status === 'error') {
+    jobs.delete(schluessel);
+    return twiml(sag('Entschuldigung, es gab gerade eine technische Störung. Bitte versuchen Sie es in einem Moment erneut. Auf Wiederhören.') + '<Hangup/>');
+  }
+  if (job.status === 'done') {
+    jobs.delete(schluessel);
+    const { ergebnis } = job;
+    if (ergebnis.beendet) {
+      anrufe.delete(CallSid);
+      return twiml(sag(ergebnis.text) + '<Hangup/>');
+    }
+    return sagUndZuhoeren(ergebnis.text, basis);
   }
 
-  return sagUndZuhoeren(ergebnis.text, basis);
+  // Noch nicht fertig: kurze Stille, dann erneut nachfragen (begrenzt).
+  job.polls += 1;
+  if (job.polls > MAX_POLLS) {
+    jobs.delete(schluessel);
+    return twiml(sag('Das dauert diesmal leider zu lange. Bitte versuchen Sie es erneut. Auf Wiederhören.') + '<Hangup/>');
+  }
+  return twiml('<Pause length="2"/>' + wartenRedirect(basis));
 }
 
 /** Nur fuer Tests: Zustand eines Anrufs einsehen bzw. alles verwerfen. */

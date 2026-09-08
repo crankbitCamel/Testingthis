@@ -58,12 +58,18 @@ const twiml = (inhalt) => `<?xml version="1.0" encoding="UTF-8"?>\n<Response>${i
 const sag = (text) => `<Say voice="${STIMME}" language="${SPRACHE}">${xmlEscape(text)}</Say>`;
 
 /**
- * Zuhoer-Parameter: bis zu 6 s auf Sprechbeginn warten, 2 s nach der letzten
- * Sprechpause abschliessen und den Server auch ohne erkannte Sprache aufrufen.
- * speechTimeout="auto" liess Anrufe in der Praxis stumm haengen, wenn Twilio
- * das Ende der Aeusserung nicht sauber erkannte.
+ * Zuhoer-Parameter fuer <Gather>:
+ * - input="speech dtmf": neben Sprache auch Tastendruck annehmen. Das dient
+ *   als Diagnose (ein Tastendruck beweist, dass der Rueckruf zum Server geht)
+ *   und als Rueckfallweg, falls die Spracherkennung nichts liefert.
+ * - speechModel="phone_call" + enhanced="true": auf Telefonqualitaet trainiert,
+ *   deutlich zuverlaessiger als das Standardmodell.
+ * - timeout="8": bis zu 8 s auf den Sprechbeginn warten.
+ * - speechTimeout="auto": Ende der Aeusserung automatisch erkennen.
+ * - actionOnEmptyResult="true": den Server auch bei leerer Erkennung aufrufen,
+ *   damit der Anruf nie stumm im TwiML weiterlaeuft.
  */
-const ZUHOEREN = `input="speech" language="${SPRACHE}" timeout="6" speechTimeout="2" actionOnEmptyResult="true" action="/api/telefon/eingabe" method="POST"`;
+const ZUHOEREN = `input="speech dtmf" numDigits="1" language="${SPRACHE}" speechModel="phone_call" enhanced="true" timeout="8" speechTimeout="auto" actionOnEmptyResult="true" action="/api/telefon/eingabe" method="POST"`;
 
 /**
  * Sprich den Text und hoere danach zu. Antwortet der Anrufer nicht, laeuft
@@ -86,9 +92,22 @@ export function anrufBeginn({ CallSid } = {}) {
 }
 
 /** TwiML fuer jede erkannte Aeusserung (action des Gather). */
-export async function anrufEingabe({ CallSid, SpeechResult } = {}) {
+export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence } = {}) {
   const z = zustandFuer(CallSid ?? 'ohne-sid');
   const gesagt = (SpeechResult ?? '').trim();
+
+  // Diagnose-/Sichtbarkeitszeile: zeigt im Server-Fenster, was Twilio liefert.
+  if (SpeechResult !== undefined || Digits !== undefined) {
+    console.log(`  eingabe CallSid=${CallSid} Digits=${Digits ?? ''} Confidence=${Confidence ?? ''} SpeechResult=${JSON.stringify(gesagt)}`);
+  }
+
+  // Tastendruck ohne erkannte Sprache: bestaetigt hoerbar, dass der Rueckweg
+  // Twilio -> Server funktioniert. Danach zeigt sich, ob nur die Sprach-
+  // erkennung das Problem ist.
+  if (!gesagt && Digits) {
+    return sagUndZuhoeren('Tastendruck erkannt. Der Rückruf zum Server funktioniert. Stellen Sie jetzt bitte Ihre Frage in eigenen Worten.');
+  }
+
   if (!gesagt) {
     return sagUndZuhoeren('Entschuldigung, das habe ich nicht verstanden. Sagen Sie es bitte noch einmal.');
   }

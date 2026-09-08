@@ -22,7 +22,7 @@ describe('TwiML-Grundlagen', () => {
   test('Anrufbeginn: gültiges TwiML, deutsche Spracherkennung, Begrüßung', () => {
     const t = anrufBeginn({ CallSid: 'CA1' });
     assert.ok(t.startsWith('<?xml version="1.0"'));
-    assert.match(t, /<Gather input="speech" language="de-DE"[^>]*action="\/api\/telefon\/eingabe"/);
+    assert.match(t, /<Gather input="[^"]*speech[^"]*" [^>]*language="de-DE"[^>]*action="\/api\/telefon\/eingabe"/);
     assert.match(t, /Verwaltungsassistent/);
     assert.match(t, /<Hangup\/>/); // Ende nach doppeltem Schweigen
   });

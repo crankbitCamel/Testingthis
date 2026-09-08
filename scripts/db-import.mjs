@@ -40,7 +40,7 @@ const leistungZeilen = LEISTUNGEN.map((l) => ({
   id: l.id,
   cluster_id: l.cluster,
   name: l.name,
-  rechtsebene: rechtsebene(l.id).ebene,
+  rechtsebene: rechtsebene(l.id).ebene.id,
   daten: l,
 }));
 

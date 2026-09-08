@@ -9,6 +9,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gespraechsschritt, llmKonfiguriert } from '../server/assistent.mjs';
+import { anrufBeginn, anrufEingabe } from '../server/telefon.mjs';
 
 const WURZEL = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const PORT = Number(process.env.PORT ?? 4115);
@@ -30,7 +31,7 @@ function json(antwort, status, daten) {
     .end(JSON.stringify(daten));
 }
 
-async function koerperLesen(anfrage, maxBytes = 64 * 1024) {
+async function rohLesen(anfrage, maxBytes = 64 * 1024) {
   let groesse = 0;
   const teile = [];
   for await (const teil of anfrage) {
@@ -38,7 +39,20 @@ async function koerperLesen(anfrage, maxBytes = 64 * 1024) {
     if (groesse > maxBytes) throw new Error('Anfrage zu groß');
     teile.push(teil);
   }
-  return JSON.parse(Buffer.concat(teile).toString('utf8') || '{}');
+  return Buffer.concat(teile).toString('utf8');
+}
+
+async function koerperLesen(anfrage, maxBytes = 64 * 1024) {
+  return JSON.parse((await rohLesen(anfrage, maxBytes)) || '{}');
+}
+
+/** Twilio sendet application/x-www-form-urlencoded, kein JSON. */
+async function formularLesen(anfrage) {
+  return Object.fromEntries(new URLSearchParams(await rohLesen(anfrage)));
+}
+
+function xml(antwort, inhalt) {
+  antwort.writeHead(200, { 'Content-Type': 'text/xml; charset=utf-8' }).end(inhalt);
 }
 
 const server = createServer(async (anfrage, antwort) => {
@@ -62,6 +76,16 @@ const server = createServer(async (anfrage, antwort) => {
       } catch (fehler) {
         json(antwort, 500, { fehler: fehler.message });
       }
+      return;
+    }
+
+    // --- API: Telefonie (Twilio-Voice-Webhooks) ---------------------------
+    if (url.pathname === '/api/telefon' && anfrage.method === 'POST') {
+      xml(antwort, anrufBeginn(await formularLesen(anfrage)));
+      return;
+    }
+    if (url.pathname === '/api/telefon/eingabe' && anfrage.method === 'POST') {
+      xml(antwort, await anrufEingabe(await formularLesen(anfrage)));
       return;
     }
 

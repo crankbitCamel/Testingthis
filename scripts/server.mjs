@@ -59,7 +59,8 @@ const server = createServer(async (anfrage, antwort) => {
   try {
     const url = new URL(anfrage.url, `http://${anfrage.headers.host}`);
     if (url.pathname.startsWith('/api/')) {
-      console.log(new Date().toISOString(), anfrage.method, url.pathname);
+      console.log(new Date().toISOString(), anfrage.method, url.pathname,
+        `(Host ${anfrage.headers['x-forwarded-host'] || anfrage.headers.host || '?'})`);
     }
 
     // --- API: LLM-Assistenzmodus ------------------------------------------
@@ -83,12 +84,21 @@ const server = createServer(async (anfrage, antwort) => {
     }
 
     // --- API: Telefonie (Twilio-Voice-Webhooks) ---------------------------
+    // Oeffentliche Basis (Protokoll + Host), damit das TwiML VOLLSTAENDIGE
+    // action-Adressen liefern kann. Hinter dem Tunnel traegt der Host-Header
+    // (bzw. X-Forwarded-Host) den oeffentlichen Namen; lokal ist es
+    // 127.0.0.1 - dann bleibt die Adresse relativ.
+    const oeffHost = anfrage.headers['x-forwarded-host'] || anfrage.headers.host || '';
+    const oeffProto = anfrage.headers['x-forwarded-proto'] || 'https';
+    const istLokal = /^(127\.0\.0\.1|localhost|\[?::1\]?)(:\d+)?$/i.test(oeffHost);
+    const basis = (!istLokal && oeffHost) ? `${oeffProto}://${oeffHost}` : '';
+
     if (url.pathname === '/api/telefon' && anfrage.method === 'POST') {
-      xml(antwort, anrufBeginn(await formularLesen(anfrage)));
+      xml(antwort, anrufBeginn(await formularLesen(anfrage), basis));
       return;
     }
     if (url.pathname === '/api/telefon/eingabe' && anfrage.method === 'POST') {
-      xml(antwort, await anrufEingabe(await formularLesen(anfrage)));
+      xml(antwort, await anrufEingabe(await formularLesen(anfrage), basis));
       return;
     }
 

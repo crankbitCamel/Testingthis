@@ -69,30 +69,40 @@ const sag = (text) => `<Say voice="${STIMME}" language="${SPRACHE}">${xmlEscape(
  * - actionOnEmptyResult="true": den Server auch bei leerer Erkennung aufrufen,
  *   damit der Anruf nie stumm im TwiML weiterlaeuft.
  */
-const ZUHOEREN = `input="speech dtmf" numDigits="1" language="${SPRACHE}" speechModel="phone_call" enhanced="true" timeout="8" speechTimeout="auto" actionOnEmptyResult="true" action="/api/telefon/eingabe" method="POST"`;
+/**
+ * Gather-Attribute. Die action-Adresse wird als VOLLSTAENDIGE URL ausgegeben,
+ * wenn die oeffentliche Basis (Protokoll + Host, aus den Request-Headern)
+ * bekannt ist. Grund: Bei per REST-API gestarteten Anrufen loest Twilio eine
+ * relative action-Adresse nicht zuverlaessig zum Tunnel-Host auf - der erste
+ * Webhook (mit voller Url) kommt an, der zweite (relativ) laeuft ins Leere.
+ * Ohne Basis (lokale Tests) bleibt die Adresse relativ.
+ */
+const zuhoerAttrs = (basis = '') =>
+  `input="speech dtmf" numDigits="1" language="${SPRACHE}" speechModel="phone_call" enhanced="true" timeout="8" speechTimeout="auto" actionOnEmptyResult="true" action="${basis}/api/telefon/eingabe" method="POST"`;
 
 /**
  * Sprich den Text und hoere danach zu. Antwortet der Anrufer nicht, laeuft
  * das TwiML hinter dem Gather weiter: ein Hinweis, zweite Chance, dann Ende.
  */
-function sagUndZuhoeren(text) {
+function sagUndZuhoeren(text, basis = '') {
+  const attrs = zuhoerAttrs(basis);
   return twiml(
-    `<Gather ${ZUHOEREN}>${sag(text)}</Gather>`
+    `<Gather ${attrs}>${sag(text)}</Gather>`
     + sag('Ich habe nichts gehört. Sagen Sie Ihr Anliegen bitte noch einmal - oder legen Sie einfach auf.')
-    + `<Gather ${ZUHOEREN}/>`
+    + `<Gather ${attrs}/>`
     + sag('Vielen Dank für Ihren Anruf. Auf Wiederhören.')
     + '<Hangup/>',
   );
 }
 
 /** TwiML fuer den Anrufbeginn (Twilio-Webhook "A call comes in"). */
-export function anrufBeginn({ CallSid } = {}) {
+export function anrufBeginn({ CallSid } = {}, basis = '') {
   if (CallSid) zustandFuer(CallSid); // Zustand anlegen, Verlauf beginnt leer
-  return sagUndZuhoeren(BEGRUESSUNG);
+  return sagUndZuhoeren(BEGRUESSUNG, basis);
 }
 
 /** TwiML fuer jede erkannte Aeusserung (action des Gather). */
-export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence } = {}) {
+export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence } = {}, basis = '') {
   const z = zustandFuer(CallSid ?? 'ohne-sid');
   const gesagt = (SpeechResult ?? '').trim();
 
@@ -105,11 +115,11 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
   // Twilio -> Server funktioniert. Danach zeigt sich, ob nur die Sprach-
   // erkennung das Problem ist.
   if (!gesagt && Digits) {
-    return sagUndZuhoeren('Tastendruck erkannt. Der Rückruf zum Server funktioniert. Stellen Sie jetzt bitte Ihre Frage in eigenen Worten.');
+    return sagUndZuhoeren('Tastendruck erkannt. Der Rückruf zum Server funktioniert. Stellen Sie jetzt bitte Ihre Frage in eigenen Worten.', basis);
   }
 
   if (!gesagt) {
-    return sagUndZuhoeren('Entschuldigung, das habe ich nicht verstanden. Sagen Sie es bitte noch einmal.');
+    return sagUndZuhoeren('Entschuldigung, das habe ich nicht verstanden. Sagen Sie es bitte noch einmal.', basis);
   }
 
   // Nennt der Anrufer sein Bundesland oder eine bekannte Stadt, bleibt das
@@ -137,7 +147,7 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
     return twiml(sag(ergebnis.text) + '<Hangup/>');
   }
 
-  return sagUndZuhoeren(ergebnis.text);
+  return sagUndZuhoeren(ergebnis.text, basis);
 }
 
 /** Nur fuer Tests: Zustand eines Anrufs einsehen bzw. alles verwerfen. */

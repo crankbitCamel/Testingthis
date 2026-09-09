@@ -291,6 +291,27 @@ direkte Verbindung auf den Datenbank-Port (5432), also einen normalen Server
 oder lokalen Betrieb. Managed-Postgres wie STACKIT wird pro Stunde nach
 Instanzgröße plus Speicher abgerechnet — zum Testen anlegen, nutzen, löschen.
 
+### Lokal testen: Postgres und Whisper in Docker
+
+`docker-compose.yml` startet die Test-Infrastruktur auf dem eigenen Rechner:
+Postgres (für das Gesprächsprotokoll) und einen Whisper-HTTP-Dienst auf CPU.
+Die App läuft zum Entwickeln am besten nativ dagegen; ein App-Container ist
+als Profil `app` vorbereitet.
+
+```bash
+docker compose up -d postgres whisper
+DATABASE_URL="postgres://verwaltung:verwaltung@localhost:5432/verwaltung?sslmode=disable" npm start
+```
+
+Whisper lässt sich unabhängig von der App mit einer Audiodatei messen — eine
+brauchbare CPU-Referenz, bevor Serverhardware entschieden wird:
+
+```bash
+curl -F "audio_file=@probe.wav" "http://localhost:9000/asr?task=transcribe&language=de&output=json"
+```
+
+Details und alle Kommandos stehen als Kommentar im `docker-compose.yml`.
+
 ## Grenzen
 
 - Die Wissensbasis ist redaktionell gepflegt und trägt einen Stand (`2026-08`). Beträge

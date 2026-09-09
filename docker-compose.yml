@@ -1,0 +1,83 @@
+# Lokale Test-Infrastruktur fuer den Verwaltungsassistenten (EU-Variante).
+#
+# Zwei Dienste laufen im Container, die App bevorzugt nativ (schnelleres
+# Entwickeln ohne Neubau). Optional laeuft auch die App im Container.
+#
+#   docker compose up -d postgres whisper     # Infrastruktur starten
+#   docker compose --profile app up -d        # zusaetzlich die App im Container
+#   docker compose down                       # alles stoppen (Daten bleiben)
+#   docker compose down -v                    # ... inkl. Datenbank-Volume loeschen
+#
+# App nativ gegen die Container (PowerShell):
+#   $env:DATABASE_URL="postgres://verwaltung:verwaltung@localhost:5432/verwaltung?sslmode=disable"
+#   npm start
+#
+# Whisper (CPU) auf dem eigenen Rechner messen - Referenz fuer die CPU/GPU-
+# Entscheidung. Beliebige WAV/MP3 mit deutscher Sprache nehmen:
+#   curl.exe -F "audio_file=@probe.wav" "http://localhost:9000/asr?task=transcribe&language=de&output=json"
+#   (Dauer mit Measure-Command { ... } messen; Ziel fuer Telefon: deutlich unter 2 s je Satz)
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: verwaltung-postgres
+    environment:
+      POSTGRES_USER: verwaltung
+      POSTGRES_PASSWORD: verwaltung
+      POSTGRES_DB: verwaltung
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-daten:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U verwaltung -d verwaltung"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Whisper als HTTP-Dienst (faster-whisper, CPU). Modell per ASR_MODEL:
+  # small (Start, schnell) | medium (besser, langsamer) | large-v3 (beste
+  # Qualitaet, fuer CPU meist zu langsam). Das Modell wird beim ersten Start
+  # heruntergeladen und im Volume gehalten.
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: verwaltung-whisper
+    environment:
+      ASR_ENGINE: faster_whisper
+      ASR_MODEL: small
+      ASR_QUANTIZATION: int8
+    ports:
+      - "9000:9000"
+    volumes:
+      - whisper-modelle:/root/.cache
+    # Whisper braucht Kerne: bei 5 gleichzeitigen Anrufern spaeter 8 vCPU;
+    # lokal einfach alles nehmen, was der Laptop hat.
+
+  # Optional: die App selbst im Container (Profil "app"). Im Container muss
+  # der Server auf 0.0.0.0 lauschen, damit Port 4115 nach aussen erreichbar
+  # ist; die Datenbank heisst dann "postgres", nicht "localhost".
+  app:
+    profiles: ["app"]
+    image: node:22
+    container_name: verwaltung-app
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: sh -c "npm install && npm run build:chunks && npm start"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4115
+      DATABASE_URL: postgres://verwaltung:verwaltung@postgres:5432/verwaltung?sslmode=disable
+      # Sprachmodell nach Wahl - Schluessel NICHT hier eintragen, sondern beim
+      # Start uebergeben: MISTRAL_API_KEY=... docker compose --profile app up
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      ASSISTENT_PROVIDER: ${ASSISTENT_PROVIDER:-}
+    ports:
+      - "4115:4115"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-daten:
+  whisper-modelle:

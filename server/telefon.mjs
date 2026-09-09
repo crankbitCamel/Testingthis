@@ -19,6 +19,7 @@
 import { gespraechsschritt, llmKonfiguriert } from './assistent.mjs';
 import { erkenneLand } from '../src/nlu.js';
 import { protokolliere } from './gespraechslog.mjs';
+import { normalisiereFuerSprache } from './sprechnormalisierung.mjs';
 
 const STIMME = process.env.TELEFON_STIMME ?? 'Polly.Vicki-Neural';
 const SPRACHE = 'de-DE';
@@ -56,7 +57,10 @@ export function xmlEscape(text) {
 }
 
 const twiml = (inhalt) => `<?xml version="1.0" encoding="UTF-8"?>\n<Response>${inhalt}</Response>`;
-const sag = (text) => `<Say voice="${STIMME}" language="${SPRACHE}">${xmlEscape(text)}</Say>`;
+// Letzte Stufe vor der Stimme: Jahreszahlen, Daten, Abkuerzungen und Symbole
+// vorlesbar machen (2026-08 -> "August zweitausendsechsundzwanzig", z. B. ->
+// "zum Beispiel"). Wirkt in jedem Modus; das Protokoll bleibt unveraendert.
+const sag = (text) => `<Say voice="${STIMME}" language="${SPRACHE}">${xmlEscape(normalisiereFuerSprache(text))}</Say>`;
 
 /**
  * Zuhoer-Parameter fuer <Gather>:

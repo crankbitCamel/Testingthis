@@ -107,8 +107,18 @@ function sagUndZuhoeren(text, basis = '') {
 // "Einen Moment" antworten, im Hintergrund rechnen und per <Redirect> so
 // lange nachfragen, bis die Antwort bereitliegt. Jede einzelne Antwort ist
 // dadurch sofort da, ein Timeout kann nicht mehr entstehen.
-const jobs = new Map(); // CallSid -> { status, ergebnis, fehler, polls }
+const jobs = new Map(); // CallSid -> { status, ergebnis, fehler, polls, erstellt }
 const MAX_POLLS = 12;   // bis zu ~12 * 2 s = 24 s Rechenzeit
+// Legt ein Anrufer auf, waehrend seine Antwort noch berechnet wird, holt den
+// fertigen Job niemand mehr ab. Damit sich das im Dauerbetrieb nicht
+// ansammelt, verfallen Jobs nach einer grosszuegigen Frist.
+const JOB_ABLAUF_MS = 10 * 60 * 1000;
+
+function jobsAufraeumen(jetzt = Date.now()) {
+  for (const [sid, j] of jobs) {
+    if (jetzt - j.erstellt > JOB_ABLAUF_MS) jobs.delete(sid);
+  }
+}
 
 const wartenRedirect = (basis = '') =>
   `<Redirect method="POST">${basis}/api/telefon/warten</Redirect>`;
@@ -176,7 +186,8 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
 
   // LLM-Modus: Antwort im Hintergrund berechnen, Twilio sofort vertroesten.
   const schluessel = CallSid ?? 'ohne-sid';
-  const job = { status: 'pending', ergebnis: null, fehler: null, polls: 0 };
+  jobsAufraeumen();
+  const job = { status: 'pending', ergebnis: null, fehler: null, polls: 0, erstellt: Date.now() };
   jobs.set(schluessel, job);
   gespraechsschritt({ nachricht: gesagt, verlauf: z.verlauf, land: z.land })
     .then((ergebnis) => {
@@ -235,3 +246,6 @@ export async function anrufWarten({ CallSid } = {}, basis = '') {
 /** Nur fuer Tests: Zustand eines Anrufs einsehen bzw. alles verwerfen. */
 export function _anrufZustand(callSid) { return anrufe.get(callSid) ?? null; }
 export function _anrufeLeeren() { anrufe.clear(); }
+/** Nur fuer Tests: Hintergrund-Jobs einsehen, setzen und aufraeumen. */
+export function _jobs() { return jobs; }
+export function _jobsAufraeumen(jetzt) { jobsAufraeumen(jetzt); }

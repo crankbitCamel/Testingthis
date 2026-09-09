@@ -11,9 +11,10 @@
  * Rohdaten aus, sonst eine lesbare Zusammenfassung samt Quellen.
  */
 
-const url = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || '';
-if (!url) {
-  console.error('DATABASE_URL (oder NEON_DATABASE_URL) fehlt. Connection String aus der Neon-Konsole setzen:');
+import { query, datenbankKonfiguriert } from '../server/db.mjs';
+
+if (!datenbankKonfiguriert()) {
+  console.error('DATABASE_URL (oder NEON_DATABASE_URL) fehlt. Connection String setzen:');
   console.error('  DATABASE_URL="postgres://..." node scripts/gespraeche.mjs');
   process.exit(1);
 }
@@ -26,19 +27,16 @@ const limit = Math.max(1, Math.min(500, Number(arg('limit', '20')) || 20));
 const callSid = arg('call', null);
 const alsJson = process.argv.includes('--json');
 
-const { neon } = await import('@neondatabase/serverless');
-const sql = neon(url);
-
 // Existiert die Tabelle noch nicht, ist einfach nichts protokolliert worden.
-const [{ da }] = await sql.query("SELECT to_regclass('public.gespraeche') IS NOT NULL AS da");
+const [{ da }] = await query("SELECT to_regclass('public.gespraeche') IS NOT NULL AS da");
 if (!da) {
   console.log('Noch keine Gespraeche protokolliert (Tabelle "gespraeche" existiert nicht).');
   process.exit(0);
 }
 
 const zeilen = callSid
-  ? await sql.query('SELECT * FROM gespraeche WHERE call_sid = $1 ORDER BY zeit ASC LIMIT $2', [callSid, limit])
-  : await sql.query('SELECT * FROM gespraeche ORDER BY zeit DESC LIMIT $1', [limit]);
+  ? await query('SELECT * FROM gespraeche WHERE call_sid = $1 ORDER BY zeit ASC LIMIT $2', [callSid, limit])
+  : await query('SELECT * FROM gespraeche ORDER BY zeit DESC LIMIT $1', [limit]);
 
 if (alsJson) {
   console.log(JSON.stringify(zeilen, null, 2));

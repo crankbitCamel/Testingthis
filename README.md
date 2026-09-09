@@ -268,6 +268,29 @@ Standardmodell ist `mistral-large-latest`; für geringere Latenz am Telefon
 eignet sich `mistral-small-latest`. Für den produktiven Einsatz mit echten
 Anruferdaten gehört ein Auftragsverarbeitungsvertrag (AVV) mit Mistral dazu.
 
+### Datenbank: Neon oder beliebiges PostgreSQL (z. B. STACKIT)
+
+Das Gesprächsprotokoll und der Import laufen über `server/db.mjs`, das den
+Treiber automatisch anhand der `DATABASE_URL` wählt: den Neon-HTTP-Treiber für
+`*.neon.tech`-URLs, sonst den Standard-Treiber `pg` (Wire-Protokoll, Port 5432)
+für jeden normalen PostgreSQL-Server — Neon, **STACKIT PostgreSQL Flex**, ein
+selbst gehosteter Server oder lokal in Docker. Erzwingen lässt sich der Treiber
+mit `DB_TREIBER=neon|pg`.
+
+```bash
+# STACKIT / Standard-Postgres (TLS mit Zertifikatsprüfung, Standard):
+DATABASE_URL="postgres://user:pass@host:5432/db" npm start
+# TLS-Zertifikat noch nicht hinterlegt? Nur zum Testen die Prüfung lockern:
+DB_SSL_NO_VERIFY=1 DATABASE_URL="postgres://..." npm start
+# Lokal ohne TLS (Docker-Postgres):
+DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable" npm start
+```
+
+Der Neon-HTTP-Treiber läuft auch hinter Proxys; der `pg`-Treiber braucht eine
+direkte Verbindung auf den Datenbank-Port (5432), also einen normalen Server
+oder lokalen Betrieb. Managed-Postgres wie STACKIT wird pro Stunde nach
+Instanzgröße plus Speicher abgerechnet — zum Testen anlegen, nutzen, löschen.
+
 ## Grenzen
 
 - Die Wissensbasis ist redaktionell gepflegt und trägt einen Stand (`2026-08`). Beträge

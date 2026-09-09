@@ -119,8 +119,8 @@ if (trocken || !url) {
 }
 
 // -------------------------------------------------------------- Schreiben --
-const { neon } = await import('@neondatabase/serverless');
-const sql = neon(url);
+// Treiberunabhaengig (Neon-HTTP oder Standard-PostgreSQL) ueber server/db.mjs.
+const { query } = await import('../server/db.mjs');
 const j = (wert) => JSON.stringify(wert);
 
 // Schema anwenden: Statement fuer Statement, damit ein Fehlschlag der
@@ -132,7 +132,7 @@ const statements = schemaText.split(';').map((s) => s.trim()).filter(Boolean);
 for (let statement of statements) {
   if (!vektorVerfuegbar) statement = statement.replace(/^\s*embedding\s+vector\(\d+\),\s*$/m, '');
   try {
-    await sql.query(statement);
+    await query(statement);
   } catch (fehler) {
     if (/CREATE EXTENSION/i.test(statement) && /vector/i.test(statement)) {
       vektorVerfuegbar = false;
@@ -146,17 +146,17 @@ console.log(`\nSchema angewendet (${statements.length} Statements).`);
 
 // Zeitmarke der Datenbank VOR den Upserts: alles, was danach nicht
 // aktualisiert wurde, existiert im Repository nicht mehr und wird geraeumt.
-const [{ now: beginn }] = await sql.query('SELECT now()');
+const [{ now: beginn }] = await query('SELECT now()');
 
 for (const z of clusterZeilen) {
-  await sql.query(
+  await query(
     `INSERT INTO cluster (id, name, daten) VALUES ($1, $2, $3::jsonb)
      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, daten = EXCLUDED.daten, aktualisiert = now()`,
     [z.id, z.name, j(z.daten)],
   );
 }
 for (const z of leistungZeilen) {
-  await sql.query(
+  await query(
     `INSERT INTO leistungen (id, cluster_id, name, rechtsebene, daten) VALUES ($1, $2, $3, $4, $5::jsonb)
      ON CONFLICT (id) DO UPDATE SET cluster_id = EXCLUDED.cluster_id, name = EXCLUDED.name,
        rechtsebene = EXCLUDED.rechtsebene, daten = EXCLUDED.daten, aktualisiert = now()`,
@@ -164,7 +164,7 @@ for (const z of leistungZeilen) {
   );
 }
 for (const z of regionalZeilen) {
-  await sql.query(
+  await query(
     `INSERT INTO regional (id, land, typ, bereich_id, leistung_id, daten, stand)
      VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
      ON CONFLICT (id) DO UPDATE SET land = EXCLUDED.land, typ = EXCLUDED.typ,
@@ -174,7 +174,7 @@ for (const z of regionalZeilen) {
   );
 }
 for (const z of kommuneZeilen) {
-  await sql.query(
+  await query(
     `INSERT INTO kommunen (ags, name, land, stand, daten) VALUES ($1, $2, $3, $4, $5::jsonb)
      ON CONFLICT (ags) DO UPDATE SET name = EXCLUDED.name, land = EXCLUDED.land,
        stand = EXCLUDED.stand, daten = EXCLUDED.daten, aktualisiert = now()`,
@@ -182,7 +182,7 @@ for (const z of kommuneZeilen) {
   );
 }
 for (const z of kommuneLeistungZeilen) {
-  await sql.query(
+  await query(
     `INSERT INTO kommune_leistungen (ags, leistung_id, status, geprueft_am, pruefintervall_monate, daten)
      VALUES ($1, $2, $3, $4, $5, $6::jsonb)
      ON CONFLICT (ags, leistung_id) DO UPDATE SET status = EXCLUDED.status,
@@ -200,7 +200,7 @@ for (let i = 0; i < chunkZeilen.length; i += PAKET) {
   const paket = chunkZeilen.slice(i, i + PAKET);
   const platzhalter = paket.map((_, n) => `($${n * 4 + 1}, $${n * 4 + 2}, $${n * 4 + 3}, $${n * 4 + 4}::jsonb)`);
   const werte = paket.flatMap((c) => [c.id, c.typ, c.text, j(c.meta)]);
-  await sql.query(
+  await query(
     `INSERT INTO chunks (id, typ, text, meta) VALUES ${platzhalter.join(', ')}
      ON CONFLICT (id) DO UPDATE SET typ = EXCLUDED.typ, text = EXCLUDED.text,
        meta = EXCLUDED.meta, aktualisiert = now()`,
@@ -213,11 +213,11 @@ for (let i = 0; i < chunkZeilen.length; i += PAKET) {
 // entfernte Leistung soll bewusst per Hand aus der Datenbank verschwinden.
 const geraeumt = {};
 for (const tabelle of ['chunks', 'kommune_leistungen', 'regional']) {
-  const ergebnis = await sql.query(`DELETE FROM ${tabelle} WHERE aktualisiert < $1 RETURNING 1`, [beginn]);
+  const ergebnis = await query(`DELETE FROM ${tabelle} WHERE aktualisiert < $1 RETURNING 1`, [beginn]);
   geraeumt[tabelle] = ergebnis.length;
 }
 
-const [{ gueltig }] = await sql.query('SELECT count(*)::int AS gueltig FROM kommune_leistungen_gueltig');
+const [{ gueltig }] = await query('SELECT count(*)::int AS gueltig FROM kommune_leistungen_gueltig');
 console.log('Import abgeschlossen:');
 for (const [name, anzahl] of zusammenfassung) console.log(`  ${String(anzahl).padStart(4)}  ${name}`);
 console.log(`  Aufgeraeumt (nicht mehr im Repository): chunks ${geraeumt.chunks}, kommune_leistungen ${geraeumt.kommune_leistungen}, regional ${geraeumt.regional}`);

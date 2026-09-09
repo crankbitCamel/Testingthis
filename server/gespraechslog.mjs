@@ -1,41 +1,31 @@
 /**
  * Gespraechsprotokoll: schreibt jede Frage-Antwort-Runde (Telefon und Browser)
- * in die Neon-Datenbank, samt der vom Modell genutzten Quellen. Zweck ist das
+ * in die Datenbank, samt der vom Modell genutzten Quellen. Zweck ist das
  * nachtraegliche Fact-Checking: Was wurde gefragt, was geantwortet, worauf
  * stuetzte sich die Antwort, wie lange hat sie gedauert.
  *
  * Grundsaetze:
- *  - OPTIONAL: Ohne DATABASE_URL/NEON_DATABASE_URL passiert gar nichts. Der
- *    Assistent laeuft unveraendert weiter, nur ohne Log.
+ *  - OPTIONAL: Ohne DATABASE_URL/NEON_DATABASE_URL passiert gar nichts.
  *  - NIE STOEREND: Ein Datenbankfehler wird geschluckt und protokolliert, aber
  *    niemals nach aussen geworfen - ein Anruf darf daran nicht scheitern.
- *  - Der HTTP-Treiber (@neondatabase/serverless) spricht ueber HTTPS und laeuft
- *    daher auch hinter Proxys, genau wie scripts/db-import.mjs.
+ *  - TREIBERUNABHAENGIG: laeuft ueber server/db.mjs gegen Neon ODER jeden
+ *    normalen PostgreSQL-Server (STACKIT, lokal, self-hosted).
  */
+import { query, datenbankKonfiguriert } from './db.mjs';
 
-const url = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || '';
-
-let sqlPromise = null;   // Verbindung wird beim ersten Log aufgebaut
 let schemaPromise = null; // Tabelle wird einmalig sichergestellt
 
 /** True, wenn ein Connection String gesetzt ist - sonst ist das Log inaktiv. */
 export function protokollAktiv() {
-  return Boolean(url);
-}
-
-async function verbinde() {
-  if (!sqlPromise) {
-    sqlPromise = import('@neondatabase/serverless').then(({ neon }) => neon(url));
-  }
-  return sqlPromise;
+  return datenbankKonfiguriert();
 }
 
 // Legt die Tabelle bei Bedarf an, damit das Log auch ohne vorherigen
 // `npm run db:import` funktioniert. Idempotent (CREATE TABLE IF NOT EXISTS).
-async function schemaSicherstellen(sql) {
+async function schemaSicherstellen() {
   if (!schemaPromise) {
     schemaPromise = (async () => {
-      await sql.query(`
+      await query(`
         CREATE TABLE IF NOT EXISTS gespraeche (
           id         bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
           call_sid   text,
@@ -52,8 +42,8 @@ async function schemaSicherstellen(sql) {
           dauer_ms   integer,
           beendet    boolean NOT NULL DEFAULT false
         )`);
-      await sql.query('CREATE INDEX IF NOT EXISTS gespraeche_call_idx ON gespraeche (call_sid, zeit)');
-      await sql.query('CREATE INDEX IF NOT EXISTS gespraeche_zeit_idx ON gespraeche (zeit DESC)');
+      await query('CREATE INDEX IF NOT EXISTS gespraeche_call_idx ON gespraeche (call_sid, zeit)');
+      await query('CREATE INDEX IF NOT EXISTS gespraeche_zeit_idx ON gespraeche (zeit DESC)');
     })();
   }
   return schemaPromise;
@@ -61,8 +51,7 @@ async function schemaSicherstellen(sql) {
 
 /**
  * Schreibt eine Runde ins Log. Bewusst "fire and forget": Aufrufer muessen
- * nicht awaiten (tun sie es doch, blockiert es die Antwort nicht nennenswert).
- * Fehler landen als Warnung im Log, nicht beim Anrufer.
+ * nicht awaiten. Fehler landen als Warnung im Log, nicht beim Anrufer.
  *
  * @param {object} e
  * @param {string} [e.callSid]   Twilio-CallSid (Telefon)
@@ -79,11 +68,10 @@ async function schemaSicherstellen(sql) {
  * @param {boolean}[e.beendet]   Runde beendete das Gespraech
  */
 export async function protokolliere(e = {}) {
-  if (!url) return;
+  if (!datenbankKonfiguriert()) return;
   try {
-    const sql = await verbinde();
-    await schemaSicherstellen(sql);
-    await sql.query(
+    await schemaSicherstellen();
+    await query(
       `INSERT INTO gespraeche
          (call_sid, kanal, land, frage, antwort, modus, modell, confidence, quellen, werkzeuge, dauer_ms, beendet)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::jsonb, $11, $12)`,

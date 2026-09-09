@@ -89,3 +89,42 @@ describe('Hintergrund-Jobs (LLM-Modus)', () => {
     jobs.clear();
   });
 });
+
+describe('Sprachwahl per Taste', () => {
+  test('Anrufbeginn ist ein Tastenmenue mit deutschem Rueckfall', async () => {
+    const { sprachwahl } = await import('../server/telefon.mjs');
+    const t = sprachwahl({ CallSid: 'CA_S1' }, 'https://x.example');
+    assert.match(t, /<Gather input="dtmf" numDigits="1"[^>]*action="https:\/\/x\.example\/api\/telefon\/sprache"/);
+    assert.match(t, /drücken Sie die Eins/);
+    assert.match(t, /press two/);
+    // Ohne Taste: deutsche Begruessung mit deutscher Erkennung.
+    assert.match(t, /language="de-DE"[^>]*action="[^"]*\/api\/telefon\/eingabe"/);
+    assert.match(t, /Verwaltungsassistent/);
+  });
+
+  test('Taste 2 schaltet den Anruf komplett auf Englisch', async () => {
+    const t = anrufBeginn({ CallSid: 'CA_S2', Digits: '2' });
+    assert.equal(_anrufZustand('CA_S2').sprache, 'en');
+    assert.match(t, /<Say voice="Polly\.Amy-Neural" language="en-GB">/);
+    assert.match(t, /public services assistant/);
+    assert.match(t, /<Gather input="[^"]*speech[^"]*" [^>]*language="en-GB"/);
+    assert.ok(!t.includes('de-DE'), 'kein deutsches Element mehr');
+    // Folgerunden bleiben englisch: leere Erkennung -> englische Rueckfrage.
+    const leer = await anrufEingabe({ CallSid: 'CA_S2', SpeechResult: '' });
+    assert.match(leer, /didn&apos;t catch that|didn't catch that/);
+    assert.match(leer, /language="en-GB"/);
+  });
+
+  test('Taste 1 oder unbekannte Taste bleibt Deutsch', () => {
+    anrufBeginn({ CallSid: 'CA_S3', Digits: '1' });
+    assert.equal(_anrufZustand('CA_S3').sprache, 'de');
+    anrufBeginn({ CallSid: 'CA_S4', Digits: '9' });
+    assert.equal(_anrufZustand('CA_S4').sprache, 'de');
+  });
+
+  test('deutsche Sprechnormalisierung gilt nur fuer Deutsch', async () => {
+    const { SPRACHEN } = await import('../server/telefon.mjs');
+    assert.equal(SPRACHEN.de.normalisieren, true);
+    assert.equal(SPRACHEN.en.normalisieren, false);
+  });
+});

@@ -42,6 +42,8 @@ async function schemaSicherstellen() {
           dauer_ms   integer,
           beendet    boolean NOT NULL DEFAULT false
         )`);
+      // Spaeter ergaenzte Spalte - idempotent auch fuer bestehende Tabellen.
+      await query('ALTER TABLE gespraeche ADD COLUMN IF NOT EXISTS sprache text');
       await query('CREATE INDEX IF NOT EXISTS gespraeche_call_idx ON gespraeche (call_sid, zeit)');
       await query('CREATE INDEX IF NOT EXISTS gespraeche_zeit_idx ON gespraeche (zeit DESC)');
     })();
@@ -73,8 +75,8 @@ export async function protokolliere(e = {}) {
     await schemaSicherstellen();
     await query(
       `INSERT INTO gespraeche
-         (call_sid, kanal, land, frage, antwort, modus, modell, confidence, quellen, werkzeuge, dauer_ms, beendet)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::jsonb, $11, $12)`,
+         (call_sid, kanal, land, frage, antwort, modus, modell, confidence, quellen, werkzeuge, dauer_ms, beendet, sprache)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::jsonb, $11, $12, $13)`,
       [
         e.callSid ?? null,
         e.kanal ?? 'telefon',
@@ -88,6 +90,7 @@ export async function protokolliere(e = {}) {
         JSON.stringify(e.werkzeuge ?? []),
         Number.isInteger(e.dauerMs) ? e.dauerMs : null,
         Boolean(e.beendet),
+        e.sprache ?? null,
       ],
     );
   } catch (fehler) {

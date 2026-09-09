@@ -5,28 +5,76 @@
  * ruft Twilio unseren Server per HTTP-POST auf und erwartet als Antwort
  * TwiML - ein kleines XML, das beschreibt, was der Anrufer als Naechstes
  * hoert. Spracherkennung (<Gather input="speech">) und Sprachausgabe
- * (<Say> mit deutscher Neural-Stimme) bringt Twilio mit; unsere Aufgabe
- * ist nur, Text hereinzunehmen und Text zurueckzugeben. Dadurch bedient
- * exakt dieselbe Gespraechslogik (gespraechsschritt mit Bewertung,
- * Rueckfragen und Auflegen), die auch der Browser nutzt, eine echte
- * Telefonnummer.
+ * (<Say> mit Neural-Stimme) bringt Twilio mit; unsere Aufgabe ist nur,
+ * Text hereinzunehmen und Text zurueckzugeben. Dadurch bedient exakt
+ * dieselbe Gespraechslogik (gespraechsschritt mit Bewertung, Rueckfragen
+ * und Auflegen), die auch der Browser nutzt, eine echte Telefonnummer.
+ *
+ * Sprachwahl: Der Anruf beginnt mit einem Tastenmenue ("Fuer Deutsch die 1,
+ * for English press 2"). Die gewaehlte Sprache liegt im Anrufzustand und
+ * steuert die ganze Kette: Ansagetexte, Stimme, Erkennungssprache, die
+ * Anweisung ans Modell und die Sprechnormalisierung. Ohne Tastendruck gilt
+ * Deutsch. Ein Tastendruck ist deterministisch - anders als automatische
+ * Spracherkennung auf kurzen Aeusserungen. In der spaeteren eigenen Pipeline
+ * (Whisper) kommt eine Gegenpruefung ueber die von Whisper erkannte Sprache
+ * hinzu; der Zustand hier wandert eins zu eins mit.
  *
  * Bewusst rundenbasiert statt Audio-Streaming: einfacher, robust, und fuer
- * Auskunftsdialoge voellig ausreichend. Ein spaeterer Umbau auf Twilio
- * Media Streams (fuer Barge-in und geringere Latenz) ersetzt nur diese
- * Datei, nicht die Gespraechslogik.
+ * Auskunftsdialoge voellig ausreichend.
  */
 import { gespraechsschritt, llmKonfiguriert } from './assistent.mjs';
 import { erkenneLand } from '../src/nlu.js';
 import { protokolliere } from './gespraechslog.mjs';
 import { normalisiereFuerSprache } from './sprechnormalisierung.mjs';
 
-const STIMME = process.env.TELEFON_STIMME ?? 'Polly.Vicki-Neural';
-const SPRACHE = 'de-DE';
-
-const BEGRUESSUNG = 'Guten Tag, hier ist der digitale Verwaltungsassistent. '
-  + 'Schildern Sie Ihr Anliegen einfach in eigenen Worten - zum Beispiel: '
-  + 'Ich bin umgezogen. Oder: Was kostet ein Reisepass?';
+// ---------------------------------------------------------------------------
+// Sprachen: alles, was je Sprache verschieden ist, an EINER Stelle.
+// ---------------------------------------------------------------------------
+export const SPRACHEN = {
+  de: {
+    code: 'de-DE',
+    stimme: process.env.TELEFON_STIMME ?? 'Polly.Vicki-Neural',
+    // Die deutsche Sprechnormalisierung (Zahlwoerter, Abkuerzungen) gilt nur hier.
+    normalisieren: true,
+    texte: {
+      menue: 'Für Deutsch drücken Sie die Eins.',
+      begruessung: 'Guten Tag, hier ist der digitale Verwaltungsassistent. '
+        + 'Schildern Sie Ihr Anliegen einfach in eigenen Worten - zum Beispiel: '
+        + 'Ich bin umgezogen. Oder: Was kostet ein Reisepass?',
+      nichtsGehoert: 'Ich habe nichts gehört. Sagen Sie Ihr Anliegen bitte noch einmal - oder legen Sie einfach auf.',
+      danke: 'Vielen Dank für Ihren Anruf. Auf Wiederhören.',
+      tastendruck: 'Tastendruck erkannt. Der Rückruf zum Server funktioniert. Stellen Sie jetzt bitte Ihre Frage in eigenen Worten.',
+      nichtVerstanden: 'Entschuldigung, das habe ich nicht verstanden. Sagen Sie es bitte noch einmal.',
+      stoerung: 'Entschuldigung, es gab gerade eine technische Störung. Bitte versuchen Sie es in einem Moment erneut. Auf Wiederhören.',
+      moment: 'Einen Moment, ich schaue das für Sie nach.',
+      wiederholen: 'Entschuldigung, bitte wiederholen Sie Ihre Frage.',
+      zuLange: 'Das dauert diesmal leider zu lange. Bitte versuchen Sie es erneut. Auf Wiederhören.',
+    },
+  },
+  en: {
+    code: 'en-GB',
+    stimme: process.env.TELEFON_STIMME_EN ?? 'Polly.Amy-Neural',
+    normalisieren: false,
+    texte: {
+      menue: 'For English, press two.',
+      begruessung: 'Hello, this is the digital public services assistant. '
+        + 'Just describe what you need in your own words - for example: '
+        + 'I have moved house. Or: How much does a passport cost?',
+      nichtsGehoert: "I didn't hear anything. Please say what you need once more - or simply hang up.",
+      danke: 'Thank you for calling. Goodbye.',
+      tastendruck: 'Key press received. The connection to the server works. Please ask your question now in your own words.',
+      nichtVerstanden: "Sorry, I didn't catch that. Please say it again.",
+      stoerung: 'Sorry, there was a technical problem. Please try again in a moment. Goodbye.',
+      moment: 'One moment, I am looking that up for you.',
+      wiederholen: 'Sorry, please repeat your question.',
+      zuLange: 'This is taking too long, unfortunately. Please try again. Goodbye.',
+    },
+  },
+};
+const STANDARD_SPRACHE = 'de';
+// Tastenmenue: Taste -> Sprachcode. Alles andere faellt auf Deutsch zurueck.
+const TASTE_ZU_SPRACHE = { 1: 'de', 2: 'en' };
+const sprachePer = (z) => SPRACHEN[z?.sprache] ?? SPRACHEN[STANDARD_SPRACHE];
 
 // Gespraechszustand je Anruf, adressiert ueber Twilios CallSid. Telefonate
 // sind kurzlebig - nach 30 Minuten ohne Aktivitaet wird aufgeraeumt.
@@ -40,7 +88,7 @@ function zustandFuer(callSid) {
   }
   let z = anrufe.get(callSid);
   if (!z) {
-    z = { verlauf: [], land: null, schweigen: 0, zuletzt: jetzt };
+    z = { verlauf: [], land: null, sprache: STANDARD_SPRACHE, schweigen: 0, zuletzt: jetzt };
     anrufe.set(callSid, z);
   }
   z.zuletzt = jetzt;
@@ -57,61 +105,57 @@ export function xmlEscape(text) {
 }
 
 const twiml = (inhalt) => `<?xml version="1.0" encoding="UTF-8"?>\n<Response>${inhalt}</Response>`;
-// Letzte Stufe vor der Stimme: Jahreszahlen, Daten, Abkuerzungen und Symbole
-// vorlesbar machen (2026-08 -> "August zweitausendsechsundzwanzig", z. B. ->
-// "zum Beispiel"). Wirkt in jedem Modus; das Protokoll bleibt unveraendert.
-const sag = (text) => `<Say voice="${STIMME}" language="${SPRACHE}">${xmlEscape(normalisiereFuerSprache(text))}</Say>`;
 
-/**
- * Zuhoer-Parameter fuer <Gather>:
- * - input="speech dtmf": neben Sprache auch Tastendruck annehmen. Das dient
- *   als Diagnose (ein Tastendruck beweist, dass der Rueckruf zum Server geht)
- *   und als Rueckfallweg, falls die Spracherkennung nichts liefert.
- * - speechModel="phone_call" + enhanced="true": auf Telefonqualitaet trainiert,
- *   deutlich zuverlaessiger als das Standardmodell.
- * - timeout="8": bis zu 8 s auf den Sprechbeginn warten.
- * - speechTimeout="auto": Ende der Aeusserung automatisch erkennen.
- * - actionOnEmptyResult="true": den Server auch bei leerer Erkennung aufrufen,
- *   damit der Anruf nie stumm im TwiML weiterlaeuft.
- */
-/**
- * Gather-Attribute. Die action-Adresse wird als VOLLSTAENDIGE URL ausgegeben,
- * wenn die oeffentliche Basis (Protokoll + Host, aus den Request-Headern)
- * bekannt ist. Grund: Bei per REST-API gestarteten Anrufen loest Twilio eine
- * relative action-Adresse nicht zuverlaessig zum Tunnel-Host auf - der erste
- * Webhook (mit voller Url) kommt an, der zweite (relativ) laeuft ins Leere.
- * Ohne Basis (lokale Tests) bleibt die Adresse relativ.
- */
-const zuhoerAttrs = (basis = '') =>
-  `input="speech dtmf" numDigits="1" language="${SPRACHE}" speechModel="phone_call" enhanced="true" timeout="8" speechTimeout="auto" actionOnEmptyResult="true" action="${basis}/api/telefon/eingabe" method="POST"`;
-
-/**
- * Sprich den Text und hoere danach zu. Antwortet der Anrufer nicht, laeuft
- * das TwiML hinter dem Gather weiter: ein Hinweis, zweite Chance, dann Ende.
- */
-function sagUndZuhoeren(text, basis = '') {
-  const attrs = zuhoerAttrs(basis);
-  return twiml(
-    `<Gather ${attrs}>${sag(text)}</Gather>`
-    + sag('Ich habe nichts gehört. Sagen Sie Ihr Anliegen bitte noch einmal - oder legen Sie einfach auf.')
-    + `<Gather ${attrs}/>`
-    + sag('Vielen Dank für Ihren Anruf. Auf Wiederhören.')
-    + '<Hangup/>',
-  );
+// Letzte Stufe vor der Stimme. Fuer Deutsch werden Jahreszahlen, Daten,
+// Abkuerzungen und Symbole vorlesbar gemacht (2026-08 -> "August zweitausend-
+// sechsundzwanzig"); fuer andere Sprachen bleibt der Text unveraendert.
+function sag(text, s = SPRACHEN[STANDARD_SPRACHE]) {
+  const t = s.normalisieren ? normalisiereFuerSprache(text) : String(text ?? '');
+  return `<Say voice="${s.stimme}" language="${s.code}">${xmlEscape(t)}</Say>`;
 }
+
+/**
+ * Gather-Attribute fuers Zuhoeren:
+ * - input="speech dtmf": Sprache und Tastendruck; der Tastendruck dient als
+ *   Diagnose und Rueckfallweg, falls die Erkennung nichts liefert.
+ * - language: die gewaehlte Sprache des Anrufs (steuert die Erkennung).
+ * - speechModel="phone_call" + enhanced="true": auf Telefonqualitaet trainiert.
+ * - timeout="8" / speechTimeout="auto" / actionOnEmptyResult="true": bis 8 s
+ *   auf Sprechbeginn warten, Ende automatisch erkennen, Server auch bei
+ *   leerer Erkennung aufrufen, damit der Anruf nie stumm weiterlaeuft.
+ * Die action-Adresse ist VOLLSTAENDIG (mit Basis), weil Twilio bei per API
+ * gestarteten Anrufen relative Adressen nicht zuverlaessig aufloest.
+ */
+const zuhoerAttrs = (basis, s) =>
+  `input="speech dtmf" numDigits="1" language="${s.code}" speechModel="phone_call" enhanced="true" timeout="8" speechTimeout="auto" actionOnEmptyResult="true" action="${basis}/api/telefon/eingabe" method="POST"`;
+
+/**
+ * Innerer TwiML-Inhalt: Text sprechen und zuhoeren. Antwortet der Anrufer
+ * nicht, laeuft es weiter: ein Hinweis, zweite Chance, dann Ende.
+ */
+function zuhoerenInhalt(text, basis, s) {
+  const attrs = zuhoerAttrs(basis, s);
+  return `<Gather ${attrs}>${sag(text, s)}</Gather>`
+    + sag(s.texte.nichtsGehoert, s)
+    + `<Gather ${attrs}/>`
+    + sag(s.texte.danke, s)
+    + '<Hangup/>';
+}
+
+const sagUndZuhoeren = (text, basis = '', s = SPRACHEN[STANDARD_SPRACHE]) =>
+  twiml(zuhoerenInhalt(text, basis, s));
 
 // --- Hintergrund-Antworten (LLM) -------------------------------------------
 // Der LLM-Aufruf dauert einige Sekunden. Wuerde der Server so lange warten,
 // bevor er Twilio antwortet, bricht der Anruf ab - Twilio und der Tunnel
 // halten eine einzelne Verbindung nicht ~15 s offen. Deshalb: sofort mit
 // "Einen Moment" antworten, im Hintergrund rechnen und per <Redirect> so
-// lange nachfragen, bis die Antwort bereitliegt. Jede einzelne Antwort ist
-// dadurch sofort da, ein Timeout kann nicht mehr entstehen.
+// lange nachfragen, bis die Antwort bereitliegt.
 const jobs = new Map(); // CallSid -> { status, ergebnis, fehler, polls, erstellt }
 const MAX_POLLS = 12;   // bis zu ~12 * 2 s = 24 s Rechenzeit
 // Legt ein Anrufer auf, waehrend seine Antwort noch berechnet wird, holt den
-// fertigen Job niemand mehr ab. Damit sich das im Dauerbetrieb nicht
-// ansammelt, verfallen Jobs nach einer grosszuegigen Frist.
+// fertigen Job niemand mehr ab. Damit sich das nicht ansammelt, verfallen
+// Jobs nach einer grosszuegigen Frist.
 const JOB_ABLAUF_MS = 10 * 60 * 1000;
 
 function jobsAufraeumen(jetzt = Date.now()) {
@@ -123,31 +167,55 @@ function jobsAufraeumen(jetzt = Date.now()) {
 const wartenRedirect = (basis = '') =>
   `<Redirect method="POST">${basis}/api/telefon/warten</Redirect>`;
 
-/** TwiML fuer den Anrufbeginn (Twilio-Webhook "A call comes in"). */
-export function anrufBeginn({ CallSid } = {}, basis = '') {
-  if (CallSid) zustandFuer(CallSid); // Zustand anlegen, Verlauf beginnt leer
-  return sagUndZuhoeren(BEGRUESSUNG, basis);
+/**
+ * Anrufbeginn (Twilio-Webhook "A call comes in"): das Sprachmenue.
+ * Ohne Tastendruck innerhalb von 5 s geht es in der Standardsprache weiter.
+ */
+export function sprachwahl({ CallSid } = {}, basis = '') {
+  zustandFuer(CallSid ?? 'ohne-sid');
+  const de = SPRACHEN.de;
+  const en = SPRACHEN.en;
+  return twiml(
+    `<Gather input="dtmf" numDigits="1" timeout="5" action="${basis}/api/telefon/sprache" method="POST">`
+    + sag(de.texte.menue, de)
+    + sag(en.texte.menue, en)
+    + '</Gather>'
+    + zuhoerenInhalt(de.texte.begruessung, basis, de),
+  );
+}
+
+/**
+ * Begruessung in der gewaehlten Sprache (action des Sprachmenues). Kommt
+ * Digits mit, wird die Sprache gesetzt; ohne Digits bleibt die bisherige
+ * (bzw. die Standardsprache) - so laesst sich die Funktion auch direkt als
+ * Anrufbeginn nutzen.
+ */
+export function anrufBeginn({ CallSid, Digits } = {}, basis = '') {
+  const z = zustandFuer(CallSid ?? 'ohne-sid');
+  if (Digits !== undefined) z.sprache = TASTE_ZU_SPRACHE[String(Digits).trim()] ?? STANDARD_SPRACHE;
+  const s = sprachePer(z);
+  return sagUndZuhoeren(s.texte.begruessung, basis, s);
 }
 
 /** TwiML fuer jede erkannte Aeusserung (action des Gather). */
 export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence } = {}, basis = '') {
   const z = zustandFuer(CallSid ?? 'ohne-sid');
+  const s = sprachePer(z);
   const gesagt = (SpeechResult ?? '').trim();
 
   // Diagnose-/Sichtbarkeitszeile: zeigt im Server-Fenster, was Twilio liefert.
   if (SpeechResult !== undefined || Digits !== undefined) {
-    console.log(`  eingabe CallSid=${CallSid} Digits=${Digits ?? ''} Confidence=${Confidence ?? ''} SpeechResult=${JSON.stringify(gesagt)}`);
+    console.log(`  eingabe CallSid=${CallSid} sprache=${z.sprache} Digits=${Digits ?? ''} Confidence=${Confidence ?? ''} SpeechResult=${JSON.stringify(gesagt)}`);
   }
 
   // Tastendruck ohne erkannte Sprache: bestaetigt hoerbar, dass der Rueckweg
-  // Twilio -> Server funktioniert. Danach zeigt sich, ob nur die Sprach-
-  // erkennung das Problem ist.
+  // Twilio -> Server funktioniert.
   if (!gesagt && Digits) {
-    return sagUndZuhoeren('Tastendruck erkannt. Der Rückruf zum Server funktioniert. Stellen Sie jetzt bitte Ihre Frage in eigenen Worten.', basis);
+    return sagUndZuhoeren(s.texte.tastendruck, basis, s);
   }
 
   if (!gesagt) {
-    return sagUndZuhoeren('Entschuldigung, das habe ich nicht verstanden. Sagen Sie es bitte noch einmal.', basis);
+    return sagUndZuhoeren(s.texte.nichtVerstanden, basis, s);
   }
 
   // Nennt der Anrufer sein Bundesland oder eine bekannte Stadt, bleibt das
@@ -157,31 +225,30 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
 
   const sicher = Number.parseFloat(Confidence);
   const beginn = Date.now();
+  const anfrage = { nachricht: gesagt, verlauf: z.verlauf, land: z.land, sprache: z.sprache };
+  const eintrag = (ergebnis) => ({
+    callSid: CallSid, kanal: 'telefon', land: z.land, sprache: z.sprache, frage: gesagt,
+    antwort: ergebnis.text, modus: ergebnis.modus, modell: ergebnis.modell,
+    confidence: sicher, quellen: ergebnis.quellen, werkzeuge: ergebnis.werkzeuge,
+    dauerMs: Date.now() - beginn, beendet: Boolean(ergebnis.beendet),
+  });
 
   // Mock-Modus: schnell und synchron - kein Timeout-Risiko, deckt die Tests ab.
   if (!llmKonfiguriert()) {
     let ergebnis;
     try {
-      ergebnis = await gespraechsschritt({ nachricht: gesagt, verlauf: z.verlauf, land: z.land });
+      ergebnis = await gespraechsschritt(anfrage);
     } catch (fehler) {
-      return twiml(
-        sag('Entschuldigung, es gab gerade eine technische Störung. Bitte versuchen Sie es in einem Moment erneut. Auf Wiederhören.')
-        + '<Hangup/>',
-      );
+      return twiml(sag(s.texte.stoerung, s) + '<Hangup/>');
     }
     z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
     if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
-    protokolliere({
-      callSid: CallSid, kanal: 'telefon', land: z.land, frage: gesagt,
-      antwort: ergebnis.text, modus: ergebnis.modus, modell: ergebnis.modell,
-      confidence: sicher, quellen: ergebnis.quellen, werkzeuge: ergebnis.werkzeuge,
-      dauerMs: Date.now() - beginn, beendet: Boolean(ergebnis.beendet),
-    });
+    protokolliere(eintrag(ergebnis));
     if (ergebnis.beendet) {
       anrufe.delete(CallSid);
-      return twiml(sag(ergebnis.text) + '<Hangup/>');
+      return twiml(sag(ergebnis.text, s) + '<Hangup/>');
     }
-    return sagUndZuhoeren(ergebnis.text, basis);
+    return sagUndZuhoeren(ergebnis.text, basis, s);
   }
 
   // LLM-Modus: Antwort im Hintergrund berechnen, Twilio sofort vertroesten.
@@ -189,22 +256,17 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
   jobsAufraeumen();
   const job = { status: 'pending', ergebnis: null, fehler: null, polls: 0, erstellt: Date.now() };
   jobs.set(schluessel, job);
-  gespraechsschritt({ nachricht: gesagt, verlauf: z.verlauf, land: z.land })
+  gespraechsschritt(anfrage)
     .then((ergebnis) => {
       job.ergebnis = ergebnis;
       job.status = 'done';
       z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
       if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
-      protokolliere({
-        callSid: CallSid, kanal: 'telefon', land: z.land, frage: gesagt,
-        antwort: ergebnis.text, modus: ergebnis.modus, modell: ergebnis.modell,
-        confidence: sicher, quellen: ergebnis.quellen, werkzeuge: ergebnis.werkzeuge,
-        dauerMs: Date.now() - beginn, beendet: Boolean(ergebnis.beendet),
-      });
+      protokolliere(eintrag(ergebnis));
     })
     .catch((fehler) => { job.fehler = fehler; job.status = 'error'; });
 
-  return twiml(sag('Einen Moment, ich schaue das für Sie nach.') + wartenRedirect(basis));
+  return twiml(sag(s.texte.moment, s) + wartenRedirect(basis));
 }
 
 /**
@@ -214,31 +276,32 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
  */
 export async function anrufWarten({ CallSid } = {}, basis = '') {
   const schluessel = CallSid ?? 'ohne-sid';
+  const s = sprachePer(anrufe.get(schluessel));
   const job = jobs.get(schluessel);
 
   if (!job) {
     // Kein laufender Job (etwa nach Server-Neustart): einfach weiter zuhoeren.
-    return sagUndZuhoeren('Entschuldigung, bitte wiederholen Sie Ihre Frage.', basis);
+    return sagUndZuhoeren(s.texte.wiederholen, basis, s);
   }
   if (job.status === 'error') {
     jobs.delete(schluessel);
-    return twiml(sag('Entschuldigung, es gab gerade eine technische Störung. Bitte versuchen Sie es in einem Moment erneut. Auf Wiederhören.') + '<Hangup/>');
+    return twiml(sag(s.texte.stoerung, s) + '<Hangup/>');
   }
   if (job.status === 'done') {
     jobs.delete(schluessel);
     const { ergebnis } = job;
     if (ergebnis.beendet) {
       anrufe.delete(CallSid);
-      return twiml(sag(ergebnis.text) + '<Hangup/>');
+      return twiml(sag(ergebnis.text, s) + '<Hangup/>');
     }
-    return sagUndZuhoeren(ergebnis.text, basis);
+    return sagUndZuhoeren(ergebnis.text, basis, s);
   }
 
   // Noch nicht fertig: kurze Stille, dann erneut nachfragen (begrenzt).
   job.polls += 1;
   if (job.polls > MAX_POLLS) {
     jobs.delete(schluessel);
-    return twiml(sag('Das dauert diesmal leider zu lange. Bitte versuchen Sie es erneut. Auf Wiederhören.') + '<Hangup/>');
+    return twiml(sag(s.texte.zuLange, s) + '<Hangup/>');
   }
   return twiml('<Pause length="2"/>' + wartenRedirect(basis));
 }

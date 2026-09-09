@@ -208,7 +208,23 @@ Eiserne Regeln:
  * @param {Array}  p.verlauf        bisherige Runden [{rolle:'nutzer'|'bot', text}]
  * @param {string|null} p.land      gesetztes Bundesland ('nw'|'rp'|null)
  */
-export async function gespraechsschritt({ nachricht, verlauf = [], land = null }) {
+/**
+ * Kontextzeile fuer die erste Nutzernachricht: gesetztes Bundesland und -
+ * falls nicht Deutsch - die Antwortsprache. Wird von beiden Anbieterpfaden
+ * (Claude, Mistral) identisch genutzt. Die Wissensbasis bleibt deutsch; das
+ * Modell uebersetzt beim Antworten.
+ */
+export function kontextFuer({ land = null, sprache = 'de' } = {}) {
+  const ort = land
+    ? `[Kontext: Bundesland des Anrufers ist ${LAENDER[land].name} (${land}).]`
+    : '[Kontext: Bundesland des Anrufers ist nicht bekannt.]';
+  if (sprache === 'en') {
+    return `${ort} [Antwortsprache: Englisch. Der Anrufer spricht Englisch - antworte ausschließlich auf Englisch, auch Rückfragen und Verabschiedung. Die Wissensbasis ist deutsch: übersetze Fakten, Beträge, Fristen und Rechtsgrundlagen sinngemäß und nenne deutsche Behörden- und Gesetzesnamen im Original mit kurzer englischer Erklärung.]`;
+  }
+  return ort;
+}
+
+export async function gespraechsschritt({ nachricht, verlauf = [], land = null, sprache = 'de' }) {
   if (!llmKonfiguriert()) return mockSchritt({ nachricht, verlauf, land });
 
   // EU-Variante: Mistral statt Claude. Gleicher Vertrag (Werkzeuge, System-
@@ -216,15 +232,13 @@ export async function gespraechsschritt({ nachricht, verlauf = [], land = null }
   // Dynamischer Import, damit kein Zyklus zwischen den Modulen entsteht.
   if (PROVIDER === 'mistral') {
     const { mistralSchritt } = await import('./mistral.mjs');
-    return mistralSchritt({ nachricht, verlauf, land });
+    return mistralSchritt({ nachricht, verlauf, land, sprache });
   }
 
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   const client = new Anthropic();
 
-  const kontext = land
-    ? `[Kontext: Bundesland des Anrufers ist ${LAENDER[land].name} (${land}).]`
-    : '[Kontext: Bundesland des Anrufers ist nicht bekannt.]';
+  const kontext = kontextFuer({ land, sprache });
 
   /** @type {import('@anthropic-ai/sdk').Anthropic.MessageParam[]} */
   const messages = [

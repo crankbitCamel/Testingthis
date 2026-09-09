@@ -118,8 +118,11 @@ CREATE TABLE IF NOT EXISTS gespraeche (
   quellen    jsonb NOT NULL DEFAULT '[]',   -- vom Modell genutzte Quellen/Chunks
   werkzeuge  jsonb NOT NULL DEFAULT '[]',   -- aufgerufene Tools (bei modus=llm)
   dauer_ms   integer,                       -- Antwortlatenz in Millisekunden
-  beendet    boolean NOT NULL DEFAULT false -- Runde beendete das Gespraech
+  beendet    boolean NOT NULL DEFAULT false, -- Runde beendete das Gespraech
+  sprache    text                            -- gewaehlte Anrufsprache ('de','en')
 );
+-- Spalte spaeter ergaenzt: bestehende Tabellen bekommen sie idempotent nach.
+ALTER TABLE gespraeche ADD COLUMN IF NOT EXISTS sprache text;
 
 CREATE INDEX IF NOT EXISTS gespraeche_call_idx ON gespraeche (call_sid, zeit);
 CREATE INDEX IF NOT EXISTS gespraeche_zeit_idx ON gespraeche (zeit DESC);

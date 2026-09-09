@@ -16,8 +16,7 @@
  *                       (fuer weniger Latenz: 'mistral-small-latest')
  *   ASSISTENT_MAX_TOKENS optional - Standard 512 (kurze, sprechbare Antworten)
  */
-import { WERKZEUGE, werkzeugAusfuehren, SYSTEM } from './assistent.mjs';
-import { LAENDER } from '../src/kb/regional/index.js';
+import { WERKZEUGE, werkzeugAusfuehren, SYSTEM, kontextFuer } from './assistent.mjs';
 
 const ENDPUNKT = 'https://api.mistral.ai/v1/chat/completions';
 const MODELL = process.env.MISTRAL_MODELL || 'mistral-large-latest';
@@ -83,10 +82,8 @@ function quellenAusErgebnis(ergebnis, eingabe, quellen) {
  * Ein Gespraechsschritt mit Mistral. Gleiche Rueckgabeform wie der Claude-Pfad:
  * { text, quellen, werkzeuge, modus, modell, beendet?, grund? }.
  */
-export async function mistralSchritt({ nachricht, verlauf = [], land = null }) {
-  const kontext = land
-    ? `[Kontext: Bundesland des Anrufers ist ${LAENDER[land].name} (${land}).]`
-    : '[Kontext: Bundesland des Anrufers ist nicht bekannt.]';
+export async function mistralSchritt({ nachricht, verlauf = [], land = null, sprache = 'de' }) {
+  const kontext = kontextFuer({ land, sprache });
 
   const messages = [
     { role: 'system', content: SYSTEM },

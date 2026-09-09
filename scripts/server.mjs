@@ -9,7 +9,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gespraechsschritt, llmKonfiguriert, anbieter } from '../server/assistent.mjs';
-import { anrufBeginn, anrufEingabe, anrufWarten } from '../server/telefon.mjs';
+import { sprachwahl, anrufBeginn, anrufEingabe, anrufWarten } from '../server/telefon.mjs';
 import { protokolliere } from '../server/gespraechslog.mjs';
 
 const WURZEL = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -109,7 +109,13 @@ const server = createServer(async (anfrage, antwort) => {
     const istLokal = /^(127\.0\.0\.1|localhost|\[?::1\]?)(:\d+)?$/i.test(oeffHost);
     const basis = (!istLokal && oeffHost) ? `${oeffProto}://${oeffHost}` : '';
 
+    // Anrufbeginn: erst das Sprachmenue (1 = Deutsch, 2 = Englisch), dessen
+    // Tastendruck auf /sprache landet und dort die Begruessung ausloest.
     if (url.pathname === '/api/telefon' && anfrage.method === 'POST') {
+      xml(antwort, sprachwahl(await formularLesen(anfrage), basis));
+      return;
+    }
+    if (url.pathname === '/api/telefon/sprache' && anfrage.method === 'POST') {
       xml(antwort, anrufBeginn(await formularLesen(anfrage), basis));
       return;
     }

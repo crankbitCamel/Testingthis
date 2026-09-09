@@ -97,3 +97,29 @@ FROM kommune_leistungen
 WHERE status IN ('geprueft','freigegeben')
   AND (geprueft_am IS NULL
        OR geprueft_am + (COALESCE(pruefintervall_monate,12) || ' months')::interval >= now());
+
+-- ---------------------------------------------------------------------------
+-- Gespraechsprotokoll: jede Frage-Antwort-Runde aus Telefon und Browser, mit
+-- den genutzten Quellen, damit sich Antworten im Nachhinein fact-checken
+-- lassen. Anders als die uebrigen Tabellen ist dies KEINE Auslieferungs-
+-- schicht aus Git, sondern ein Laufzeit-Log - es wird nur eingefuegt, nie
+-- aus dem Repository ueberschrieben, und der Import raeumt es nicht auf.
+CREATE TABLE IF NOT EXISTS gespraeche (
+  id         bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  call_sid   text,                          -- Twilio-CallSid (Telefon), sonst NULL
+  kanal      text NOT NULL,                 -- 'telefon' | 'browser'
+  zeit       timestamptz NOT NULL DEFAULT now(),
+  land       text,                          -- erkanntes Bundesland ('rp','nw',...)
+  frage      text NOT NULL,                 -- Aeusserung des Anrufers/Nutzers
+  antwort    text NOT NULL,                 -- Antwort des Assistenten
+  modus      text,                          -- 'llm' | 'mock'
+  modell     text,                          -- konkretes Modell (bei modus=llm)
+  confidence real,                          -- Twilio-Spracherkennung (nur Telefon)
+  quellen    jsonb NOT NULL DEFAULT '[]',   -- vom Modell genutzte Quellen/Chunks
+  werkzeuge  jsonb NOT NULL DEFAULT '[]',   -- aufgerufene Tools (bei modus=llm)
+  dauer_ms   integer,                       -- Antwortlatenz in Millisekunden
+  beendet    boolean NOT NULL DEFAULT false -- Runde beendete das Gespraech
+);
+
+CREATE INDEX IF NOT EXISTS gespraeche_call_idx ON gespraeche (call_sid, zeit);
+CREATE INDEX IF NOT EXISTS gespraeche_zeit_idx ON gespraeche (zeit DESC);

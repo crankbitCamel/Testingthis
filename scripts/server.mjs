@@ -10,6 +10,7 @@ import { join, extname, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gespraechsschritt, llmKonfiguriert } from '../server/assistent.mjs';
 import { anrufBeginn, anrufEingabe, anrufWarten } from '../server/telefon.mjs';
+import { protokolliere } from '../server/gespraechslog.mjs';
 
 const WURZEL = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const PORT = Number(process.env.PORT ?? 4115);
@@ -75,8 +76,15 @@ const server = createServer(async (anfrage, antwort) => {
           json(antwort, 400, { fehler: 'Feld "nachricht" fehlt' });
           return;
         }
+        const beginn = Date.now();
         const ergebnis = await gespraechsschritt({ nachricht, verlauf: Array.isArray(verlauf) ? verlauf : [], land: land || null });
         json(antwort, 200, ergebnis);
+        protokolliere({
+          kanal: 'browser', land: land || null, frage: nachricht,
+          antwort: ergebnis.text, modus: ergebnis.modus, modell: ergebnis.modell,
+          quellen: ergebnis.quellen, werkzeuge: ergebnis.werkzeuge,
+          dauerMs: Date.now() - beginn, beendet: Boolean(ergebnis.beendet),
+        });
       } catch (fehler) {
         json(antwort, 500, { fehler: fehler.message });
       }

@@ -15,7 +15,8 @@
     "validate:kommune": "node scripts/validate-kommune.mjs beispiele/kommunen/*.json",
     "db:provision": "node scripts/neon-provision.mjs",
     "db:import": "node scripts/build-chunks.mjs && node scripts/db-import.mjs",
-    "db:dry-run": "node scripts/db-import.mjs --dry-run"
+    "db:dry-run": "node scripts/db-import.mjs --dry-run",
+    "gespraeche": "node scripts/gespraeche.mjs"
   },
   "engines": {
     "node": ">=20"

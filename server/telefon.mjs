@@ -18,6 +18,7 @@
  */
 import { gespraechsschritt, llmKonfiguriert } from './assistent.mjs';
 import { erkenneLand } from '../src/nlu.js';
+import { protokolliere } from './gespraechslog.mjs';
 
 const STIMME = process.env.TELEFON_STIMME ?? 'Polly.Vicki-Neural';
 const SPRACHE = 'de-DE';
@@ -140,6 +141,9 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
   const landTreffer = erkenneLand(gesagt);
   if (landTreffer) z.land = landTreffer.code;
 
+  const sicher = Number.parseFloat(Confidence);
+  const beginn = Date.now();
+
   // Mock-Modus: schnell und synchron - kein Timeout-Risiko, deckt die Tests ab.
   if (!llmKonfiguriert()) {
     let ergebnis;
@@ -153,6 +157,12 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
     }
     z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
     if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
+    protokolliere({
+      callSid: CallSid, kanal: 'telefon', land: z.land, frage: gesagt,
+      antwort: ergebnis.text, modus: ergebnis.modus, modell: ergebnis.modell,
+      confidence: sicher, quellen: ergebnis.quellen, werkzeuge: ergebnis.werkzeuge,
+      dauerMs: Date.now() - beginn, beendet: Boolean(ergebnis.beendet),
+    });
     if (ergebnis.beendet) {
       anrufe.delete(CallSid);
       return twiml(sag(ergebnis.text) + '<Hangup/>');
@@ -170,6 +180,12 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
       job.status = 'done';
       z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
       if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
+      protokolliere({
+        callSid: CallSid, kanal: 'telefon', land: z.land, frage: gesagt,
+        antwort: ergebnis.text, modus: ergebnis.modus, modell: ergebnis.modell,
+        confidence: sicher, quellen: ergebnis.quellen, werkzeuge: ergebnis.werkzeuge,
+        dauerMs: Date.now() - beginn, beendet: Boolean(ergebnis.beendet),
+      });
     })
     .catch((fehler) => { job.fehler = fehler; job.status = 'error'; });
 

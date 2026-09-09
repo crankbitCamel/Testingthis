@@ -8,7 +8,7 @@ import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { gespraechsschritt, llmKonfiguriert } from '../server/assistent.mjs';
+import { gespraechsschritt, llmKonfiguriert, anbieter } from '../server/assistent.mjs';
 import { anrufBeginn, anrufEingabe, anrufWarten } from '../server/telefon.mjs';
 import { protokolliere } from '../server/gespraechslog.mjs';
 
@@ -66,7 +66,15 @@ const server = createServer(async (anfrage, antwort) => {
 
     // --- API: LLM-Assistenzmodus ------------------------------------------
     if (url.pathname === '/api/status') {
-      json(antwort, 200, { llm: llmKonfiguriert() ? 'bereit' : 'mock', modell: process.env.ASSISTENT_MODELL ?? 'claude-opus-5' });
+      const prov = anbieter();
+      const modell = prov === 'mistral'
+        ? (process.env.MISTRAL_MODELL || 'mistral-large-latest')
+        : (process.env.ASSISTENT_MODELL || 'claude-opus-5');
+      json(antwort, 200, {
+        llm: llmKonfiguriert() ? 'bereit' : 'mock',
+        anbieter: prov,
+        modell,
+      });
       return;
     }
     if (url.pathname === '/api/assistent' && anfrage.method === 'POST') {

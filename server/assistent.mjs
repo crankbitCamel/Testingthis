@@ -23,8 +23,27 @@ const MODELL = process.env.ASSISTENT_MODELL ?? 'claude-opus-5';
 // nach ~15 s ab). Fuer den Browser laesst sich der Wert per Env erhoehen.
 const MAX_TOKENS = Number(process.env.ASSISTENT_MAX_TOKENS ?? 512);
 
-export function llmKonfiguriert() {
+// Anbieterwahl. Diese (EU-)Variante kann statt Anthropic (Claude) den
+// europaeischen Anbieter Mistral (Paris) nutzen - dieselbe Wissensbasis,
+// dieselben Werkzeuge, nur ein anderes Sprachmodell. Standard: expliziter
+// ASSISTENT_PROVIDER, sonst Mistral, falls ein MISTRAL_API_KEY gesetzt ist,
+// sonst Anthropic.
+const PROVIDER = (process.env.ASSISTENT_PROVIDER || '').toLowerCase()
+  || (process.env.MISTRAL_API_KEY ? 'mistral' : 'anthropic');
+
+export function anthropicKonfiguriert() {
   return Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
+}
+export function mistralKonfiguriert() {
+  return Boolean(process.env.MISTRAL_API_KEY);
+}
+/** Aktiver Anbieter ('mistral' | 'anthropic'), sofern ueberhaupt konfiguriert. */
+export function anbieter() {
+  return PROVIDER;
+}
+
+export function llmKonfiguriert() {
+  return anthropicKonfiguriert() || mistralKonfiguriert();
 }
 
 // ---------------------------------------------------------------------------
@@ -191,6 +210,14 @@ Eiserne Regeln:
  */
 export async function gespraechsschritt({ nachricht, verlauf = [], land = null }) {
   if (!llmKonfiguriert()) return mockSchritt({ nachricht, verlauf, land });
+
+  // EU-Variante: Mistral statt Claude. Gleicher Vertrag (Werkzeuge, System-
+  // Prompt, Rueckgabeform) - nur ein anderes Modell hinter derselben Schleife.
+  // Dynamischer Import, damit kein Zyklus zwischen den Modulen entsteht.
+  if (PROVIDER === 'mistral') {
+    const { mistralSchritt } = await import('./mistral.mjs');
+    return mistralSchritt({ nachricht, verlauf, land });
+  }
 
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   const client = new Anthropic();

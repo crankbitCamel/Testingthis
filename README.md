@@ -246,6 +246,28 @@ Der Schalter erscheint in der Fußleiste, sobald die Anwendung über ihren
 Node-Server läuft. Architektur, Chunking-Regeln, Retrieval-Aufbau und
 Kostenrahmen: **`docs/llm-rag-architektur.md`**.
 
+### EU-Variante: Mistral statt Claude
+
+Diese Version kann statt Claude den europäischen Anbieter **Mistral** (Paris,
+Verarbeitung in der EU) nutzen — dieselbe Wissensbasis, dieselben vier
+Werkzeuge, derselbe System-Prompt, nur ein anderes Sprachmodell. Der Anbieter
+wird über Umgebungsvariablen gewählt; ist ein `MISTRAL_API_KEY` gesetzt, läuft
+der Assistent automatisch über Mistral.
+
+```bash
+MISTRAL_API_KEY=... npm start                 # KI-Modus über Mistral (EU)
+MISTRAL_MODELL=mistral-small-latest \
+  MISTRAL_API_KEY=... npm start               # schnelleres/günstigeres Modell
+ASSISTENT_PROVIDER=anthropic \
+  ANTHROPIC_API_KEY=sk-... npm start          # explizit wieder Claude
+```
+
+`GET /api/status` zeigt den aktiven Anbieter und das Modell
+(`{"llm":"bereit","anbieter":"mistral","modell":"mistral-large-latest"}`).
+Standardmodell ist `mistral-large-latest`; für geringere Latenz am Telefon
+eignet sich `mistral-small-latest`. Für den produktiven Einsatz mit echten
+Anruferdaten gehört ein Auftragsverarbeitungsvertrag (AVV) mit Mistral dazu.
+
 ## Grenzen
 
 - Die Wissensbasis ist redaktionell gepflegt und trägt einen Stand (`2026-08`). Beträge

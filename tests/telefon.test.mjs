@@ -73,3 +73,19 @@ describe('Gesprächsrunden am Telefon (Mock)', () => {
     assert.match(anderer, /<Gather/);
   });
 });
+
+describe('Hintergrund-Jobs (LLM-Modus)', () => {
+  test('verwaiste Jobs verfallen nach der Frist, frische bleiben', async () => {
+    const { _jobs, _jobsAufraeumen } = await import('../server/telefon.mjs');
+    const jobs = _jobs();
+    jobs.clear();
+    const jetzt = Date.now();
+    // Ein alter Job (Anrufer hat aufgelegt, nie abgeholt) und ein frischer.
+    jobs.set('CA_alt', { status: 'done', ergebnis: { text: 'x' }, fehler: null, polls: 0, erstellt: jetzt - 11 * 60 * 1000 });
+    jobs.set('CA_neu', { status: 'pending', ergebnis: null, fehler: null, polls: 0, erstellt: jetzt - 5 * 1000 });
+    _jobsAufraeumen(jetzt);
+    assert.equal(jobs.has('CA_alt'), false, 'alter Job muss verfallen');
+    assert.equal(jobs.has('CA_neu'), true, 'frischer Job muss bleiben');
+    jobs.clear();
+  });
+});

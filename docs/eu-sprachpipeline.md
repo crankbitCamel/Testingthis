@@ -108,11 +108,25 @@ Telefonie lebt von kurzen Antwortzeiten. Grobe, ehrliche Schätzung pro Runde
 
 ## 5. Serveranforderungen
 
-- **Whisper (der Kostentreiber):** Für niedrige Latenz eine kleine GPU
-  (z. B. NVIDIA L4/T4) mit `faster-whisper`, Modell `large-v3-turbo` oder
-  `medium` als Qualität/Tempo-Kompromiss. CPU-only (`whisper.cpp`) geht, ist
-  aber spürbar langsamer. EU-GPU-Hoster: Hetzner, Scaleway, OVH; STACKIT-GPU
-  prüfen.
+- **Whisper — Entscheidung: zuerst CPU, GPU nur bei Bedarf.** `faster-whisper`
+  mit int8-Quantisierung, Modell `small` (Start) oder `medium` (bessere
+  Qualität, langsamer). Erst wenn die gemessene Latenz stört, auf eine GPU
+  (NVIDIA L4/T4, `large-v3-turbo`) wechseln — EU-GPU-Hoster: Hetzner, Scaleway,
+  OVH; STACKIT-GPU prüfen.
+
+**Sizing für den Piloten — Entscheidung: maximal 5 gleichzeitige Anrufer.**
+
+| Größe | Ableitung aus „5 gleichzeitig" |
+|---|---|
+| SIP-Trunk-Kanäle | 6–8 buchen (5 Gespräche + Reserve für Auf-/Abbau) |
+| Whisper auf CPU | 5 parallele Erkennungsströme: Start mit **8 vCPU**, Modell `small` int8; messen, bei Bedarf `medium` oder mehr Kerne |
+| App + Jambonz | eine VM mit 2–4 vCPU reicht bei 5 Gesprächen bequem |
+| Sprachmodell | 5 parallele Mistral-Anfragen liegen weit unter üblichen Ratenlimits |
+| Datenbank | kleinste STACKIT-Instanz; ein Log-Eintrag je Runde ist vernachlässigbar |
+
+Der Node-Server hält den Gesprächszustand je Anruf im Speicher; für 5
+gleichzeitige Anrufer ist ein Prozess mehr als ausreichend. Erst mehrere
+Instanzen hinter einem Lastverteiler bräuchten den Zustand in der Datenbank.
 - **Jambonz:** bescheidene VM (wenige vCPU, einige GB RAM) plus SIP-Trunk.
 - **App-Server (Node):** klein; kann mit Jambonz auf denselben Host.
 - **Fester EU-Host** mit öffentlicher IP, Domain und TLS-Zertifikat (Let's
@@ -149,9 +163,15 @@ EU-TTS statt ElevenLabs; DB und VMs klein dimensionieren.
   Framework / SCC) prüfen.
 - **Voller EU-Weg möglich:** EU-TTS statt ElevenLabs → gar kein US-Transfer,
   gegen Stimmqualität abgewogen.
-- **Protokoll `gespraeche`:** enthält echte Anruferfragen (können personenbezug
-  tragen). Nötig: **Löschfrist**, Zugriffsbeschränkung, und ein **Ansage-
-  Hinweis zu Beginn** des Anrufs (Protokollierung/Aufnahme transparent machen).
+- **Protokoll `gespraeche` — Einwilligung umgesetzt (Opt-in).** Nach der
+  Sprachwahl fragt der Anruf: *„Zur Verbesserung unserer KI-gestützten Auskunft
+  würden wir das Gespräch gerne schriftlich protokollieren. Drücken Sie die
+  Eins, wenn Sie zustimmen, oder die Zwei, wenn Sie dies nicht wünschen."*
+  (englische Fassung analog). Nur bei Taste 1 wird protokolliert; bei 2 oder
+  keiner Taste läuft das Gespräch normal, aber ohne Log-Eintrag. Bewusst
+  „schriftlich protokollieren", nicht „aufzeichnen": gespeichert wird Text,
+  kein Ton — die Ansage muss dem entsprechen. Weiterhin nötig: **Löschfrist**
+  und Zugriffsbeschränkung auf das Protokoll.
 - **TOMs:** TLS überall, EU-Hosting, Zugriffskontrolle, Minimaldatenhaltung.
 
 ---
@@ -169,15 +189,32 @@ EU-Pipeline steht.
 
 ---
 
-## 9. Offene Entscheidungen
+## 9. Entscheidungen — Stand
 
-1. **TTS:** ElevenLabs (beste Stimme, US-Text-Transfer) **oder** EU-TTS (voll
-   souverän, Qualitätsabstand)?
-2. **Whisper-Host:** GPU (Latenz, Kosten) **oder** CPU (günstig, langsamer)?
-3. **Träger:** direkt Weg A (Jambonz + sipgate) **oder** erst Prototyp über eine
-   Media-Bridge?
-4. **Aufnahme-Transparenz:** Ansage zu Gesprächsbeginn — Wortlaut und Umfang.
-5. **Deployment-Ziel:** welcher EU-Host (Hetzner / Scaleway / OVH / STACKIT)?
+**Getroffen:**
+
+- **Sprachmodell:** Mistral (EU). Umgesetzt.
+- **Datenbank:** Standard-Postgres bei STACKIT; Treiber umgestellt. Umgesetzt.
+- **Erkennung:** Whisper selbst gehostet in der EU, **zuerst auf CPU**, GPU
+  nur bei gemessenem Bedarf.
+- **Sprachausgabe:** US-Dienst (ElevenLabs) vertretbar, da nur der Antworttext
+  hinausgeht; EU-TTS bleibt die Option für volle Souveränität.
+- **Sprachwahl:** Tastenmenü zu Gesprächsbeginn (1 Deutsch, 2 Englisch).
+  Umgesetzt; Gegenprüfung über Whispers erkannte Sprache folgt in der Pipeline.
+- **Einwilligung:** Opt-in per Taste 1 mit dem Wortlaut aus Abschnitt 7.
+  Umgesetzt.
+- **Gleichzeitige Anrufer im Piloten:** maximal 5 (Sizing in Abschnitt 5).
+
+**Noch offen:**
+
+1. **Träger-Reihenfolge:** direkt Jambonz + sipgate **oder** erst Prototyp
+   über eine Media-Brücke? (Empfehlung: Prototyp zuerst, Pipeline
+   trägerunabhängig.)
+2. **Deployment-Ziel:** welcher EU-Host für App, Jambonz und Whisper —
+   STACKIT liegt nahe (DB schon dort); GPU-Angebot dort nur relevant, falls
+   CPU später nicht reicht.
+3. **Löschfrist** für das Gesprächsprotokoll (Vorschlag: 90 Tage) und
+   Zugriffsbeschränkung.
 
 ---
 

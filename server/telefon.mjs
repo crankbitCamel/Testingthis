@@ -38,6 +38,11 @@ export const SPRACHEN = {
     normalisieren: true,
     texte: {
       menue: 'Für Deutsch drücken Sie die Eins.',
+      // Einwilligung (Opt-in) zur Protokollierung. Bewusst "schriftlich
+      // protokollieren", nicht "aufzeichnen": gespeichert wird der Text der
+      // Runde, kein Tonmitschnitt - die Ansage muss dem entsprechen.
+      einwilligung: 'Zur Verbesserung unserer KI-gestützten Auskunft würden wir das Gespräch gerne schriftlich protokollieren. '
+        + 'Drücken Sie die Eins, wenn Sie zustimmen, oder die Zwei, wenn Sie dies nicht wünschen.',
       begruessung: 'Guten Tag, hier ist der digitale Verwaltungsassistent. '
         + 'Schildern Sie Ihr Anliegen einfach in eigenen Worten - zum Beispiel: '
         + 'Ich bin umgezogen. Oder: Was kostet ein Reisepass?',
@@ -57,6 +62,8 @@ export const SPRACHEN = {
     normalisieren: false,
     texte: {
       menue: 'For English, press two.',
+      einwilligung: 'To improve our AI-assisted information service, we would like to keep a written record of this conversation. '
+        + 'Press one if you agree, or two if you do not wish this.',
       begruessung: 'Hello, this is the digital public services assistant. '
         + 'Just describe what you need in your own words - for example: '
         + 'I have moved house. Or: How much does a passport cost?',
@@ -88,7 +95,9 @@ function zustandFuer(callSid) {
   }
   let z = anrufe.get(callSid);
   if (!z) {
-    z = { verlauf: [], land: null, sprache: STANDARD_SPRACHE, schweigen: 0, zuletzt: jetzt };
+    // einwilligung: Opt-in zur Protokollierung - ohne ausdrueckliche Zustimmung
+    // (Taste 1) wird die Runde NICHT ins Gespraechslog geschrieben.
+    z = { verlauf: [], land: null, sprache: STANDARD_SPRACHE, einwilligung: false, schweigen: 0, zuletzt: jetzt };
     anrufe.set(callSid, z);
   }
   z.zuletzt = jetzt;
@@ -185,10 +194,37 @@ export function sprachwahl({ CallSid } = {}, basis = '') {
 }
 
 /**
- * Begruessung in der gewaehlten Sprache (action des Sprachmenues). Kommt
- * Digits mit, wird die Sprache gesetzt; ohne Digits bleibt die bisherige
- * (bzw. die Standardsprache) - so laesst sich die Funktion auch direkt als
- * Anrufbeginn nutzen.
+ * Schritt 2 (action des Sprachmenues): Sprache aus der Taste setzen und die
+ * Einwilligungsfrage in dieser Sprache stellen. Ohne Taste innerhalb von 5 s
+ * gilt KEINE Einwilligung, und es geht direkt mit der Begruessung weiter.
+ */
+export function sprachSetzen({ CallSid, Digits } = {}, basis = '') {
+  const z = zustandFuer(CallSid ?? 'ohne-sid');
+  if (Digits !== undefined) z.sprache = TASTE_ZU_SPRACHE[String(Digits).trim()] ?? STANDARD_SPRACHE;
+  const s = sprachePer(z);
+  return twiml(
+    `<Gather input="dtmf" numDigits="1" timeout="5" action="${basis}/api/telefon/einwilligung" method="POST">`
+    + sag(s.texte.einwilligung, s)
+    + '</Gather>'
+    + zuhoerenInhalt(s.texte.begruessung, basis, s),
+  );
+}
+
+/**
+ * Schritt 3 (action der Einwilligungsfrage): Taste 1 = Zustimmung zur
+ * Protokollierung, alles andere = keine. Danach die Begruessung.
+ */
+export function einwilligungSetzen({ CallSid, Digits } = {}, basis = '') {
+  const z = zustandFuer(CallSid ?? 'ohne-sid');
+  z.einwilligung = String(Digits ?? '').trim() === '1';
+  const s = sprachePer(z);
+  return sagUndZuhoeren(s.texte.begruessung, basis, s);
+}
+
+/**
+ * Begruessung in der gewaehlten Sprache. Kommt Digits mit, wird die Sprache
+ * gesetzt; ohne Digits bleibt die bisherige (bzw. die Standardsprache). Als
+ * direkter Anrufbeginn ohne Menues nutzbar (Tests, einfache Konfigurationen).
  */
 export function anrufBeginn({ CallSid, Digits } = {}, basis = '') {
   const z = zustandFuer(CallSid ?? 'ohne-sid');
@@ -226,12 +262,18 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
   const sicher = Number.parseFloat(Confidence);
   const beginn = Date.now();
   const anfrage = { nachricht: gesagt, verlauf: z.verlauf, land: z.land, sprache: z.sprache };
-  const eintrag = (ergebnis) => ({
-    callSid: CallSid, kanal: 'telefon', land: z.land, sprache: z.sprache, frage: gesagt,
-    antwort: ergebnis.text, modus: ergebnis.modus, modell: ergebnis.modell,
-    confidence: sicher, quellen: ergebnis.quellen, werkzeuge: ergebnis.werkzeuge,
-    dauerMs: Date.now() - beginn, beendet: Boolean(ergebnis.beendet),
-  });
+  // Protokolliert wird NUR mit ausdruecklicher Einwilligung (Taste 1 zu
+  // Gespraechsbeginn). Ohne Zustimmung laeuft das Gespraech normal, aber
+  // ohne Log-Eintrag.
+  const protokoll = (ergebnis) => {
+    if (!z.einwilligung) return;
+    protokolliere({
+      callSid: CallSid, kanal: 'telefon', land: z.land, sprache: z.sprache, frage: gesagt,
+      antwort: ergebnis.text, modus: ergebnis.modus, modell: ergebnis.modell,
+      confidence: sicher, quellen: ergebnis.quellen, werkzeuge: ergebnis.werkzeuge,
+      dauerMs: Date.now() - beginn, beendet: Boolean(ergebnis.beendet),
+    });
+  };
 
   // Mock-Modus: schnell und synchron - kein Timeout-Risiko, deckt die Tests ab.
   if (!llmKonfiguriert()) {
@@ -243,7 +285,7 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
     }
     z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
     if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
-    protokolliere(eintrag(ergebnis));
+    protokoll(ergebnis);
     if (ergebnis.beendet) {
       anrufe.delete(CallSid);
       return twiml(sag(ergebnis.text, s) + '<Hangup/>');
@@ -262,7 +304,7 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
       job.status = 'done';
       z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
       if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
-      protokolliere(eintrag(ergebnis));
+      protokoll(ergebnis);
     })
     .catch((fehler) => { job.fehler = fehler; job.status = 'error'; });
 

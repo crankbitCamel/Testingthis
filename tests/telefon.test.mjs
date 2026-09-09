@@ -128,3 +128,40 @@ describe('Sprachwahl per Taste', () => {
     assert.equal(SPRACHEN.en.normalisieren, false);
   });
 });
+
+describe('Einwilligung zur Protokollierung (Opt-in)', () => {
+  test('nach der Sprachwahl kommt die Einwilligungsfrage in dieser Sprache', async () => {
+    const { sprachSetzen } = await import('../server/telefon.mjs');
+    const de = sprachSetzen({ CallSid: 'CA_W1', Digits: '1' }, 'https://x.example');
+    assert.match(de, /<Gather input="dtmf" numDigits="1"[^>]*action="https:\/\/x\.example\/api\/telefon\/einwilligung"/);
+    assert.match(de, /schriftlich protokollieren/);
+    assert.match(de, /Drücken Sie die Eins, wenn Sie zustimmen/);
+    // Ohne Taste: keine Einwilligung, aber die Begruessung folgt trotzdem.
+    assert.match(de, /Verwaltungsassistent/);
+    assert.equal(_anrufZustand('CA_W1').einwilligung, false);
+
+    const en = sprachSetzen({ CallSid: 'CA_W2', Digits: '2' }, 'https://x.example');
+    assert.match(en, /written record of this conversation/);
+    assert.match(en, /language="en-GB"/);
+  });
+
+  test('Taste 1 gibt die Einwilligung, Taste 2 oder nichts verweigert sie', async () => {
+    const { einwilligungSetzen } = await import('../server/telefon.mjs');
+    const ja = einwilligungSetzen({ CallSid: 'CA_W3', Digits: '1' });
+    assert.equal(_anrufZustand('CA_W3').einwilligung, true);
+    assert.match(ja, /Verwaltungsassistent/); // danach direkt die Begruessung
+    einwilligungSetzen({ CallSid: 'CA_W4', Digits: '2' });
+    assert.equal(_anrufZustand('CA_W4').einwilligung, false);
+    einwilligungSetzen({ CallSid: 'CA_W5' });
+    assert.equal(_anrufZustand('CA_W5').einwilligung, false);
+  });
+
+  test('ohne Einwilligung laeuft das Gespraech normal weiter', async (t) => {
+    if (llmKonfiguriert()) return t.skip('API-Schlüssel gesetzt - Mock nicht aktiv');
+    const { einwilligungSetzen } = await import('../server/telefon.mjs');
+    einwilligungSetzen({ CallSid: 'CA_W6', Digits: '2' });
+    const antwort = await anrufEingabe({ CallSid: 'CA_W6', SpeechResult: 'Wie lange ist die Bestattungsfrist in Rheinland-Pfalz?' });
+    assert.match(antwort, /14 Tage/); // Antwort kommt, nur ohne Log-Eintrag
+    assert.equal(_anrufZustand('CA_W6').einwilligung, false);
+  });
+});

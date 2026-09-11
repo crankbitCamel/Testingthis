@@ -115,14 +115,18 @@ Telefonie lebt von kurzen Antwortzeiten. Grobe, ehrliche Schätzung pro Runde
   OVH; STACKIT-GPU prüfen.
 
   **Erste Messung (Laptop, Testballon):** Ryzen 7 7840U unter Docker Desktop
-  (WSL2, Standard-Kernzuteilung), `onerahmet/openai-whisper-asr-webservice`,
+  (WSL2, alle 16 Threads zugeteilt), `onerahmet/openai-whisper-asr-webservice`,
   faster-whisper `small` int8, 5 s deutsche Sprache per HTTP-Upload:
   **3,0 s** je Aufruf, reproduzierbar (zwei Läufe), Transkript wortgenau
-  inklusive Umlaut. Einordnung: für einen Anrufer brauchbar, oberhalb des
-  Ziels von unter 2 s je Satz; auf dem Server mit 8 dedizierten vCPU erneut
-  messen, ab 5 parallelen Anrufern GPU-Frage neu bewerten. In der echten
-  Pipeline wird zudem in Stücken während des Sprechens erkannt, die gefühlte
-  Wartezeit nach Satzende ist kürzer als die reine Rechenzeit.
+  inklusive Umlaut. Einordnung: für einen Anrufer brauchbar, aber oberhalb
+  des Ziels von unter 2 s je Satz — und das bereits mit 16 Threads. Ein
+  Server mit 8 vCPU wird kaum schneller sein; für 5 parallele Anrufer ist die
+  CPU-Variante damit voraussichtlich zu knapp. Vor der GPU-Entscheidung noch
+  zwei günstige Hebel prüfen: Thread-Einstellung des Dienstes (CTranslate2
+  nutzt standardmäßig nicht alle Kerne) und Upload als WAV statt MP3 (spart
+  das Dekodieren). In der echten Pipeline wird zudem in Stücken während des
+  Sprechens erkannt, die gefühlte Wartezeit nach Satzende ist kürzer als die
+  reine Rechenzeit.
 
 **Sizing für den Piloten — Entscheidung: maximal 5 gleichzeitige Anrufer.**
 

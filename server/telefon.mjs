@@ -164,6 +164,10 @@ const sagUndZuhoeren = (text, basis = '', s = SPRACHEN[STANDARD_SPRACHE]) =>
 // lange nachfragen, bis die Antwort bereitliegt.
 const jobs = new Map(); // CallSid -> { status, ergebnis, fehler, polls, erstellt }
 const MAX_POLLS = 12;   // bis zu ~12 * 2 s = 24 s Rechenzeit
+// Unterhalb dieser Erkennungs-Konfidenz (0..1) gilt eine Aeusserung als nicht
+// verstanden. Echte Saetze liegen bei Twilio meist ueber 0,7; Husten,
+// Raeuspern und Nebengeraeusche kommen mit 0,0 bis 0,3 an.
+const MIN_KONFIDENZ = Number(process.env.TELEFON_MIN_KONFIDENZ ?? 0.4);
 // Legt ein Anrufer auf, waehrend seine Antwort noch berechnet wird, holt den
 // fertigen Job niemand mehr ab. Damit sich das nicht ansammelt, verfallen
 // Jobs nach einer grosszuegigen Frist.
@@ -256,12 +260,21 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
     return sagUndZuhoeren(s.texte.nichtVerstanden, basis, s);
   }
 
+  // Twilio liefert auch fuer Husten oder Nebengeraeusche ein "Wort" - dann
+  // aber mit Konfidenz nahe null. Solche Eingaben nicht ans Sprachmodell
+  // geben (es wuerde aus dem Verlauf eine Antwort erfinden), sondern um
+  // Wiederholung bitten. Ohne Konfidenzangabe (Tests, andere Traeger)
+  // greift die Sperre nicht.
+  const sicher = Number.parseFloat(Confidence);
+  if (Number.isFinite(sicher) && sicher < MIN_KONFIDENZ) {
+    return sagUndZuhoeren(s.texte.wiederholen, basis, s);
+  }
+
   // Nennt der Anrufer sein Bundesland oder eine bekannte Stadt, bleibt das
   // fuer den Rest des Anrufs gesetzt - wie im Browser-Dialog.
   const landTreffer = erkenneLand(gesagt);
   if (landTreffer) z.land = landTreffer.code;
 
-  const sicher = Number.parseFloat(Confidence);
   const beginn = Date.now();
   const anfrage = { nachricht: gesagt, verlauf: z.verlauf, land: z.land, sprache: z.sprache };
   // Protokolliert wird NUR mit ausdruecklicher Einwilligung (Taste 1 zu

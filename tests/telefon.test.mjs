@@ -53,6 +53,19 @@ describe('Gesprächsrunden am Telefon (Mock)', () => {
     assert.match(antwort, /<Gather/);
   });
 
+  test('Erkennung mit Konfidenz nahe null (Husten) geht nicht ans Modell', async () => {
+    // Twilio transkribiert Nebengeraeusche als "Wort" mit Confidence 0.
+    const antwort = await anrufEingabe({ CallSid: 'CA4k', SpeechResult: 'Liebe', Confidence: '0.0' });
+    assert.match(antwort, /bitte wiederholen Sie Ihre Frage/);
+    assert.match(antwort, /<Gather/);
+    assert.equal(_anrufZustand('CA4k').verlauf.length, 0, 'kein Verlaufseintrag');
+
+    // Normale Konfidenz wird beantwortet.
+    const echt = await anrufEingabe({ CallSid: 'CA4k', SpeechResult: 'Was kostet ein Reisepass?', Confidence: '0.91' });
+    assert.doesNotMatch(echt, /bitte wiederholen Sie Ihre Frage/);
+    assert.equal(_anrufZustand('CA4k').verlauf.length, 2);
+  });
+
   test('Missbrauch: erst Verwarnung, beim zweiten Mal Auflegen', async (t) => {
     if (llmKonfiguriert()) return t.skip('API-Schlüssel gesetzt - Mock nicht aktiv');
     const erste = await anrufEingabe({ CallSid: 'CA5', SpeechResult: 'Du bist doch ein Idiot' });

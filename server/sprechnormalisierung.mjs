@@ -89,12 +89,30 @@ function monatsname(mm) {
 }
 
 /**
+ * Entfernt Schriftauszeichnung (Markdown), die Sprachmodelle trotz Prompt
+ * gern einstreuen: **fett**, *kursiv*, Ueberschriften, Listenpunkte,
+ * Zeilenumbrueche. Vorlesestimmen lesen "Sternchen Sternchen" oder machen
+ * unnatuerliche Pausen. Sprachunabhaengig - gilt fuer Deutsch wie Englisch.
+ */
+export function entferneSchriftauszeichnung(text) {
+  let t = String(text ?? '');
+  t = t.replace(/\*\*+|__+/g, '');                       // **fett**, __fett__
+  t = t.replace(/(^|\s)[*_](?=\S)/g, '$1').replace(/(?<=\S)[*_](?=[\s.,;:!?)]|$)/g, ''); // *kursiv*
+  t = t.replace(/^\s{0,3}#{1,6}\s+/gm, '');               // # Ueberschrift
+  t = t.replace(/^\s*(?:[-*•]|\d+[.)])\s+/gm, '');         // - Punkt / 1. Punkt
+  t = t.replace(/`+/g, '');
+  // Listenzeilen ohne Satzzeichen bekommen eines, damit die Stimme pausiert.
+  t = t.replace(/([^\s.,;:!?])\s*\n+/g, '$1. ').replace(/\n+/g, ' ');
+  return t.replace(/\s{2,}/g, ' ').trim();
+}
+
+/**
  * Normalisiert Text fuer die Sprachausgabe. Reihenfolge ist wichtig:
  * erst Datumsangaben (enthalten Jahreszahlen), dann freie Jahreszahlen,
  * dann Abkuerzungen und Symbole, zuletzt Schrift-Trenner.
  */
 export function normalisiereFuerSprache(text) {
-  let t = String(text ?? '');
+  let t = entferneSchriftauszeichnung(text);
 
   // Vollstaendiges Datum: 2026-08-15 -> "15. August zweitausendsechsundzwanzig"
   t = t.replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, (ganz, jjjj, mm, tt) => {

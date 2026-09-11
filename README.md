@@ -256,17 +256,28 @@ der Assistent automatisch über Mistral.
 
 ```bash
 MISTRAL_API_KEY=... npm start                 # KI-Modus über Mistral (EU)
-MISTRAL_MODELL=mistral-small-latest \
-  MISTRAL_API_KEY=... npm start               # schnelleres/günstigeres Modell
+MISTRAL_MODELL=mistral-medium-latest \
+  MISTRAL_API_KEY=... npm start               # stärkeres Modell (Bezahltarif)
 ASSISTENT_PROVIDER=anthropic \
   ANTHROPIC_API_KEY=sk-... npm start          # explizit wieder Claude
 ```
 
 `GET /api/status` zeigt den aktiven Anbieter und das Modell
-(`{"llm":"bereit","anbieter":"mistral","modell":"mistral-large-latest"}`).
-Standardmodell ist `mistral-large-latest`; für geringere Latenz am Telefon
-eignet sich `mistral-small-latest`. Für den produktiven Einsatz mit echten
-Anruferdaten gehört ein Auftragsverarbeitungsvertrag (AVV) mit Mistral dazu.
+(`{"llm":"bereit","anbieter":"mistral","modell":"ministral-14b-latest"}`).
+
+**Modellwahl und Tarif.** Standardmodell ist `ministral-14b-latest`: Function
+Calling, 3–5 s je Telefonantwort inklusive Werkzeugaufrufen, und im Gratis-
+Tarif nutzbar (30 Anfragen pro Minute; `ministral-8b-latest` erlaubt 188).
+Die Premium-Modelle `mistral-small`, `mistral-medium`, `mistral-large` und
+`magistral` haben in einem Workspace **ohne hinterlegte Zahlungsart ein
+Kontingent von 0 Anfragen pro Minute** und antworten nur mit `429 Rate limit
+exceeded` — das ist kein vorübergehendes Limit, sondern fehlende Freischaltung
+(Header `x-ratelimit-limit-req-minute: 0`). Sobald unter
+admin.mistral.ai/subscription ein Bezahltarif aktiv ist, empfiehlt sich
+`MISTRAL_MODELL=mistral-medium-latest`. Bei echten 429 (Ratenlimit im
+Bezahltarif) und 5xx wartet der Adapter kurz und wiederholt bis zu viermal.
+Für den produktiven Einsatz mit echten Anruferdaten gehört ein Auftrags-
+verarbeitungsvertrag (AVV) mit Mistral dazu.
 
 ### Datenbank: Neon oder beliebiges PostgreSQL (z. B. STACKIT)
 
@@ -301,6 +312,32 @@ als Profil `app` vorbereitet.
 ```bash
 docker compose up -d postgres whisper
 DATABASE_URL="postgres://verwaltung:verwaltung@localhost:5432/verwaltung?sslmode=disable" npm start
+```
+
+**Datenbank befüllen.** Die Datenbank ist nach dem Start leer. Zwei Dinge
+füllen sie:
+
+1. Das **Gesprächsprotokoll** braucht keinen Handgriff: Die Tabelle
+   `gespraeche` legt die App beim ersten Eintrag selbst an, und jede Runde mit
+   Einwilligung (Taste 1) landet darin. Ansehen mit `npm run gespraeche`.
+2. Die **Wissensbasis** (Cluster, Leistungen, Landesprofile, Chunks) kommt aus
+   dem Repository per Import — idempotent, jederzeit wiederholbar:
+
+```bash
+# PowerShell: erst die URL setzen, dann importieren
+$env:DATABASE_URL="postgres://verwaltung:verwaltung@localhost:5432/verwaltung?sslmode=disable"
+npm run db:dry-run     # zeigt nur, was importiert würde
+npm run db:import      # legt db/schema.sql an und schreibt alle Tabellen
+```
+
+Der Import verlangt die Erweiterung `pgvector` (Spalte für Embeddings),
+deshalb nutzt `docker-compose.yml` das Image `pgvector/pgvector:pg16` statt
+`postgres:16`. Nachsehen geht ohne Zusatzprogramm im Container:
+
+```bash
+docker exec -it verwaltung-postgres psql -U verwaltung -d verwaltung -c "\dt"
+docker exec -it verwaltung-postgres psql -U verwaltung -d verwaltung -c "SELECT count(*) FROM chunks;"
+docker exec -it verwaltung-postgres psql -U verwaltung -d verwaltung -c "SELECT zeit, sprache, frage, left(antwort,60) FROM gespraeche ORDER BY zeit DESC LIMIT 5;"
 ```
 
 Whisper lässt sich unabhängig von der App mit einer Audiodatei messen — eine

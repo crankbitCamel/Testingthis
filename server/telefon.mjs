@@ -25,7 +25,7 @@
 import { gespraechsschritt, llmKonfiguriert } from './assistent.mjs';
 import { erkenneLand } from '../src/nlu.js';
 import { protokolliere } from './gespraechslog.mjs';
-import { normalisiereFuerSprache } from './sprechnormalisierung.mjs';
+import { normalisiereFuerSprache, entferneSchriftauszeichnung } from './sprechnormalisierung.mjs';
 
 // ---------------------------------------------------------------------------
 // Sprachen: alles, was je Sprache verschieden ist, an EINER Stelle.
@@ -119,7 +119,9 @@ const twiml = (inhalt) => `<?xml version="1.0" encoding="UTF-8"?>\n<Response>${i
 // Abkuerzungen und Symbole vorlesbar gemacht (2026-08 -> "August zweitausend-
 // sechsundzwanzig"); fuer andere Sprachen bleibt der Text unveraendert.
 function sag(text, s = SPRACHEN[STANDARD_SPRACHE]) {
-  const t = s.normalisieren ? normalisiereFuerSprache(text) : String(text ?? '');
+  // Schriftauszeichnung (Markdown) fliegt in jeder Sprache raus; die deutsche
+  // Zahl-/Datums-/Abkuerzungsnormalisierung nur, wo die Sprachtabelle es sagt.
+  const t = s.normalisieren ? normalisiereFuerSprache(text) : entferneSchriftauszeichnung(text);
   return `<Say voice="${s.stimme}" language="${s.code}">${xmlEscape(t)}</Say>`;
 }
 

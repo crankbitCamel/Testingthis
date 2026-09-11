@@ -18,8 +18,11 @@
 #   (Dauer mit Measure-Command { ... } messen; Ziel fuer Telefon: deutlich unter 2 s je Satz)
 
 services:
+  # pgvector-Image statt plain postgres: db/schema.sql legt die Erweiterung
+  # "vector" an (Embeddings in der chunks-Tabelle). Sonst identisch zu
+  # postgres:16 - gleiche Anmeldung, gleicher Port, gleiches Volume.
   postgres:
-    image: postgres:16
+    image: pgvector/pgvector:pg16
     container_name: verwaltung-postgres
     environment:
       POSTGRES_USER: verwaltung

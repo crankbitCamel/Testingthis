@@ -12,15 +12,31 @@
  *
  * Konfiguration (Umgebungsvariablen):
  *   MISTRAL_API_KEY     Pflicht - Schluessel aus console.mistral.ai
- *   MISTRAL_MODELL      optional - Standard 'mistral-large-latest'
- *                       (fuer weniger Latenz: 'mistral-small-latest')
+ *   MISTRAL_MODELL      optional - Standard 'ministral-14b-latest'
+ *                       (mit Bezahltarif besser: 'mistral-medium-latest')
  *   ASSISTENT_MAX_TOKENS optional - Standard 512 (kurze, sprechbare Antworten)
  */
 import { WERKZEUGE, werkzeugAusfuehren, SYSTEM, kontextFuer } from './assistent.mjs';
 
 const ENDPUNKT = 'https://api.mistral.ai/v1/chat/completions';
-const MODELL = process.env.MISTRAL_MODELL || 'mistral-large-latest';
+// Standard 'ministral-14b-latest': Function Calling, im Gratis-Tarif nutzbar
+// (30 Anfragen/Minute) und am Telefon schnell (3-5 s je Antwort inkl.
+// Werkzeugen). Die Premium-Modelle (mistral-small/-medium/-large, magistral)
+// haben ohne hinterlegte Zahlung ein Kontingent von 0 Anfragen und liefern
+// nur 429. Mit Bezahltarif: MISTRAL_MODELL=mistral-medium-latest.
+const MODELL = process.env.MISTRAL_MODELL || 'ministral-14b-latest';
 const MAX_TOKENS = Number(process.env.ASSISTENT_MAX_TOKENS ?? 512);
+// Nach so vielen Werkzeug-Runden wird eine Antwort ohne weitere Werkzeuge
+// erzwungen (tool_choice 'none'). Kleine Modelle rufen sonst dasselbe
+// Werkzeug mehrfach und laufen in die Rundengrenze statt zu antworten.
+const MAX_RUNDEN = 6;
+
+// Ratenlimit-Behandlung: Der kostenlose Tarif erlaubt nur etwa eine Anfrage
+// pro Sekunde, und die Tool-Schleife stellt mehrere Anfragen nacheinander.
+// Bei 429 (und voruebergehenden 5xx) kurz warten und wiederholen, statt den
+// Anruf mit "technische Stoerung" abzubrechen.
+const MAX_VERSUCHE = 4;
+const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * Uebersetzt die Werkzeug-Schemata (Anthropic-Form: name/description/
@@ -39,32 +55,44 @@ export function alsMistralWerkzeuge(werkzeuge = WERKZEUGE) {
 
 const MISTRAL_WERKZEUGE = alsMistralWerkzeuge();
 
-async function mistralAnfrage(messages) {
+async function mistralAnfrage(messages, { toolChoice = 'auto' } = {}) {
   const schluessel = process.env.MISTRAL_API_KEY;
   if (!schluessel) throw new Error('MISTRAL_API_KEY fehlt');
 
-  const antwort = await fetch(ENDPUNKT, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${schluessel}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({
-      model: MODELL,
-      max_tokens: MAX_TOKENS,
-      temperature: 0.2, // fachliche Auskunft: eng am Werkzeugergebnis bleiben
-      messages,
-      tools: MISTRAL_WERKZEUGE,
-      tool_choice: 'auto',
-    }),
+  const body = JSON.stringify({
+    model: MODELL,
+    max_tokens: MAX_TOKENS,
+    temperature: 0.2, // fachliche Auskunft: eng am Werkzeugergebnis bleiben
+    messages,
+    tools: MISTRAL_WERKZEUGE,
+    tool_choice: toolChoice,
   });
 
-  const text = await antwort.text();
-  if (!antwort.ok) {
-    throw new Error(`Mistral-API ${antwort.status}: ${text.slice(0, 400)}`);
+  let letzterFehler = null;
+  for (let versuch = 1; versuch <= MAX_VERSUCHE; versuch += 1) {
+    const antwort = await fetch(ENDPUNKT, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${schluessel}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body,
+    });
+
+    const text = await antwort.text();
+    if (antwort.ok) return JSON.parse(text);
+
+    letzterFehler = new Error(`Mistral-API ${antwort.status}: ${text.slice(0, 400)}`);
+    const wiederholbar = antwort.status === 429 || antwort.status >= 500;
+    if (!wiederholbar || versuch === MAX_VERSUCHE) throw letzterFehler;
+
+    // Retry-After (Sekunden) beachten, sonst 1 s, 2 s, 4 s.
+    const ra = Number(antwort.headers.get('retry-after'));
+    const warte = Number.isFinite(ra) && ra > 0 ? ra * 1000 : 1000 * 2 ** (versuch - 1);
+    await pause(warte);
   }
-  return JSON.parse(text);
+  throw letzterFehler;
 }
 
 // Quellen aus einem Werkzeugergebnis einsammeln - identisch zum Claude-Pfad.
@@ -100,8 +128,10 @@ export async function mistralSchritt({ nachricht, verlauf = [], land = null, spr
   const quellen = new Set();
 
   // Manuelle Tool-Schleife mit harter Rundenbegrenzung (wie im Claude-Pfad).
-  for (let runde = 0; runde < 6; runde += 1) {
-    const daten = await mistralAnfrage(messages);
+  for (let runde = 0; runde < MAX_RUNDEN; runde += 1) {
+    // Letzte Runde: keine weiteren Werkzeuge, jetzt muss geantwortet werden.
+    const letzte = runde === MAX_RUNDEN - 1;
+    const daten = await mistralAnfrage(messages, { toolChoice: letzte ? 'none' : 'auto' });
     const wahl = daten.choices?.[0]?.message;
     const aufrufe = wahl?.tool_calls ?? [];
 

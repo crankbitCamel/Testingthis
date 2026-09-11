@@ -5,7 +5,7 @@
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalisiereFuerSprache, zahlAlsWort } from '../server/sprechnormalisierung.mjs';
+import { normalisiereFuerSprache, zahlAlsWort, entferneSchriftauszeichnung } from '../server/sprechnormalisierung.mjs';
 
 describe('Zahlwoerter', () => {
   test('Jahreszahlen und Grenzfaelle', () => {
@@ -55,5 +55,25 @@ describe('Sprechnormalisierung', () => {
       normalisiereFuerSprache('Stand 2026-08, § 17 Bundesmeldegesetz'),
       'Stand August zweitausendsechsundzwanzig, Paragraf 17 Bundesmeldegesetz',
     );
+  });
+});
+
+describe('Schriftauszeichnung (Markdown) entfernen', () => {
+  test('Fett, kursiv, Ueberschrift und Code verschwinden', () => {
+    assert.equal(entferneSchriftauszeichnung('Bitte **im Original** und *biometrisch*.'), 'Bitte im Original und biometrisch.');
+    assert.equal(entferneSchriftauszeichnung('## Unterlagen\nDer `Reisepass`.'), 'Unterlagen. Der Reisepass.');
+  });
+
+  test('Listen werden zu Saetzen mit Pausen', () => {
+    const t = entferneSchriftauszeichnung('Mitbringen:\n- Ihren Reisepass\n- ein Lichtbild,\n- die Geburtsurkunde.\nStand 2026.');
+    assert.equal(t, 'Mitbringen: Ihren Reisepass. ein Lichtbild, die Geburtsurkunde. Stand 2026.');
+  });
+
+  test('Betraege, Bindestriche in Worten und Unterstriche in IDs bleiben', () => {
+    assert.equal(entferneSchriftauszeichnung('Express-Herstellung 32,00 Euro, snake_case_id'), 'Express-Herstellung 32,00 Euro, snake_case_id');
+  });
+
+  test('normalisiereFuerSprache raeumt Markdown mit auf', () => {
+    assert.equal(normalisiereFuerSprache('**Stand 2026-08**'), 'Stand August zweitausendsechsundzwanzig');
   });
 });

@@ -68,7 +68,7 @@ const server = createServer(async (anfrage, antwort) => {
     if (url.pathname === '/api/status') {
       const prov = anbieter();
       const modell = prov === 'mistral'
-        ? (process.env.MISTRAL_MODELL || 'mistral-large-latest')
+        ? (process.env.MISTRAL_MODELL || 'ministral-14b-latest')
         : (process.env.ASSISTENT_MODELL || 'claude-opus-5');
       json(antwort, 200, {
         llm: llmKonfiguriert() ? 'bereit' : 'mock',

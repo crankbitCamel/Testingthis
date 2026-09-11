@@ -98,7 +98,7 @@ Telefonie lebt von kurzen Antwortzeiten. Grobe, ehrliche Schätzung pro Runde
 | **Summe (Gefühl)** | **~4–8 s** | **erste Stimme ~2–4 s** |
 
 **Konsequenzen:**
-- Für Telefon `mistral-small-latest` bevorzugen; `large` nur wenn Qualität es zwingt.
+- Für Telefon ein kleines Modell bevorzugen: `ministral-14b-latest` (Standard, Gratis-Tarif, gemessen 3–5 s je Antwort inkl. Werkzeugen); `mistral-medium-latest` mit Bezahltarif, wenn Qualität es zwingt.
 - Whisper mit GPU deutlich angenehmer als CPU.
 - Token-Streaming (LLM) direkt in Streaming-TTS gibt das gefühlt schnellste Ergebnis.
 - „Barge-in" (Anrufer unterbricht die Stimme) ist eine spätere Komfortstufe.
@@ -148,7 +148,7 @@ Anbieter verifizieren.
 | STACKIT PostgreSQL | pro Stunde Instanz + Speicher | zum Testen Cent–€; klein im Dauerbetrieb |
 | EU-App/Jambonz-VM | pro Laufzeit | kleiner zweistelliger €-Bereich/Monat |
 
-**Spar-Hebel:** Whisper CPU-only oder GPU nur bei Bedarf; `mistral-small`;
+**Spar-Hebel:** Whisper CPU-only oder GPU nur bei Bedarf; `ministral-14b`;
 EU-TTS statt ElevenLabs; DB und VMs klein dimensionieren.
 
 ---

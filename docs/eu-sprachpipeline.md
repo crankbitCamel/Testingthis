@@ -114,6 +114,16 @@ Telefonie lebt von kurzen Antwortzeiten. Grobe, ehrliche Schätzung pro Runde
   (NVIDIA L4/T4, `large-v3-turbo`) wechseln — EU-GPU-Hoster: Hetzner, Scaleway,
   OVH; STACKIT-GPU prüfen.
 
+  **Erste Messung (Laptop, Testballon):** Ryzen 7 7840U unter Docker Desktop
+  (WSL2, Standard-Kernzuteilung), `onerahmet/openai-whisper-asr-webservice`,
+  faster-whisper `small` int8, 5 s deutsche Sprache per HTTP-Upload:
+  **3,0 s** je Aufruf, reproduzierbar (zwei Läufe), Transkript wortgenau
+  inklusive Umlaut. Einordnung: für einen Anrufer brauchbar, oberhalb des
+  Ziels von unter 2 s je Satz; auf dem Server mit 8 dedizierten vCPU erneut
+  messen, ab 5 parallelen Anrufern GPU-Frage neu bewerten. In der echten
+  Pipeline wird zudem in Stücken während des Sprechens erkannt, die gefühlte
+  Wartezeit nach Satzende ist kürzer als die reine Rechenzeit.
+
 **Sizing für den Piloten — Entscheidung: maximal 5 gleichzeitige Anrufer.**
 
 | Größe | Ableitung aus „5 gleichzeitig" |

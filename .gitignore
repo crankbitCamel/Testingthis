@@ -7,3 +7,8 @@ dist/
 dist/
 extern/eingang/*
 !extern/eingang/.gitkeep
+# Lokale Audioproben fuer Whisper-Messungen (docker-compose.yml)
+*.mp3
+*.m4a
+*.wav
+*.ogg

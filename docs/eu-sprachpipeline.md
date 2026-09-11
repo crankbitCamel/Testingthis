@@ -101,7 +101,15 @@ Telefonie lebt von kurzen Antwortzeiten. Grobe, ehrliche Schätzung pro Runde
 - Für Telefon ein kleines Modell bevorzugen: `ministral-14b-latest` (Standard, Gratis-Tarif, gemessen 3–5 s je Antwort inkl. Werkzeugen); `mistral-medium-latest` mit Bezahltarif, wenn Qualität es zwingt.
 - Whisper mit GPU deutlich angenehmer als CPU.
 - Token-Streaming (LLM) direkt in Streaming-TTS gibt das gefühlt schnellste Ergebnis.
-- „Barge-in" (Anrufer unterbricht die Stimme) ist eine spätere Komfortstufe.
+- „Barge-in" (Anrufer unterbricht die Stimme): **Anforderung aus dem Live-Test** -
+  ein Husten oder Räuspern darf die Ansage nicht abbrechen. Gewünscht: die
+  Stimme spricht weiter, die Erkennung läuft parallel, und erst wenn die
+  Äußerung als echte Rückfrage gilt (mehrere Wörter, Konfidenz über Schwelle),
+  wird die Ansage gestoppt. Mit Twilio `<Gather>` nicht sauber möglich
+  (Sprache unterbricht die Ansage immer; Ansage außerhalb von Gather ist
+  gar nicht unterbrechbar). Jambonz kann es direkt: `bargein` mit
+  `minBargeinWordCount` (z. B. 2) plus Konfidenzprüfung im eigenen Handler.
+  In der eigenen WebSocket-Pipeline ohnehin selbst steuerbar.
 - Antworten kurz halten (der System-Prompt tut das bereits: max. fünf Sätze).
 
 ---

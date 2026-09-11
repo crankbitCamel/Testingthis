@@ -53,6 +53,13 @@ describe('Gesprächsrunden am Telefon (Mock)', () => {
     assert.match(antwort, /<Gather/);
   });
 
+  test('Quellen der letzten Antwort bleiben fuer Nachfragen im Anrufzustand', async () => {
+    await anrufEingabe({ CallSid: 'CA4q', SpeechResult: 'Was kostet ein Reisepass?' });
+    const z = _anrufZustand('CA4q');
+    assert.ok(Array.isArray(z.letzteQuellen) && z.letzteQuellen.length > 0, 'Quellen gemerkt');
+    assert.ok(z.letzteQuellen.length <= 8, 'auf acht begrenzt');
+  });
+
   test('Erkennung mit Konfidenz nahe null (Husten) geht nicht ans Modell', async () => {
     // Twilio transkribiert Nebengeraeusche als "Wort" mit Confidence 0.
     const antwort = await anrufEingabe({ CallSid: 'CA4k', SpeechResult: 'Liebe', Confidence: '0.0' });

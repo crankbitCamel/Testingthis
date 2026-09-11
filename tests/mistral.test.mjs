@@ -7,7 +7,27 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { alsMistralWerkzeuge } from '../server/mistral.mjs';
-import { WERKZEUGE, anbieter, mistralKonfiguriert, llmKonfiguriert } from '../server/assistent.mjs';
+import { WERKZEUGE, anbieter, mistralKonfiguriert, llmKonfiguriert, kontextFuer, werkzeugAusfuehren } from '../server/assistent.mjs';
+
+describe('Kontext fuer beide Anbieterpfade', () => {
+  test('Quellen der vorigen Antwort kommen als Nachfrage-Kontext mit', () => {
+    const ohne = kontextFuer({ land: 'nw', sprache: 'de' });
+    assert.doesNotMatch(ohne, /Quellen der vorigen Antwort/);
+    const mit = kontextFuer({ land: 'nw', sprache: 'de', quellenZuvor: ['reisepass — § 1 Passgesetz — Stand 2026-08'] });
+    assert.match(mit, /Nordrhein-Westfalen/);
+    assert.match(mit, /Quellen der vorigen Antwort[^\]]*§ 1 Passgesetz/);
+  });
+
+  test('unbekanntes Laenderkuerzel bricht den Kontext nicht', () => {
+    assert.match(kontextFuer({ land: 'xx' }), /\(xx\)/);
+  });
+
+  test('leistung_auskunft liefert die Rechtsgrundlagen mit', async () => {
+    const e = await werkzeugAusfuehren('leistung_auskunft', { leistung: 'reisepass', aspekt: 'kosten' });
+    assert.ok(Array.isArray(e.rechtsgrundlagen) && e.rechtsgrundlagen.length > 0);
+    assert.match(e.rechtsgrundlagen.join(' '), /Passgesetz/);
+  });
+});
 
 describe('Mistral-Anbieter', () => {
   test('Werkzeuge werden vollstaendig in Mistrals Function-Form uebersetzt', () => {

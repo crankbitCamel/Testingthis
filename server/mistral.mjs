@@ -102,7 +102,9 @@ function quellenAusErgebnis(ergebnis, eingabe, quellen) {
       if (t.meta?.quelle) quellen.add(`${t.id} — ${t.meta.quelle} (Stand ${t.meta.stand})`);
     }
   } else if (ergebnis?.stand) {
-    quellen.add(`${eingabe.leistung ?? ''} — Stand ${ergebnis.stand}`);
+    const rg = Array.isArray(ergebnis.rechtsgrundlagen) && ergebnis.rechtsgrundlagen.length
+      ? ` — ${ergebnis.rechtsgrundlagen.join('; ')}` : '';
+    quellen.add(`${eingabe.leistung ?? ''}${rg} — Stand ${ergebnis.stand}`);
   }
 }
 
@@ -110,8 +112,8 @@ function quellenAusErgebnis(ergebnis, eingabe, quellen) {
  * Ein Gespraechsschritt mit Mistral. Gleiche Rueckgabeform wie der Claude-Pfad:
  * { text, quellen, werkzeuge, modus, modell, beendet?, grund? }.
  */
-export async function mistralSchritt({ nachricht, verlauf = [], land = null, sprache = 'de' }) {
-  const kontext = kontextFuer({ land, sprache });
+export async function mistralSchritt({ nachricht, verlauf = [], land = null, sprache = 'de', quellenZuvor = [] }) {
+  const kontext = kontextFuer({ land, sprache, quellenZuvor });
 
   const messages = [
     { role: 'system', content: SYSTEM },

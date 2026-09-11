@@ -97,7 +97,10 @@ function zustandFuer(callSid) {
   if (!z) {
     // einwilligung: Opt-in zur Protokollierung - ohne ausdrueckliche Zustimmung
     // (Taste 1) wird die Runde NICHT ins Gespraechslog geschrieben.
-    z = { verlauf: [], land: null, sprache: STANDARD_SPRACHE, einwilligung: false, schweigen: 0, zuletzt: jetzt };
+    // letzteQuellen: Rechtsgrundlagen der letzten fachlichen Antwort. Vorgelesen
+    // wird nur die Kurzform; fragt der Anrufer nach ("Welche Paragrafen?"),
+    // bekommt das Modell sie als Kontext und muss nicht erneut suchen.
+    z = { verlauf: [], land: null, sprache: STANDARD_SPRACHE, einwilligung: false, letzteQuellen: [], zuletzt: jetzt };
     anrufe.set(callSid, z);
   }
   z.zuletzt = jetzt;
@@ -276,7 +279,12 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
   if (landTreffer) z.land = landTreffer.code;
 
   const beginn = Date.now();
-  const anfrage = { nachricht: gesagt, verlauf: z.verlauf, land: z.land, sprache: z.sprache };
+  const anfrage = { nachricht: gesagt, verlauf: z.verlauf, land: z.land, sprache: z.sprache, quellenZuvor: z.letzteQuellen };
+  const merken = (ergebnis) => {
+    z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
+    if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
+    if (ergebnis.quellen?.length) z.letzteQuellen = ergebnis.quellen.slice(0, 8);
+  };
   // Protokolliert wird NUR mit ausdruecklicher Einwilligung (Taste 1 zu
   // Gespraechsbeginn). Ohne Zustimmung laeuft das Gespraech normal, aber
   // ohne Log-Eintrag.
@@ -298,8 +306,7 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
     } catch (fehler) {
       return twiml(sag(s.texte.stoerung, s) + '<Hangup/>');
     }
-    z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
-    if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
+    merken(ergebnis);
     protokoll(ergebnis);
     if (ergebnis.beendet) {
       anrufe.delete(CallSid);
@@ -317,8 +324,7 @@ export async function anrufEingabe({ CallSid, SpeechResult, Digits, Confidence }
     .then((ergebnis) => {
       job.ergebnis = ergebnis;
       job.status = 'done';
-      z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
-      if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
+      merken(ergebnis);
       protokoll(ergebnis);
     })
     .catch((fehler) => { job.fehler = fehler; job.status = 'error'; });

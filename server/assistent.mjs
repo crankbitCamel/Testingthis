@@ -147,6 +147,7 @@ async function werkzeugAusfuehren(name, eingabe) {
         landesprofil: reg?.profil?.kurz ?? null,
         belastbarkeit: l.belastbarkeit,
         eskalation: l.eskalation,
+        rechtsgrundlagen: l.rechtsgrundlagen ?? [],
         stand: l.stand,
       };
     }
@@ -186,7 +187,7 @@ const SYSTEM = `Du bist der Verwaltungsassistent einer deutschen Kommune, angele
 Eiserne Regeln:
 1. GROUNDING: Jede fachliche Aussage (Gebühr, Frist, Unterlage, Zuständigkeit, Rechtsgrundlage) stammt aus einem Werkzeugergebnis dieses Gesprächs. Findest du dort nichts, sage das offen und biete die Weiterleitung an eine Mitarbeiterin oder einen Mitarbeiter an. Rate niemals Beträge oder Paragraphen.
 2. RECHTSEBENE: Bevor du Kosten, Fristen oder Zuständigkeit konkret nennst, prüfe mit rechtsebene_pruefen, auf welcher Ebene das Recht sitzt. Bei Bundesrecht antworte direkt, ohne Ortsfrage. Bei Landes- oder Kommunalrecht: Ist kein Ort bekannt, stelle GENAU EINE kurze Rückfrage nach Bundesland oder Kommune - und biete an, stattdessen die bundesweite Spanne zu nennen. Für Nordrhein-Westfalen (nw) und Rheinland-Pfalz (rp) sind Landesdaten hinterlegt; für andere Orte nenne die bundesweite Spanne und sage dazu, dass die örtliche Satzung verbindlich ist.
-3. QUELLEN: Nenne am Ende fachlicher Antworten Stand und Rechtsgrundlage aus den Werkzeugergebnissen, in gesprochener Form ("Stand August zweitausendsechsundzwanzig, Paragraf 17 Bundesmeldegesetz"). Paragrafennummern und Gesetzesnamen wörtlich aus dem Werkzeugergebnis übernehmen, Nummern als Ziffern - steht dort kein Paragraf, nenne nur das Gesetz. Nie einen Paragrafen aus dem Gedächtnis ergänzen.
+3. QUELLEN: Schließe fachliche Antworten mit einem kurzen Quellensatz ab - nur Stand und Gesetzesname, ohne Paragrafen und ohne Titel ("Stand August zweitausendsechsundzwanzig, Passgesetz."). Die vollständige Rechtsgrundlage mit Paragrafen nennst du NUR auf Nachfrage ("Welche Paragrafen?", "Wo steht das genau?", "Quelle bitte") - dann wörtlich aus dem Werkzeugergebnis oder aus den im Kontext mitgegebenen Quellen der vorigen Antwort, Nummern als Ziffern ("Paragraf 1, 4 und 5 Passgesetz"). Nie einen Paragrafen aus dem Gedächtnis ergänzen; steht keiner in den Quellen, sage das.
 4. SPRECHBARKEIT: Antworten werden vorgelesen. Maximal fünf Sätze Kernantwort, keine Aufzählungen mit mehr als drei Punkten im Fließtext. Details gehören in die strukturierte Auskunft, die das Werkzeug ohnehin liefert. Schreibe alles so, wie es gesprochen wird: Jahreszahlen und Daten ausgeschrieben ("August zweitausendsechsundzwanzig" statt "2026-08", "zweitausendfünfundzwanzig" statt "2025"), keine Abkürzungen ("zum Beispiel" statt "z. B.", "beziehungsweise" statt "bzw.", "Paragraf" statt "§"), Beträge als "70 Euro". Zähl- und Zeitwerte aus den Werkzeugergebnissen dagegen IMMER als Ziffern übernehmen ("48 Stunden", "14 Tage", "70 Euro", "6 Jahre") und nie in Worte umwandeln - die Sprachausgabe liest Ziffern korrekt, ein Umwandlungsfehler wäre eine falsche Auskunft. Keine Zeichen, die man nicht sprechen kann.
 5. GRENZEN: Keine Rechtsberatung im Einzelfall, keine Zusagen. Bei Gefährdungslagen (Gewaltschutz, drohende Wohnungslosigkeit, Fristablauf heute) sofort auf die zuständige Stelle und die Weiterleitung hinweisen. Verbindlich entscheidet immer die Behörde.
 6. KONTEXT: Der Nutzerkontext (gesetztes Bundesland) steht in der ersten Nutzernachricht. Frage nicht erneut nach Dingen, die dort stehen.
@@ -214,17 +215,22 @@ Eiserne Regeln:
  * (Claude, Mistral) identisch genutzt. Die Wissensbasis bleibt deutsch; das
  * Modell uebersetzt beim Antworten.
  */
-export function kontextFuer({ land = null, sprache = 'de' } = {}) {
-  const ort = land
+export function kontextFuer({ land = null, sprache = 'de', quellenZuvor = [] } = {}) {
+  let ort = land
     ? `[Kontext: Bundesland des Anrufers ist ${LAENDER[land]?.name ?? land} (${land}).]`
     : '[Kontext: Bundesland des Anrufers ist nicht bekannt.]';
+  // Rechtsgrundlagen der vorigen Antwort: fuer Nachfragen ("Welche Paragrafen
+  // genau?") direkt verfuegbar, ohne erneute Werkzeugsuche.
+  if (Array.isArray(quellenZuvor) && quellenZuvor.length) {
+    ort += ` [Quellen der vorigen Antwort - nur auf Nachfrage vollständig nennen: ${quellenZuvor.join(' | ')}]`;
+  }
   if (sprache === 'en') {
     return `${ort} [Antwortsprache: Englisch. Der Anrufer spricht Englisch - antworte ausschließlich auf Englisch, auch Rückfragen und Verabschiedung. Die Wissensbasis ist deutsch: übersetze Fakten, Beträge, Fristen und Rechtsgrundlagen sinngemäß und nenne deutsche Behörden- und Gesetzesnamen im Original mit kurzer englischer Erklärung. WICHTIG: Rufe die Werkzeuge immer mit DEUTSCHEN Begriffen auf - "Reisepass" statt "passport", "Personalausweis" statt "ID card", "Anmeldung Wohnung" statt "registration", "Sterbefall" statt "death"; die Leistungs-IDs sind deutsch (reisepass, personalausweis, ...). Englische Suchbegriffe finden nichts.]`;
   }
   return ort;
 }
 
-export async function gespraechsschritt({ nachricht, verlauf = [], land = null, sprache = 'de' }) {
+export async function gespraechsschritt({ nachricht, verlauf = [], land = null, sprache = 'de', quellenZuvor = [] }) {
   if (!llmKonfiguriert()) return mockSchritt({ nachricht, verlauf, land });
 
   // EU-Variante: Mistral statt Claude. Gleicher Vertrag (Werkzeuge, System-
@@ -232,13 +238,13 @@ export async function gespraechsschritt({ nachricht, verlauf = [], land = null, 
   // Dynamischer Import, damit kein Zyklus zwischen den Modulen entsteht.
   if (PROVIDER === 'mistral') {
     const { mistralSchritt } = await import('./mistral.mjs');
-    return mistralSchritt({ nachricht, verlauf, land, sprache });
+    return mistralSchritt({ nachricht, verlauf, land, sprache, quellenZuvor });
   }
 
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   const client = new Anthropic();
 
-  const kontext = kontextFuer({ land, sprache });
+  const kontext = kontextFuer({ land, sprache, quellenZuvor });
 
   /** @type {import('@anthropic-ai/sdk').Anthropic.MessageParam[]} */
   const messages = [
@@ -304,7 +310,9 @@ export async function gespraechsschritt({ nachricht, verlauf = [], land = null, 
       if (Array.isArray(ergebnis)) {
         for (const t of ergebnis) if (t.meta?.quelle) quellen.add(`${t.id} — ${t.meta.quelle} (Stand ${t.meta.stand})`);
       } else if (ergebnis?.stand) {
-        quellen.add(`${eingabe.leistung ?? ''} — Stand ${ergebnis.stand}`);
+        const rg = Array.isArray(ergebnis.rechtsgrundlagen) && ergebnis.rechtsgrundlagen.length
+          ? ` — ${ergebnis.rechtsgrundlagen.join('; ')}` : '';
+        quellen.add(`${eingabe.leistung ?? ''}${rg} — Stand ${ergebnis.stand}`);
       }
       ergebnisse.push({
         type: 'tool_result',

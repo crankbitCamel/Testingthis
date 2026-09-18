@@ -10,6 +10,9 @@ import { join, extname, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gespraechsschritt, llmKonfiguriert, anbieter } from '../server/assistent.mjs';
 import { sprachwahl, sprachSetzen, einwilligungSetzen, anrufEingabe, anrufWarten } from '../server/telefon.mjs';
+import {
+  jambonzAnruf, jambonzSprache, jambonzEinwilligung, jambonzEingabe, jambonzStatus, signaturPruefen,
+} from '../server/jambonz.mjs';
 import { protokolliere } from '../server/gespraechslog.mjs';
 
 const WURZEL = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -129,6 +132,32 @@ const server = createServer(async (anfrage, antwort) => {
     }
     if (url.pathname === '/api/telefon/warten' && anfrage.method === 'POST') {
       xml(antwort, await anrufWarten(await formularLesen(anfrage), basis));
+      return;
+    }
+
+    // --- API: Telefonie (Jambonz-Webhooks, JSON) ---------------------------
+    // Gleicher Ablauf wie bei Twilio, aber JSON herein und ein Array von
+    // Verben hinaus. Mit JAMBONZ_WEBHOOK_SECRET wird die Signatur geprueft.
+    if (url.pathname.startsWith('/api/jambonz') && anfrage.method === 'POST') {
+      const roh = await rohLesen(anfrage);
+      if (!signaturPruefen(anfrage.headers['jambonz-signature'], roh)) {
+        json(antwort, 403, { fehler: 'Ungültige Signatur' });
+        return;
+      }
+      const k = JSON.parse(roh || '{}');
+      const JAMBONZ = {
+        '/api/jambonz': jambonzAnruf,
+        '/api/jambonz/sprache': jambonzSprache,
+        '/api/jambonz/einwilligung': jambonzEinwilligung,
+        '/api/jambonz/eingabe': jambonzEingabe,
+        '/api/jambonz/status': jambonzStatus,
+      };
+      const handler = JAMBONZ[url.pathname];
+      if (!handler) {
+        json(antwort, 404, { fehler: 'Unbekannter Jambonz-Pfad' });
+        return;
+      }
+      json(antwort, 200, await handler(k, basis));
       return;
     }
 

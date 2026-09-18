@@ -349,6 +349,44 @@ curl -F "audio_file=@probe.wav" "http://localhost:9000/asr?task=transcribe&langu
 
 Details und alle Kommandos stehen als Kommentar im `docker-compose.yml`.
 
+### Jambonz statt Twilio: eigene Telefonanlage in der EU
+
+Neben dem Twilio-Adapter (`/api/telefon`, TwiML) gibt es einen Adapter für
+**Jambonz** (`/api/jambonz`, JSON) — eine quelloffene Telefonanlage, die auf
+einem eigenen EU-Server läuft und über einen SIP-Trunk (z. B. sipgate
+trunking) am Telefonnetz hängt. Beide Adapter nutzen dieselbe Gesprächslogik
+in `server/dialog.mjs`: Sprachmenü, Einwilligung, Konfidenz-Sperre,
+Modellaufruf, Verlauf, Nachfrage-Quellen, Protokoll. Der Adapter übersetzt nur
+das Format.
+
+Was Jambonz besser kann als Twilio:
+
+- **Erkennung und Stimme frei wählbar**, auch selbst gehostet: Whisper über
+  Jambonz' Custom-Speech-Schnittstelle (`JAMBONZ_STT_VENDOR=custom:whisper`),
+  Stimme über ElevenLabs oder einen eigenen Dienst (`JAMBONZ_TTS_VENDOR`).
+- **Barge-in mit Mindestwortzahl**: ein Husten unterbricht die Ansage nicht,
+  ein echter Satz schon (`JAMBONZ_MIN_WOERTER`, Standard 2).
+- **Kein Poll-Trick**: Jambonz wartet auf die Antwort und sagt nach 1,5 s von
+  sich aus „Einen Moment“; die Modellantwort wird direkt abgewartet.
+- **Keine Minutenkosten für eingehende Anrufe**: der Trunk-Anbieter
+  transportiert nur, der Anrufer zahlt seinen normalen Festnetztarif.
+
+```bash
+JAMBONZ_STT_VENDOR=custom:whisper JAMBONZ_TTS_VENDOR=elevenlabs \
+JAMBONZ_STIMME_DE=<Voice-ID> JAMBONZ_WEBHOOK_SECRET=<Geheimnis> npm start
+```
+
+In Jambonz wird eine Anwendung angelegt mit Calling-Webhook
+`https://<server>/api/jambonz` und Status-Webhook `https://<server>/api/jambonz/status`,
+beide POST. Die Zugangsdaten der Sprachdienste liegen in Jambonz, nicht in
+dieser App. Die Signaturprüfung (`Jambonz-Signature`, HMAC-SHA256) ist
+optional und wird beim ersten Test gegen eine echte Installation verifiziert.
+
+Reihenfolge für den Aufbau: (1) EU-Server mit öffentlicher IP, Jambonz per
+offiziellem Installationsskript; (2) Test per Softphone direkt gegen den
+Server, ohne Telefonnetz; (3) erst dann der SIP-Trunk mit Rufnummer. Details
+und Kostenrechnung: **`docs/eu-sprachpipeline.md`**.
+
 ## Grenzen
 
 - Die Wissensbasis ist redaktionell gepflegt und trägt einen Stand (`2026-08`). Beträge

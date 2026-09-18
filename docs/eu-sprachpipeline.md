@@ -173,6 +173,33 @@ Anbieter verifizieren.
 **Spar-Hebel:** Whisper CPU-only oder GPU nur bei Bedarf; `ministral-14b`;
 EU-TTS statt ElevenLabs; DB und VMs klein dimensionieren.
 
+### 6a. Preisziel: höchstens 50 ct je 10-Minuten-Gespräch (Stand September 2026, netto)
+
+Recherchierte Listenpreise, überschlägig auf ein 10-Minuten-Gespräch mit etwa
+5 Minuten Sprachausgabe (rund 5.000 Zeichen) und 8 Gesprächsrunden gerechnet:
+
+| Posten | Twilio (heute) | sipgate flow (managed) | Jambonz + sipgate-Trunk (selbst gehostet) |
+|---|---|---|---|
+| Leitung | ca. 0,15 $ (1,5 ct/Min eingehend) | im Minutenpreis | 0 € (eingehend kostenfrei, Anrufer zahlt Festnetztarif) |
+| Spracherkennung | ca. 0,20–0,30 $ | im Minutenpreis | 0 € variabel (Whisper) |
+| Sprachausgabe | ca. 0,08 $ (Polly) | im Minutenpreis | 0,08 € (Azure-Klasse) bis 0,25 € (ElevenLabs Flash, 5 $/1 Mio Zeichen); 0 € bei eigener Stimme |
+| Sprachmodell | ca. 0,02 € (ministral-14b: 0,20 $/1 Mio Tokens) | ca. 0,02 € | ca. 0,02 € |
+| **variabel je Gespräch** | **ca. 0,45–0,55 €** | **0,69–0,99 €** (6,9–9,9 ct/Min je Paket; Small 249,95 €/2.500 Min) | **0,02–0,27 €** |
+| Fixkosten je Monat | 0 | ab 249,95 € | Trunk 0–17 € („trunking 2“ ohne Grundgebühr, „trunking 10“ ~17 €) + Server 30–60 € (CPU) oder ~200 € (GPU) |
+
+**Schluss:** sipgate flow verfehlt das Ziel in jedem Paket. Twilio liegt an
+der Grenze und ist nicht souverän. Nur der selbst gehostete Weg kommt deutlich
+darunter — bei 60 € Fixkosten und Azure-Stimme ab etwa 150 Gesprächen im Monat
+unter 50 ct, bei 500 Gesprächen bei rund 22 ct; mit GPU-Server ab etwa 500
+Gesprächen im Monat. Eigene Stimme statt Zukauf drückt den variablen Anteil auf
+wenige Cent. → Träger: **Jambonz + sipgate trunking**, Whisper und möglichst die
+Stimme auf dem eigenen Server. Der Trunk ist austauschbar (Standard-SIP, Nummer
+portierbar); vollständig eigener Netzzugang ist nur als registrierter
+Telekommunikationsanbieter möglich und für uns kein Ziel.
+
+Quellen: sipgate.de/flow, sipgate.de/preise, sipgate.de/trunking,
+pricepertoken.com (Mistral), elevenlabs.io/pricing/api, twilio.com/voice/pricing/de.
+
 ---
 
 ## 7. Datenschutz / DSGVO
@@ -226,17 +253,30 @@ EU-Pipeline steht.
 - **Einwilligung:** Opt-in per Taste 1 mit dem Wortlaut aus Abschnitt 7.
   Umgesetzt.
 - **Gleichzeitige Anrufer im Piloten:** maximal 5 (Sizing in Abschnitt 5).
+- **Träger:** direkt **Jambonz + sipgate trunking**, ohne Zwischenstufe über
+  Twilio Media Streams. sipgate flow (managed, EU) wurde geprüft und wegen
+  des Preisziels verworfen (Abschnitt 6a). Jambonz-Adapter umgesetzt
+  (`server/jambonz.mjs`), Gesprächslogik trägerunabhängig (`server/dialog.mjs`).
+- **Preisziel:** höchstens 50 ct je 10-Minuten-Gespräch; nur selbst gehostet
+  erreichbar (Abschnitt 6a).
+- **Testreihenfolge:** (1) Adapter-Tests ohne Anlage, (2) Softphone direkt
+  gegen Jambonz auf dem Server ohne Telefonnetz, (3) erst dann Trunk +
+  Rufnummer („trunking 2“ für den Test, „trunking 10“ für 5 Anrufer).
 
 **Noch offen:**
 
-1. **Träger-Reihenfolge:** direkt Jambonz + sipgate **oder** erst Prototyp
-   über eine Media-Brücke? (Empfehlung: Prototyp zuerst, Pipeline
-   trägerunabhängig.)
-2. **Deployment-Ziel:** welcher EU-Host für App, Jambonz und Whisper —
-   STACKIT liegt nahe (DB schon dort); GPU-Angebot dort nur relevant, falls
-   CPU später nicht reicht.
-3. **Löschfrist** für das Gesprächsprotokoll (Vorschlag: 90 Tage) und
+1. **Deployment-Ziel:** welcher EU-Host für App, Jambonz und Whisper —
+   STACKIT (Wunsch) oder Hetzner (schnell, stundengenau). Start: 4 vCPU,
+   8 GB, Ubuntu, öffentliche IP.
+2. **Stimme:** ElevenLabs (Zukauf, ~25 ct je Gespräch) oder eigene Stimme auf
+   dem Server (wenige Cent, mehr Betrieb). Entscheidet über den variablen
+   Preis je Gespräch.
+3. **Whisper-Sizing:** Laptop-Messung 3,0 s je 5-s-Satz mit 16 Threads;
+   auf dem Server mit Telefon-Audio neu messen, dann CPU- oder GPU-Entscheid.
+4. **Löschfrist** für das Gesprächsprotokoll (Vorschlag: 90 Tage) und
    Zugriffsbeschränkung.
+5. **Webhook-Signatur:** Header-Format gegen eine echte Jambonz-Installation
+   verifizieren, bevor `JAMBONZ_WEBHOOK_SECRET` scharf geschaltet wird.
 
 ---
 

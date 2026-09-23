@@ -1,0 +1,32 @@
+# Ueberlagerung fuer den Server. Zusammen mit docker-compose.yml starten:
+#
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.server.yml --profile app up -d
+#
+# Unterschiede zum lokalen Betrieb:
+# - Ports nur an 127.0.0.1: Jambonz laeuft auf derselben Maschine und erreicht
+#   App (4115) und Whisper-Bruecke (4116) intern; Postgres und Whisper sind
+#   von aussen nicht erreichbar.
+# - Geheimnisse aus .env (env_file) statt aus der Shell.
+# - Neustart nach Reboot (restart: unless-stopped).
+services:
+  postgres:
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  whisper:
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9000:9000"
+
+  whisper-bruecke:
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:4116:4116"
+
+  app:
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:4115:4115"

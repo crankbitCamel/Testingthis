@@ -267,7 +267,9 @@ EU-Pipeline steht.
 
 1. **Deployment-Ziel:** welcher EU-Host für App, Jambonz und Whisper —
    STACKIT (Wunsch) oder Hetzner (schnell, stundengenau). Start: 4 vCPU,
-   8 GB, Ubuntu, öffentliche IP.
+   8 GB, **100 GB Platte, Debian 12** (Jambonz-Mini gibt es als Paket nur
+   dafür, kein Ubuntu), öffentliche IPv4, eine Subdomain mit drei A-Records.
+   Vollständiger Ablauf: `docs/server-runbook.md`.
 2. **Stimme:** ElevenLabs (Zukauf, ~25 ct je Gespräch) oder eigene Stimme auf
    dem Server (wenige Cent, mehr Betrieb). Entscheidet über den variablen
    Preis je Gespräch.

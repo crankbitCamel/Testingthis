@@ -382,10 +382,13 @@ beide POST. Die Zugangsdaten der Sprachdienste liegen in Jambonz, nicht in
 dieser App. Die Signaturprüfung (`Jambonz-Signature`, HMAC-SHA256) ist
 optional und wird beim ersten Test gegen eine echte Installation verifiziert.
 
-Reihenfolge für den Aufbau: (1) EU-Server mit öffentlicher IP, Jambonz per
-offiziellem Installationsskript; (2) Test per Softphone direkt gegen den
-Server, ohne Telefonnetz; (3) erst dann der SIP-Trunk mit Rufnummer. Details
-und Kostenrechnung: **`docs/eu-sprachpipeline.md`**.
+Reihenfolge für den Aufbau: (1) EU-Server (Debian 12, 4 vCPU, 8 GB, 100 GB,
+öffentliche IPv4), Jambonz per Debian-Paket; (2) Test per Softphone direkt
+gegen den Server, ohne Telefonnetz; (3) erst dann der SIP-Trunk mit Rufnummer.
+Schritt für Schritt mit allen Befehlen: **`docs/server-runbook.md`**; Skripte
+in `deploy/` (`jambonz-installieren.sh`, `server-einrichten.sh`,
+`docker-compose.server.yml`); Geheimnisse nach Vorlage `.env.example`.
+Kostenrechnung und Entscheidungen: **`docs/eu-sprachpipeline.md`**.
 
 **Whisper-Brücke: eigener Erkenner für Jambonz.** Jambonz kann fremde
 Erkenner über seine Custom-Speech-Schnittstelle anbinden: Es öffnet pro

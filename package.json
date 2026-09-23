@@ -16,7 +16,8 @@
     "db:provision": "node scripts/neon-provision.mjs",
     "db:import": "node scripts/build-chunks.mjs && node scripts/db-import.mjs",
     "db:dry-run": "node scripts/db-import.mjs --dry-run",
-    "gespraeche": "node scripts/gespraeche.mjs"
+    "gespraeche": "node scripts/gespraeche.mjs",
+    "whisper-bruecke": "node scripts/whisper-bruecke.mjs"
   },
   "engines": {
     "node": ">=20"

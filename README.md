@@ -387,6 +387,26 @@ offiziellem Installationsskript; (2) Test per Softphone direkt gegen den
 Server, ohne Telefonnetz; (3) erst dann der SIP-Trunk mit Rufnummer. Details
 und Kostenrechnung: **`docs/eu-sprachpipeline.md`**.
 
+**Whisper-Brücke: eigener Erkenner für Jambonz.** Jambonz kann fremde
+Erkenner über seine Custom-Speech-Schnittstelle anbinden: Es öffnet pro
+Äußerung einen WebSocket, schickt rohe 8-kHz-Audioframes und erwartet
+Transkripte als JSON. `npm run whisper-bruecke` startet diesen Dienst
+(`server/whisper-bruecke.mjs`, ohne Fremdpakete, eigener WebSocket-Server in
+`server/ws.mjs`). Er erkennt Sprechpausen selbst (Lautstärke je 20 ms,
+Ende nach 700 ms Stille), schickt den Abschnitt als WAV an das Whisper aus
+`docker-compose.yml` und leitet die Konfidenz aus Whispers Werten ab, sodass
+die Konfidenz-Sperre der Gesprächslogik auch hier greift. Das Anrufer-Audio
+verlässt damit den eigenen Server nicht.
+
+```bash
+WHISPER_URL=http://localhost:9000 WHISPER_BRUECKE_TOKEN=<geheim> npm run whisper-bruecke
+# oder im Container: WHISPER_BRUECKE_TOKEN=<geheim> docker compose --profile app up -d whisper-bruecke
+```
+
+In Jambonz: Speech → „Add custom vendor“, Label `whisper`, URL
+`wss://<server>:4116`, API-Key = `WHISPER_BRUECKE_TOKEN`. Die App nutzt ihn
+über `JAMBONZ_STT_VENDOR=custom:whisper` (Standard).
+
 ## Grenzen
 
 - Die Wissensbasis ist redaktionell gepflegt und trägt einen Stand (`2026-08`). Beträge

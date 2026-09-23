@@ -56,6 +56,27 @@ services:
     # Whisper braucht Kerne: bei 5 gleichzeitigen Anrufern spaeter 8 vCPU;
     # lokal einfach alles nehmen, was der Laptop hat.
 
+  # Whisper-Bruecke: eigener Erkenner fuer Jambonz (Custom Speech API).
+  # Jambonz oeffnet WebSockets zu Port 4116 und bekommt Transkripte aus
+  # unserem Whisper. Token = API-Key des Custom-Vendors in Jambonz.
+  whisper-bruecke:
+    profiles: ["app"]
+    image: node:22
+    container_name: verwaltung-whisper-bruecke
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: node scripts/whisper-bruecke.mjs
+    environment:
+      HOST: 0.0.0.0
+      WHISPER_BRUECKE_PORT: 4116
+      WHISPER_URL: http://whisper:9000
+      WHISPER_BRUECKE_TOKEN: ${WHISPER_BRUECKE_TOKEN:-}
+    ports:
+      - "4116:4116"
+    depends_on:
+      - whisper
+
   # Optional: die App selbst im Container (Profil "app"). Im Container muss
   # der Server auf 0.0.0.0 lauschen, damit Port 4115 nach aussen erreichbar
   # ist; die Datenbank heisst dann "postgres", nicht "localhost".

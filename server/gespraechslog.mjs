@@ -46,7 +46,12 @@ async function schemaSicherstellen() {
       await query('ALTER TABLE gespraeche ADD COLUMN IF NOT EXISTS sprache text');
       await query('CREATE INDEX IF NOT EXISTS gespraeche_call_idx ON gespraeche (call_sid, zeit)');
       await query('CREATE INDEX IF NOT EXISTS gespraeche_zeit_idx ON gespraeche (zeit DESC)');
-    })();
+    })().catch((fehler) => {
+      // Fehlschlag nicht dauerhaft merken: beim naechsten Eintrag erneut versuchen,
+      // sonst bliebe das Protokoll nach einem fruehen DB-Ausfall bis zum Neustart tot.
+      schemaPromise = null;
+      throw fehler;
+    });
   }
   return schemaPromise;
 }

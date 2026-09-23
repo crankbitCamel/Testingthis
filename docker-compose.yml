@@ -29,7 +29,7 @@ services:
       POSTGRES_PASSWORD: verwaltung
       POSTGRES_DB: verwaltung
     ports:
-      - "5432:5432"
+      - "${BIND_ADDR:-127.0.0.1}:5432:5432"
     volumes:
       - postgres-daten:/var/lib/postgresql/data
     healthcheck:
@@ -50,7 +50,7 @@ services:
       ASR_MODEL: small
       ASR_QUANTIZATION: int8
     ports:
-      - "9000:9000"
+      - "${BIND_ADDR:-127.0.0.1}:9000:9000"
     volumes:
       - whisper-modelle:/root/.cache
     # Whisper braucht Kerne: bei 5 gleichzeitigen Anrufern spaeter 8 vCPU;
@@ -73,7 +73,7 @@ services:
       WHISPER_URL: http://whisper:9000
       WHISPER_BRUECKE_TOKEN: ${WHISPER_BRUECKE_TOKEN:-}
     ports:
-      - "4116:4116"
+      - "${BIND_ADDR:-127.0.0.1}:4116:4116"
     depends_on:
       - whisper
 
@@ -97,7 +97,7 @@ services:
       MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
       ASSISTENT_PROVIDER: ${ASSISTENT_PROVIDER:-}
     ports:
-      - "4115:4115"
+      - "${BIND_ADDR:-127.0.0.1}:4115:4115"
     depends_on:
       postgres:
         condition: service_healthy

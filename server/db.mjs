@@ -33,7 +33,10 @@ function istNeon(url) {
 
 function sslOption(url) {
   if (process.env.DB_SSL === 'disable' || /[?&]sslmode=disable/i.test(url)) return false;
-  return { rejectUnauthorized: !process.env.DB_SSL_NO_VERIFY };
+  // Nur der Wert "1" schaltet die Pruefung ab - "0"/"false" bleiben sicher.
+  const ohnePruefung = process.env.DB_SSL_NO_VERIFY === '1';
+  if (ohnePruefung) console.warn('[db] WARNUNG: DB_SSL_NO_VERIFY=1 - Zertifikat wird nicht geprueft (nur zum Testen).');
+  return { rejectUnauthorized: !ohnePruefung };
 }
 
 let treiberPromise = null;
@@ -55,7 +58,19 @@ async function baueTreiber() {
 
   // Standard-PostgreSQL ueber node-postgres (Wire-Protokoll, Port 5432).
   const { default: pg } = await import('pg');
-  const pool = new pg.Pool({ connectionString: url, ssl: sslOption(url), max: 4 });
+  const pool = new pg.Pool({
+    connectionString: url,
+    ssl: sslOption(url),
+    max: 4,
+    // Verbindungsaufbau und einzelne Abfragen duerfen den Anruf nie blockieren.
+    connectionTimeoutMillis: 3000,
+    query_timeout: 5000,
+    statement_timeout: 5000,
+  });
+  // Verliert ein unbenutzter Client die Verbindung (DB-Neustart, Idle-Timeout),
+  // meldet der Pool das als 'error'. Ohne Handler waere das eine unbehandelte
+  // Ausnahme und der ganze Prozess stuerbe ab - mitten in laufenden Anrufen.
+  pool.on('error', (fehler) => console.warn('[db] Verbindung verloren (Pool):', fehler.message));
   return {
     art: 'pg',
     query: async (text, params = []) => (await pool.query(text, params)).rows,

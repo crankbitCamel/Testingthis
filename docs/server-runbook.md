@@ -43,8 +43,16 @@ ufw enable
 
 App (4115), Whisper-Brücke (4116), Whisper (9000) und Postgres (5432) bleiben
 **geschlossen**: Jambonz läuft auf derselben Maschine und erreicht sie über
-`127.0.0.1`. Die Compose-Überlagerung `deploy/docker-compose.server.yml` bindet
-diese Ports nur an localhost.
+`127.0.0.1`. `docker-compose.yml` bindet alle Ports standardmäßig an
+`127.0.0.1` (`BIND_ADDR`); die Überlagerung setzt bewusst keine Ports, weil
+Compose Portlisten aneinanderhängt statt sie zu ersetzen. Docker umgeht
+zudem die ufw-Regeln, deshalb nach dem Start prüfen, dass kein Dienst auf
+`0.0.0.0` lauscht:
+
+```bash
+docker compose -f docker-compose.yml -f deploy/docker-compose.server.yml --profile app config | grep -E 'host_ip|published'
+ss -tlnp | grep -E '4115|4116|5432|9000'     # jede Zeile muss 127.0.0.1 zeigen
+```
 
 ## 2. DNS
 
@@ -139,9 +147,13 @@ Alles unter `https://telefon.datenfieber.de`.
 | Speech synthesis vendor | ElevenLabs, language de-DE |
 | Speech recognizer vendor | `custom:whisper`, language de-DE |
 
-Webhook-Secret: falls im Portal ein Secret gesetzt wird, denselben Wert als
-`JAMBONZ_WEBHOOK_SECRET` in `.env` eintragen — **erst nachdem** die Signatur
-gegen die echte Installation geprüft ist (siehe Schritt 6c).
+Webhook-Secret: Die App lehnt Jambonz-Webhooks ohne gültige Signatur ab.
+Für den allerersten Test gegen die frische Installation `JAMBONZ_OHNE_SIGNATUR=1`
+in `.env` setzen (die App ist nur auf 127.0.0.1 erreichbar). Sobald der
+erste Anruf durch ist: Secret im Portal setzen, denselben Wert als
+`JAMBONZ_WEBHOOK_SECRET` eintragen, `JAMBONZ_OHNE_SIGNATUR` entfernen,
+App neu starten, Anruf wiederholen. Im App-Log erscheint bei falscher
+Signatur eine 403-Zeile, dann das Header-Format prüfen (Schritt 6c).
 
 **c) Softphone-Test ohne Telefonnetz**
 

@@ -85,6 +85,8 @@ export const MIN_KONFIDENZ = Number(process.env.TELEFON_MIN_KONFIDENZ ?? 0.4);
 // Hintergrund-Antworten: so oft darf ein Traeger nachfragen, bevor der
 // Anruf mit "zu lange" endet (Twilio: 12 * 2 s Pause = 24 s Rechenzeit).
 export const MAX_POLLS = 12;
+// Zeitbudget fuer den Modellaufruf je Runde am Telefon (siehe aeusserungVerarbeiten).
+export const RUNDEN_BUDGET_MS = Number(process.env.TELEFON_RUNDEN_BUDGET_MS ?? 20_000);
 
 // ---------------------------------------------------------------------------
 // Zustand je Anruf, adressiert ueber die Anruf-Kennung des Traegers
@@ -209,7 +211,17 @@ export async function aeusserungVerarbeiten({ anrufId, text, konfidenz, taste, k
   if (landTreffer) z.land = landTreffer.code;
 
   const beginn = Date.now();
-  const anfrage = { nachricht: gesagt, verlauf: z.verlauf, land: z.land, sprache: z.sprache, quellenZuvor: z.letzteQuellen };
+  // Zeitbudget je Runde am Telefon: Jambonz gibt nach 30 s auf, Twilio nach
+  // ~24 s Polling. 20 s lassen Luft fuer Sprachausgabe und Uebertragung.
+  const anfrage = {
+    nachricht: gesagt, verlauf: z.verlauf, land: z.land, sprache: z.sprache, quellenZuvor: z.letzteQuellen,
+    kanal, budgetMs: RUNDEN_BUDGET_MS,
+  };
+  // Zeitueberschreitung ist keine "technische Stoerung": eigener Text, auflegen.
+  const fehlerSchritt = (fehler) => {
+    console.error(`  sprachmodell ${kanal} ${anrufId}: ${fehler.message}`);
+    return { art: 'auflegen', text: fehler?.name === 'BudgetFehler' ? s.texte.zuLange : s.texte.stoerung };
+  };
   const merken = (ergebnis) => {
     z.verlauf.push({ rolle: 'nutzer', text: gesagt }, { rolle: 'bot', text: ergebnis.text });
     if (z.verlauf.length > 24) z.verlauf = z.verlauf.slice(-24);
@@ -234,8 +246,7 @@ export async function aeusserungVerarbeiten({ anrufId, text, konfidenz, taste, k
     try {
       ergebnis = await gespraechsschritt(anfrage);
     } catch (fehler) {
-      console.error('  sprachmodell:', fehler.message);
-      return { art: 'auflegen', text: s.texte.stoerung };
+      return fehlerSchritt(fehler);
     }
     merken(ergebnis);
     protokoll(ergebnis);
@@ -270,7 +281,7 @@ export function antwortAbholen(anrufId) {
   if (!job) return { art: 'sagen', text: s.texte.wiederholen };
   if (job.status === 'error') {
     jobs.delete(anrufId);
-    return { art: 'auflegen', text: s.texte.stoerung };
+    return { art: 'auflegen', text: job.fehler?.name === 'BudgetFehler' ? s.texte.zuLange : s.texte.stoerung };
   }
   if (job.status === 'done') {
     jobs.delete(anrufId);

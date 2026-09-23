@@ -230,15 +230,16 @@ export function kontextFuer({ land = null, sprache = 'de', quellenZuvor = [] } =
   return ort;
 }
 
-export async function gespraechsschritt({ nachricht, verlauf = [], land = null, sprache = 'de', quellenZuvor = [] }) {
+export async function gespraechsschritt({ nachricht, verlauf = [], land = null, sprache = 'de', quellenZuvor = [], kanal = 'browser', budgetMs = 0 }) {
   if (!llmKonfiguriert()) return mockSchritt({ nachricht, verlauf, land });
 
   // EU-Variante: Mistral statt Claude. Gleicher Vertrag (Werkzeuge, System-
   // Prompt, Rueckgabeform) - nur ein anderes Modell hinter derselben Schleife.
   // Dynamischer Import, damit kein Zyklus zwischen den Modulen entsteht.
+  // kanal/budgetMs: am Telefon weniger Runden und ein hartes Zeitbudget.
   if (PROVIDER === 'mistral') {
     const { mistralSchritt } = await import('./mistral.mjs');
-    return mistralSchritt({ nachricht, verlauf, land, sprache, quellenZuvor });
+    return mistralSchritt({ nachricht, verlauf, land, sprache, quellenZuvor, kanal, budgetMs });
   }
 
   const { default: Anthropic } = await import('@anthropic-ai/sdk');

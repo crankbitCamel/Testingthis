@@ -2,31 +2,41 @@
 #
 #   docker compose -f docker-compose.yml -f deploy/docker-compose.server.yml --profile app up -d
 #
-# Unterschiede zum lokalen Betrieb:
-# - Ports nur an 127.0.0.1: Jambonz laeuft auf derselben Maschine und erreicht
-#   App (4115) und Whisper-Bruecke (4116) intern; Postgres und Whisper sind
-#   von aussen nicht erreichbar.
-# - Geheimnisse aus .env (env_file) statt aus der Shell.
-# - Neustart nach Reboot (restart: unless-stopped).
+# Ports: docker-compose.yml bindet alle veroeffentlichten Ports bereits an
+# 127.0.0.1 (BIND_ADDR, Standard 127.0.0.1). Hier werden bewusst KEINE
+# ports-Eintraege gesetzt - Compose haengt ports-Listen beim Zusammenfuehren
+# aneinander statt sie zu ersetzen, ein zweiter Eintrag wuerde also einen
+# offenen Port hinzufuegen. Pruefen nach jeder Aenderung:
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.server.yml --profile app config | grep -B2 -A4 'published'
+# Jambonz laeuft auf derselben Maschine und erreicht App (4115) und Bruecke
+# (4116) ueber 127.0.0.1; Postgres und Whisper sind von aussen nicht erreichbar.
+#
+# Geheimnisse aus .env (env_file) statt aus der Shell; Neustart nach Reboot;
+# Logs rotieren, weil sie Gespraechsinhalte enthalten koennen.
+x-log: &log
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:5432:5432"
+    logging: *log
 
   whisper:
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:9000:9000"
+    logging: *log
+    # Whisper darf nicht alle Kerne belegen: Jambonz braucht Reserven fuer
+    # RTP, sonst gibt es Audioaussetzer unter Last. Bei 4 vCPU: 2,5.
+    cpus: ${WHISPER_CPUS:-2.5}
 
   whisper-bruecke:
     restart: unless-stopped
+    logging: *log
     env_file: .env
-    ports:
-      - "127.0.0.1:4116:4116"
 
   app:
     restart: unless-stopped
+    logging: *log
     env_file: .env
-    ports:
-      - "127.0.0.1:4115:4115"

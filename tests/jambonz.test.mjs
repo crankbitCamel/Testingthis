@@ -107,16 +107,24 @@ describe('Jambonz: Aeusserungen', () => {
 });
 
 describe('Jambonz: Webhook-Signatur', () => {
-  test('ohne Geheimnis wird nicht geprueft', () => {
+  test('ohne Geheimnis wird abgelehnt, ausser JAMBONZ_OHNE_SIGNATUR=1 ist gesetzt', () => {
+    const vorher = process.env.JAMBONZ_OHNE_SIGNATUR;
+    delete process.env.JAMBONZ_OHNE_SIGNATUR;
+    assert.equal(signaturPruefen(undefined, '{}', ''), false);
+    process.env.JAMBONZ_OHNE_SIGNATUR = '1';
     assert.equal(signaturPruefen(undefined, '{}', ''), true);
+    if (vorher === undefined) delete process.env.JAMBONZ_OHNE_SIGNATUR; else process.env.JAMBONZ_OHNE_SIGNATUR = vorher;
   });
 
-  test('gueltige Signatur wird akzeptiert, manipulierte abgelehnt', () => {
+  test('gueltige Signatur wird akzeptiert, manipulierte und veraltete abgelehnt', () => {
     const koerper = JSON.stringify({ call_sid: 'JB1' });
-    const kopf = _signieren(koerper, 'geheim', 1700000000);
-    assert.equal(signaturPruefen(kopf, koerper, 'geheim'), true);
-    assert.equal(signaturPruefen(kopf, koerper + ' ', 'geheim'), false);
-    assert.equal(signaturPruefen('t=1,v1=00', koerper, 'geheim'), false);
-    assert.equal(signaturPruefen(undefined, koerper, 'geheim'), false);
+    const zeit = 1700000000;
+    const kopf = _signieren(koerper, 'geheim', zeit);
+    assert.equal(signaturPruefen(kopf, koerper, 'geheim', zeit + 10), true);
+    assert.equal(signaturPruefen(kopf, koerper + ' ', 'geheim', zeit + 10), false);
+    assert.equal(signaturPruefen('t=1,v1=00', koerper, 'geheim', zeit), false);
+    assert.equal(signaturPruefen(undefined, koerper, 'geheim', zeit), false);
+    // Replay: dieselbe gueltige Signatur 10 Minuten spaeter
+    assert.equal(signaturPruefen(kopf, koerper, 'geheim', zeit + 600), false);
   });
 });

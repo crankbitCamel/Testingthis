@@ -18,6 +18,10 @@ import { createHash } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 
 const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
+// Groessengrenzen: ein Audioframe von Jambonz ist wenige KB; alles darueber
+// ist ein Fehler oder ein Angriff. Bei Ueberschreitung: Close 1009 und Ende.
+export const MAX_FRAME = 1024 * 1024;      // 1 MiB je Frame
+export const MAX_NACHRICHT = 1024 * 1024;  // 1 MiB je zusammengesetzter Nachricht
 
 export function acceptSchluessel(key) {
   return createHash('sha1').update(`${key}${GUID}`).digest('base64');
@@ -64,6 +68,9 @@ export function frameDekodieren(puffer) {
     laenge = Number(puffer.readBigUInt64BE(2));
     pos = 10;
   }
+  // Angekuendigte Laenge pruefen, BEVOR gepuffert wird - sonst liesse sich
+  // der Server mit einer 2^40-Byte-Ankuendigung in den Speichertod treiben.
+  if (laenge > MAX_FRAME) return { zuGross: true, laenge };
   let maske = null;
   if (maskiert) {
     if (puffer.length < pos + 4) return null;
@@ -103,12 +110,19 @@ export class WebSocketVerbindung extends EventEmitter {
   }
 
   #empfangen(teil) {
+    if (!this.offen) return;
     this.puffer = Buffer.concat([this.puffer, teil]);
     for (;;) {
       const frame = frameDekodieren(this.puffer);
-      if (!frame) return;
+      if (!frame) {
+        // Unvollstaendiger Frame darf nicht ueber die Grenze hinaus wachsen.
+        if (this.puffer.length > MAX_FRAME + 14) this.close(1009);
+        return;
+      }
+      if (frame.zuGross) { this.close(1009); return; }
       this.puffer = this.puffer.subarray(frame.verbraucht);
       this.#frame(frame);
+      if (!this.offen) return;
     }
   }
 
@@ -116,6 +130,7 @@ export class WebSocketVerbindung extends EventEmitter {
     switch (opcode) {
       case 0x0: // Fortsetzung
         this.fragmente.push(nutzlast);
+        if (this.fragmente.reduce((n, f) => n + f.length, 0) > MAX_NACHRICHT) { this.close(1009); return; }
         if (fin) {
           const ganz = Buffer.concat(this.fragmente);
           const istText = this.fragmentOpcode === 0x1;

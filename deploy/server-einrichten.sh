@@ -30,13 +30,20 @@ cd "$ZIEL"
 
 echo "== .env"
 if [[ ! -f .env ]]; then
+  umask 077
   cp .env.example .env
   TOKEN="$(openssl rand -hex 24 2>/dev/null || head -c 48 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9' | head -c 48)"
   sed -i "s/^WHISPER_BRUECKE_TOKEN=.*/WHISPER_BRUECKE_TOKEN=${TOKEN}/" .env
-  echo "   .env angelegt. WHISPER_BRUECKE_TOKEN gesetzt: ${TOKEN}"
-  echo "   -> in Jambonz als API key des Custom-Vendors 'whisper' eintragen."
+  # Erster Test gegen die frische Jambonz-Installation ohne Signatur; nach dem
+  # ersten Anruf Secret setzen und diese Zeile entfernen (docs/server-runbook.md, 5b).
+  sed -i "s/^JAMBONZ_OHNE_SIGNATUR=.*/JAMBONZ_OHNE_SIGNATUR=1/" .env
+  chmod 600 .env
+  echo "   .env angelegt (nur root lesbar). WHISPER_BRUECKE_TOKEN gesetzt - Wert mit"
+  echo "   'grep WHISPER_BRUECKE_TOKEN .env' anzeigen und in Jambonz als API key des"
+  echo "   Custom-Vendors 'whisper' eintragen."
   echo "   Jetzt MISTRAL_API_KEY (und ggf. Stimmen) in .env eintragen: nano .env"
 else
+  chmod 600 .env
   echo "   .env vorhanden, unveraendert."
 fi
 

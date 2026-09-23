@@ -139,6 +139,36 @@ describe('Erkennungssitzung (Pausenerkennung + Protokoll)', () => {
   });
 });
 
+describe('Schutz gegen fehlerhafte oder boesartige Eingaben', () => {
+  test('unplausible Abtastrate wird abgewiesen statt die Fensterschleife zu blockieren', () => {
+    const gesendet = [];
+    let geschlossen = 0;
+    const sitzung = new Sitzung({ senden: (t) => gesendet.push(JSON.parse(t)), transkribieren: async () => ({ text: 'x', confidence: 1 }), schliessen: () => { geschlossen += 1; } });
+    sitzung.nachricht(JSON.stringify({ type: 'start', sampleRateHz: 1 }));
+    sitzung.audio(ton(100));   // wuerde vorher endlos schleifen
+    assert.equal(gesendet[0].type, 'error');
+    assert.match(gesendet[0].error, /sampleRateHz/);
+    assert.equal(geschlossen, 1);
+  });
+
+  test('Konfidenz: avg_logprob 0 ist ein guter Wert, fehlende Werte sind neutral', () => {
+    assert.ok(konfidenzAus({ segments: [{ avg_logprob: 0, no_speech_prob: 0 }] }) >= 0.99);
+    const neutral = konfidenzAus({ segments: [{}] });
+    assert.ok(neutral > 0.4 && neutral < 0.8, `neutral ${neutral}`);
+  });
+
+  test('WebSocket: angekuendigter Riesen-Frame wird abgelehnt statt gepuffert', () => {
+    const kopf = Buffer.alloc(10);
+    kopf[0] = 0x82; kopf[1] = 127; kopf.writeBigUInt64BE(2n ** 40n, 2);
+    const f = frameDekodieren(kopf);
+    assert.equal(f.zuGross, true);
+  });
+
+  test('ohne Token darf die Bruecke nur auf localhost starten', () => {
+    assert.throws(() => brueckeStarten({ port: 0, host: '0.0.0.0', token: '' }), /WHISPER_BRUECKE_TOKEN/);
+  });
+});
+
 describe('Bruecke als Server (WebSocket-Handshake und Token)', () => {
   test('ohne gueltigen Token 401, mit Token 101 und Transkript ueber die Leitung', async () => {
     const server = brueckeStarten({

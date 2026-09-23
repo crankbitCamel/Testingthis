@@ -38,6 +38,27 @@ const MAX_RUNDEN = 6;
 const MAX_VERSUCHE = 4;
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Anfragen je Minute (Gratis-Tarif: 30 fuer ministral-14b). Ein einfacher
+// Token-Bucket verteilt Anfragen mehrerer Anrufer gleichmaessig, statt sie
+// gleichzeitig in 429 laufen zu lassen.
+const RPM = Number(process.env.MISTRAL_RPM ?? 25);
+const anfrageZeiten = [];
+async function ratenlimit(signal) {
+  for (;;) {
+    const jetzt = Date.now();
+    while (anfrageZeiten.length && jetzt - anfrageZeiten[0] > 60_000) anfrageZeiten.shift();
+    if (anfrageZeiten.length < RPM) { anfrageZeiten.push(jetzt); return; }
+    signal?.throwIfAborted();
+    // Warten, bis der aelteste Eintrag aus dem Fenster faellt (mit Jitter).
+    await pause(Math.min(2000, anfrageZeiten[0] + 60_000 - jetzt) + Math.random() * 200);
+  }
+}
+
+/** Fehler, wenn das Rundenbudget (Zeit) aufgebraucht ist. */
+export class BudgetFehler extends Error {
+  constructor(ms) { super(`Zeitbudget von ${ms} ms für diese Runde überschritten`); this.name = 'BudgetFehler'; }
+}
+
 /**
  * Uebersetzt die Werkzeug-Schemata (Anthropic-Form: name/description/
  * input_schema) in Mistrals OpenAI-kompatible Function-Form.
@@ -55,7 +76,7 @@ export function alsMistralWerkzeuge(werkzeuge = WERKZEUGE) {
 
 const MISTRAL_WERKZEUGE = alsMistralWerkzeuge();
 
-async function mistralAnfrage(messages, { toolChoice = 'auto' } = {}) {
+async function mistralAnfrage(messages, { toolChoice = 'auto', signal = null, maxVersuche = MAX_VERSUCHE } = {}) {
   const schluessel = process.env.MISTRAL_API_KEY;
   if (!schluessel) throw new Error('MISTRAL_API_KEY fehlt');
 
@@ -69,27 +90,46 @@ async function mistralAnfrage(messages, { toolChoice = 'auto' } = {}) {
   });
 
   let letzterFehler = null;
-  for (let versuch = 1; versuch <= MAX_VERSUCHE; versuch += 1) {
-    const antwort = await fetch(ENDPUNKT, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${schluessel}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body,
-    });
+  for (let versuch = 1; versuch <= maxVersuche; versuch += 1) {
+    signal?.throwIfAborted();
+    await ratenlimit(signal);
+    // Einzelne Anfrage hoechstens 12 s; das Rundenbudget (signal) gilt zusaetzlich.
+    const signale = [AbortSignal.timeout(12_000)];
+    if (signal) signale.push(signal);
+    let antwort;
+    try {
+      antwort = await fetch(ENDPUNKT, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${schluessel}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body,
+        signal: AbortSignal.any(signale),
+      });
+    } catch (fehler) {
+      if (signal?.aborted) throw fehler;
+      // Netzfehler oder Einzel-Timeout: wie 5xx behandeln (wiederholbar).
+      letzterFehler = new Error(`Mistral-API nicht erreichbar: ${fehler.message}`);
+      if (versuch === maxVersuche) throw letzterFehler;
+      await pause(500 * versuch + Math.random() * 300);
+      continue;
+    }
 
     const text = await antwort.text();
     if (antwort.ok) return JSON.parse(text);
 
     letzterFehler = new Error(`Mistral-API ${antwort.status}: ${text.slice(0, 400)}`);
     const wiederholbar = antwort.status === 429 || antwort.status >= 500;
-    if (!wiederholbar || versuch === MAX_VERSUCHE) throw letzterFehler;
+    if (!wiederholbar || versuch === maxVersuche) throw letzterFehler;
 
-    // Retry-After (Sekunden) beachten, sonst 1 s, 2 s, 4 s.
+    // Retry-After (Sekunden) beachten, aber auf 5 s deckeln; sonst 1 s, 2 s, 4 s.
+    // Jitter, damit mehrere Anrufer nicht im Gleichtakt erneut anklopfen.
     const ra = Number(antwort.headers.get('retry-after'));
-    const warte = Number.isFinite(ra) && ra > 0 ? ra * 1000 : 1000 * 2 ** (versuch - 1);
+    const basis = Number.isFinite(ra) && ra > 0 ? Math.min(ra, 5) * 1000 : 1000 * 2 ** (versuch - 1);
+    const warte = Math.round(basis * (0.5 + Math.random()));
+    console.warn(`  mistral ${antwort.status} versuch=${versuch}/${maxVersuche} warte_ms=${warte}`);
     await pause(warte);
   }
   throw letzterFehler;
@@ -112,8 +152,26 @@ function quellenAusErgebnis(ergebnis, eingabe, quellen) {
  * Ein Gespraechsschritt mit Mistral. Gleiche Rueckgabeform wie der Claude-Pfad:
  * { text, quellen, werkzeuge, modus, modell, beendet?, grund? }.
  */
-export async function mistralSchritt({ nachricht, verlauf = [], land = null, sprache = 'de', quellenZuvor = [] }) {
+export async function mistralSchritt({ nachricht, verlauf = [], land = null, sprache = 'de', quellenZuvor = [], kanal = 'browser', budgetMs = 0 }) {
   const kontext = kontextFuer({ land, sprache, quellenZuvor });
+  // Am Telefon zaehlt jede Sekunde: weniger Runden, weniger Wiederholungen,
+  // und ein hartes Zeitbudget, nach dem der Anruf sauber beendet wird.
+  const amTelefon = kanal === 'telefon' || kanal === 'jambonz';
+  const maxRunden = amTelefon ? Math.min(4, MAX_RUNDEN) : MAX_RUNDEN;
+  const maxVersuche = amTelefon ? 2 : MAX_VERSUCHE;
+  const signal = budgetMs > 0 ? AbortSignal.timeout(budgetMs) : null;
+  const beginn = Date.now();
+  let anfragen = 0;
+  const anfrage = async (messages, opt) => {
+    anfragen += 1;
+    try {
+      return await mistralAnfrage(messages, { ...opt, signal, maxVersuche });
+    } catch (fehler) {
+      if (signal?.aborted) throw new BudgetFehler(budgetMs);
+      throw fehler;
+    }
+  };
+  const bilanz = (modus, runden) => console.log(`  mistral kanal=${kanal} modus=${modus} runden=${runden} anfragen=${anfragen} ms=${Date.now() - beginn}`);
 
   const messages = [
     { role: 'system', content: SYSTEM },
@@ -130,15 +188,16 @@ export async function mistralSchritt({ nachricht, verlauf = [], land = null, spr
   const quellen = new Set();
 
   // Manuelle Tool-Schleife mit harter Rundenbegrenzung (wie im Claude-Pfad).
-  for (let runde = 0; runde < MAX_RUNDEN; runde += 1) {
+  for (let runde = 0; runde < maxRunden; runde += 1) {
     // Letzte Runde: keine weiteren Werkzeuge, jetzt muss geantwortet werden.
-    const letzte = runde === MAX_RUNDEN - 1;
-    const daten = await mistralAnfrage(messages, { toolChoice: letzte ? 'none' : 'auto' });
+    const letzte = runde === maxRunden - 1;
+    const daten = await anfrage(messages, { toolChoice: letzte ? 'none' : 'auto' });
     const wahl = daten.choices?.[0]?.message;
     const aufrufe = wahl?.tool_calls ?? [];
 
     // Keine Werkzeugaufrufe -> finale, gesprochene Antwort.
     if (!aufrufe.length) {
+      bilanz('llm', runde + 1);
       return {
         text: (wahl?.content ?? '').trim(),
         quellen: [...quellen],

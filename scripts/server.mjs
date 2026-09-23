@@ -6,7 +6,7 @@
  */
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
-import { join, extname, normalize, resolve } from 'node:path';
+import { join, extname, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gespraechsschritt, llmKonfiguriert, anbieter } from '../server/assistent.mjs';
 import { sprachwahl, sprachSetzen, einwilligungSetzen, anrufEingabe, anrufWarten } from '../server/telefon.mjs';
@@ -18,6 +18,9 @@ import { protokolliere } from '../server/gespraechslog.mjs';
 const WURZEL = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const PORT = Number(process.env.PORT ?? 4115);
 const HOST = process.env.HOST ?? '127.0.0.1';
+
+// Verzeichnisse, die der Browser-Dialog laden darf. Alles andere ist 404.
+const STATISCH = ['/src/', '/styles/', '/dist/', '/vorlagen/', '/schema/', '/beispiele/'];
 
 const TYPEN = {
   '.html': 'text/html; charset=utf-8',
@@ -82,13 +85,21 @@ const server = createServer(async (anfrage, antwort) => {
     }
     if (url.pathname === '/api/assistent' && anfrage.method === 'POST') {
       try {
-        const { nachricht, verlauf, land } = await koerperLesen(anfrage);
-        if (!nachricht || typeof nachricht !== 'string') {
-          json(antwort, 400, { fehler: 'Feld "nachricht" fehlt' });
+        const koerper = await koerperLesen(anfrage);
+        const { nachricht, verlauf, land } = (koerper && typeof koerper === 'object') ? koerper : {};
+        if (!nachricht || typeof nachricht !== 'string' || nachricht.length > 2000) {
+          json(antwort, 400, { fehler: 'Feld "nachricht" fehlt oder ist zu lang (max. 2000 Zeichen)' });
           return;
         }
+        // Verlauf kommt vom Client: nur bekannte Rollen, nur Strings, begrenzt -
+        // sonst liessen sich dem Modell fremde "Assistentenaussagen" unterschieben.
+        const verlaufSicher = (Array.isArray(verlauf) ? verlauf : [])
+          .filter((r) => r && (r.rolle === 'nutzer' || r.rolle === 'bot') && typeof r.text === 'string')
+          .slice(-24)
+          .map((r) => ({ rolle: r.rolle, text: r.text.slice(0, 2000) }));
+        const landSicher = land === 'nw' || land === 'rp' ? land : null;
         const beginn = Date.now();
-        const ergebnis = await gespraechsschritt({ nachricht, verlauf: Array.isArray(verlauf) ? verlauf : [], land: land || null });
+        const ergebnis = await gespraechsschritt({ nachricht, verlauf: verlaufSicher, land: landSicher });
         json(antwort, 200, ergebnis);
         protokolliere({
           kanal: 'browser', land: land || null, frage: nachricht,
@@ -97,7 +108,10 @@ const server = createServer(async (anfrage, antwort) => {
           dauerMs: Date.now() - beginn, beendet: Boolean(ergebnis.beendet),
         });
       } catch (fehler) {
-        json(antwort, 500, { fehler: fehler.message });
+        // Details nur ins Server-Log, nicht zum Client (keine Pfade, keine
+        // Upstream-Fehlertexte nach aussen).
+        console.error('  assistent:', fehler.message);
+        json(antwort, fehler instanceof SyntaxError ? 400 : 500, { fehler: 'Anfrage konnte nicht verarbeitet werden' });
       }
       return;
     }
@@ -144,7 +158,16 @@ const server = createServer(async (anfrage, antwort) => {
         json(antwort, 403, { fehler: 'Ungültige Signatur' });
         return;
       }
-      const k = JSON.parse(roh || '{}');
+      let k;
+      try {
+        k = JSON.parse(roh || '{}');
+      } catch {
+        k = null;
+      }
+      if (!k || typeof k !== 'object' || Array.isArray(k)) {
+        json(antwort, 400, { fehler: 'Ungültiger JSON-Körper' });
+        return;
+      }
       const JAMBONZ = {
         '/api/jambonz': jambonzAnruf,
         '/api/jambonz/sprache': jambonzSprache,
@@ -162,12 +185,29 @@ const server = createServer(async (anfrage, antwort) => {
     }
 
     // --- Statische Dateien -------------------------------------------------
-    let pfad = decodeURIComponent(url.pathname);
+    // Ausgeliefert wird NUR, was der Browser-Dialog braucht (Positivliste).
+    // Das Repository enthaelt daneben .env, .git, Server-Code und Doku -
+    // nichts davon darf ueber HTTP erreichbar sein.
+    let pfad;
+    try {
+      pfad = decodeURIComponent(url.pathname);
+    } catch {
+      antwort.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Ungültiger Pfad');
+      return;
+    }
     if (pfad === '/') pfad = '/index.html';
+    const erlaubt = pfad === '/index.html' || pfad === '/favicon.ico'
+      || STATISCH.some((prefix) => pfad.startsWith(prefix));
+    // Kein Segment darf mit "." beginnen (.env, .git, .well-known ...).
+    const versteckt = pfad.split('/').some((teil) => teil.startsWith('.'));
+    if (!erlaubt || versteckt) {
+      antwort.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Nicht gefunden');
+      return;
+    }
 
     // Pfadausbruch verhindern
     const ziel = join(WURZEL, normalize(pfad).replace(/^(\.\.[/\\])+/, ''));
-    if (!ziel.startsWith(WURZEL)) {
+    if (!ziel.startsWith(WURZEL + sep)) {
       antwort.writeHead(403).end('Zugriff verweigert');
       return;
     }
@@ -185,10 +225,16 @@ const server = createServer(async (anfrage, antwort) => {
       'Cache-Control': 'no-cache',
     }).end(inhalt);
   } catch (fehler) {
+    console.error('  serverfehler:', fehler.message);
     antwort.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' })
-      .end(`Serverfehler: ${fehler.message}`);
+      .end('Serverfehler');
   }
 });
+
+// Grenzen gegen haengende Verbindungen (Slowloris): Kopfzeilen binnen 15 s,
+// ganze Anfrage binnen 30 s.
+server.headersTimeout = 15_000;
+server.requestTimeout = 30_000;
 
 server.listen(PORT, HOST, () => {
   console.log(`Verwaltungsassistent laeuft auf http://${HOST}:${PORT}`);

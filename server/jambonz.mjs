@@ -163,6 +163,14 @@ export async function jambonzEingabe(k = {}, basis = '') {
   const konfidenz = k.reason === 'stt-low-confidence' ? 0 : alternative?.confidence;
   const taste = k.digits;
 
+  // Erkennerfehler (Whisper weg, Bruecke weg) sind keine Stille: nicht
+  // "nichts gehoert" sagen, sondern die Stoerung benennen und beenden.
+  if (k.reason === 'error') {
+    console.warn(`  jambonz ${id} erkennerfehler: ${JSON.stringify(k.error ?? k.speech?.error ?? '')}`);
+    anrufBeenden(id);
+    return [say(s.texte.stoerung, s), hangup()];
+  }
+
   // Stille: Hinweis, zweite Chance, dann freundlich beenden.
   if (!text && !taste) {
     z.stumm = (z.stumm ?? 0) + 1;
@@ -195,11 +203,18 @@ export function jambonzStatus(k = {}) {
  * Ohne konfiguriertes Geheimnis wird nicht geprueft (Rueckgabe true).
  * Auf dem Server gegen eine echte Jambonz-Installation verifizieren.
  */
-export function signaturPruefen(kopf, rohkoerper, geheimnis = process.env.JAMBONZ_WEBHOOK_SECRET) {
-  if (!geheimnis) return true;
+export const SIGNATUR_FENSTER_S = 300;
+
+export function signaturPruefen(kopf, rohkoerper, geheimnis = process.env.JAMBONZ_WEBHOOK_SECRET, jetztS = Math.floor(Date.now() / 1000)) {
+  // Ohne Geheimnis nur, wenn das ausdruecklich gewollt ist (erster Test gegen
+  // eine frische Installation) - sonst waere jeder POST an /api/jambonz gueltig.
+  if (!geheimnis) return process.env.JAMBONZ_OHNE_SIGNATUR === '1';
   const header = String(kopf ?? '');
   const teile = Object.fromEntries(header.split(',').map((p) => p.trim().split('=')));
   if (!teile.t || !teile.v1) return false;
+  // Zeitfenster gegen Wiederholung mitgeschnittener Webhooks.
+  const t = Number(teile.t);
+  if (!Number.isFinite(t) || Math.abs(jetztS - t) > SIGNATUR_FENSTER_S) return false;
   const erwartet = createHmac('sha256', geheimnis).update(`${teile.t}.${rohkoerper}`).digest('hex');
   const a = Buffer.from(erwartet);
   const b = Buffer.from(String(teile.v1));

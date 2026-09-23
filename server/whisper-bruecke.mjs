@@ -29,6 +29,7 @@
  *   WHISPER_SCHWELLE       Lautstaerkeschwelle (RMS, 16-bit), Standard 500
  */
 import { createServer } from 'node:http';
+import { timingSafeEqual } from 'node:crypto';
 import { websocketAnnehmen } from './ws.mjs';
 
 const WHISPER_URL = (process.env.WHISPER_URL ?? 'http://localhost:9000').replace(/\/$/, '');
@@ -41,6 +42,8 @@ const ENDE_FENSTER = 35;      // 700 ms Stille -> Aeusserung zu Ende
 const VORLAUF_FENSTER = 15;   // 300 ms vor dem Sprechbeginn mitnehmen
 const MAX_AEUSSERUNG_MS = 15000;
 const ZWISCHEN_MS = 1500;     // Zwischenstand hoechstens alle 1,5 s
+const ZWISCHEN_FENSTER_S = 3; // Zwischenstand erkennt nur die letzten 3 s
+let sitzungsZaehler = 0;      // laufende Nummer fuer Logzeilen (kein Inhalt)
 
 // ------------------------------------------------------------ Audio ---
 
@@ -79,8 +82,11 @@ export function wavVerpacken(pcm, rate = 8000) {
 export function konfidenzAus(antwort) {
   const segmente = Array.isArray(antwort?.segments) ? antwort.segments : [];
   if (!segmente.length) return 0;
-  const logprob = segmente.reduce((a, s) => a + (Number(s.avg_logprob) || -1), 0) / segmente.length;
-  const keineSprache = Math.max(...segmente.map((s) => Number(s.no_speech_prob) || 0));
+  // Fehlende Werte neutral annehmen (nicht -1: "0" ist ein gueltiger, sehr
+  // guter Wert und darf nicht als "fehlt" gelten).
+  const zahl = (v, sonst) => (v === undefined || v === null || Number.isNaN(Number(v)) ? sonst : Number(v));
+  const logprob = segmente.reduce((a, s) => a + zahl(s.avg_logprob, -0.5), 0) / segmente.length;
+  const keineSprache = Math.max(...segmente.map((s) => zahl(s.no_speech_prob, 0)));
   const k = Math.exp(logprob) * (1 - keineSprache);
   return Math.max(0, Math.min(1, Number(k.toFixed(3))));
 }
@@ -90,7 +96,13 @@ export async function whisperTranskribieren(wav, sprache = 'de', basis = WHISPER
   const form = new FormData();
   form.append('audio_file', new Blob([wav], { type: 'audio/wav' }), 'aeusserung.wav');
   const url = `${basis}/asr?task=transcribe&output=json${sprache ? `&language=${encodeURIComponent(sprache)}` : ''}`;
-  const antwort = await fetch(url, { method: 'POST', body: form });
+  // Haengt Whisper, darf die Sitzung nicht ewig warten: nach WHISPER_TIMEOUT_MS
+  // (Standard 8 s) Fehler melden, Jambonz kann dann reagieren.
+  const antwort = await fetch(url, {
+    method: 'POST',
+    body: form,
+    signal: AbortSignal.timeout(Number(process.env.WHISPER_TIMEOUT_MS ?? 8000)),
+  });
   if (!antwort.ok) throw new Error(`Whisper ${antwort.status}: ${(await antwort.text()).slice(0, 200)}`);
   const daten = await antwort.json();
   return {
@@ -124,7 +136,10 @@ export class Sitzung {
     this.aeusserungBeginn = 0;
     this.letzterZwischenstand = 0;
     this.laufend = Promise.resolve();  // Whisper-Aufrufe der Reihe nach
+    this.zwischenLaeuft = false;       // hoechstens ein Zwischenstand in Arbeit
     this.gestoppt = false;
+    sitzungsZaehler += 1;
+    this.nummer = sitzungsZaehler;
   }
 
   nachricht(text) {
@@ -132,7 +147,16 @@ export class Sitzung {
     try { m = JSON.parse(text); } catch { return; }
     if (m.type === 'start') {
       this.sprache = String(m.language ?? 'de-DE').slice(0, 2).toLowerCase();
-      this.rate = Number(m.sampleRateHz) || 8000;
+      // Abtastrate nur im plausiblen Bereich: bei sehr kleinen Werten wuerde
+      // das 20-ms-Fenster 0 Bytes gross und die Fensterschleife nie enden.
+      const rate = Number(m.sampleRateHz) || 8000;
+      if (!Number.isInteger(rate) || rate < 8000 || rate > 48000) {
+        this.senden(JSON.stringify({ type: 'error', error: `sampleRateHz ${m.sampleRateHz} nicht unterstützt (8000–48000)` }));
+        this.gestoppt = true;
+        this.schliessen();
+        return;
+      }
+      this.rate = rate;
       this.zwischenstaende = Boolean(m.interimResults);
     } else if (m.type === 'stop') {
       this.gestoppt = true;
@@ -143,6 +167,12 @@ export class Sitzung {
   audio(pcm) {
     if (this.gestoppt) return;
     const fensterBytes = Math.round(this.rate * FENSTER_MS / 1000) * 2;
+    if (fensterBytes <= 0) return;
+    // Deckel nach Datenmenge, nicht nur nach Wanduhr: wer schneller als
+    // Echtzeit sendet, darf trotzdem nicht mehr als MAX_AEUSSERUNG_MS Audio
+    // im Speicher anhaeufen.
+    const maxBytes = Math.round(this.rate * 2 * MAX_AEUSSERUNG_MS / 1000);
+    if (this.spricht && this.aeusserung.length * fensterBytes >= maxBytes) this.#abschliessen(false);
     let daten = Buffer.concat([this.rest, pcm]);
     while (daten.length >= fensterBytes) {
       this.#fenster(daten.subarray(0, fensterBytes));
@@ -172,9 +202,14 @@ export class Sitzung {
     const dauer = this.jetzt() - this.aeusserungBeginn;
     if (this.stillFolge >= ENDE_FENSTER || dauer >= MAX_AEUSSERUNG_MS) {
       this.#abschliessen(false);
-    } else if (this.zwischenstaende && laut && this.jetzt() - this.letzterZwischenstand >= ZWISCHEN_MS) {
+    } else if (this.zwischenstaende && laut && !this.zwischenLaeuft
+      && this.jetzt() - this.letzterZwischenstand >= ZWISCHEN_MS) {
+      // Zwischenstand fuer Barge-in: nur wenn keiner in Arbeit ist, und nur
+      // die letzten Sekunden - sonst staut sich Rechenzeit vor dem Endergebnis.
       this.letzterZwischenstand = this.jetzt();
-      this.#erkennen(Buffer.concat(this.aeusserung), false);
+      const fensterProSekunde = 1000 / FENSTER_MS;
+      const letzte = this.aeusserung.slice(-Math.round(ZWISCHEN_FENSTER_S * fensterProSekunde));
+      this.#erkennen(Buffer.concat(letzte), false);
     }
   }
 
@@ -191,9 +226,14 @@ export class Sitzung {
   }
 
   #erkennen(pcm, final) {
-    this.laufend = this.laufend.then(async () => {
+    const beginn = this.jetzt();
+    const lauf = async () => {
       try {
         const e = await this.transkribieren(wavVerpacken(pcm, this.rate), this.sprache);
+        if (final) {
+          // Latenz-Logzeile ohne Inhalt: Audiodauer, Whisper-Dauer, Konfidenz.
+          console.log(`  stt sitzung=${this.nummer} audio_ms=${Math.round(pcm.length / 2 / this.rate * 1000)} whisper_ms=${this.jetzt() - beginn} konf=${e.confidence} zeichen=${e.text.length}`);
+        }
         if (!final && !e.text) return;
         this.senden(JSON.stringify({
           type: 'transcription',
@@ -203,9 +243,18 @@ export class Sitzung {
           channel: 1,
         }));
       } catch (fehler) {
-        this.senden(JSON.stringify({ type: 'error', error: fehler.message }));
+        console.warn(`  stt sitzung=${this.nummer} fehler=${fehler.message}`);
+        if (final) this.senden(JSON.stringify({ type: 'error', error: fehler.message }));
       }
-    });
+    };
+    if (final) {
+      // Endergebnisse der Reihe nach - sie muessen in Sprechreihenfolge ankommen.
+      this.laufend = this.laufend.then(lauf);
+    } else {
+      // Zwischenstaende laufen nebenher und blockieren das Endergebnis nicht.
+      this.zwischenLaeuft = true;
+      lauf().finally(() => { this.zwischenLaeuft = false; });
+    }
   }
 }
 
@@ -215,7 +264,19 @@ export class Sitzung {
  * HTTP-Server mit WebSocket-Upgrade fuer Jambonz. GET / liefert einen
  * Statusblick (Whisper erreichbar?), alles andere ist WebSocket.
  */
-export function brueckeStarten({ port = Number(process.env.WHISPER_BRUECKE_PORT ?? 4116), host = process.env.HOST ?? '0.0.0.0', token = process.env.WHISPER_BRUECKE_TOKEN ?? '', transkribieren = whisperTranskribieren } = {}) {
+export function brueckeStarten({ port = Number(process.env.WHISPER_BRUECKE_PORT ?? 4116), host = process.env.HOST ?? '127.0.0.1', token = process.env.WHISPER_BRUECKE_TOKEN ?? '', transkribieren = whisperTranskribieren } = {}) {
+  // Ohne Token nur auf localhost: jeder, der den Port erreicht, koennte sonst
+  // Audio einspeisen und Whisper-Rechenzeit verbrauchen.
+  const nurLokal = host === '127.0.0.1' || host === 'localhost' || host === '::1';
+  if (!token && !nurLokal) {
+    throw new Error('WHISPER_BRUECKE_TOKEN fehlt - ohne Token darf die Bruecke nur auf 127.0.0.1 lauschen');
+  }
+  const tokenOk = (auth) => {
+    if (!token) return true;
+    const a = Buffer.from(String(auth ?? ''));
+    const b = Buffer.from(`Bearer ${token}`);
+    return a.length === b.length && timingSafeEqual(a, b);
+  };
   const server = createServer(async (req, res) => {
     if (req.url === '/' || req.url === '/status') {
       let whisper = 'unbekannt';
@@ -231,8 +292,7 @@ export function brueckeStarten({ port = Number(process.env.WHISPER_BRUECKE_PORT 
   });
 
   server.on('upgrade', (req, socket, head) => {
-    const auth = String(req.headers.authorization ?? '');
-    if (token && auth !== `Bearer ${token}`) {
+    if (!tokenOk(req.headers.authorization)) {
       socket.end('HTTP/1.1 401 Unauthorized\r\n\r\n');
       return;
     }

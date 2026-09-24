@@ -107,6 +107,19 @@ const WERKZEUGE = [
     },
   },
   {
+    name: 'weiterleiten',
+    description: 'Verbindet den Anrufer mit einer Mitarbeiterin oder einem Mitarbeiter. Nur aufrufen, wenn (a) der Kontext sagt, dass die Weiterleitung gerade verfügbar ist, UND (b) der Anrufer sie ausdrücklich möchte oder du sie angeboten und er zugestimmt hat. Ist sie laut Kontext nicht verfügbar, nenne stattdessen den dort angegebenen Hinweis als normale Antwort.',
+    input_schema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        grund: { type: 'string', enum: ['wunsch', 'kein_wissen', 'einzelfall', 'gefaehrdung'] },
+        ansage: { type: 'string', description: 'Kurzer gesprochener Satz vor dem Verbinden, z. B. "Ich verbinde Sie jetzt, einen Moment bitte."' },
+      },
+      required: ['grund', 'ansage'],
+    },
+  },
+  {
     name: 'anliegen_klassifizieren',
     description: 'Klassifiziert eine freie Äußerung gegen die Wissensbasis (Cluster- und Leistungstreffer mit Scores). Nützlich als Zweitmeinung zur eigenen Einschätzung und um die korrekte Leistungs-ID zu finden.',
     input_schema: {
@@ -215,10 +228,17 @@ Eiserne Regeln:
  * (Claude, Mistral) identisch genutzt. Die Wissensbasis bleibt deutsch; das
  * Modell uebersetzt beim Antworten.
  */
-export function kontextFuer({ land = null, sprache = 'de', quellenZuvor = [] } = {}) {
+export function kontextFuer({ land = null, sprache = 'de', quellenZuvor = [], weiterleitung = null } = {}) {
   let ort = land
     ? `[Kontext: Bundesland des Anrufers ist ${LAENDER[land]?.name ?? land} (${land}).]`
     : '[Kontext: Bundesland des Anrufers ist nicht bekannt.]';
+  // Weiterleitung an Menschen: das Modell darf sie nur anbieten, wenn der
+  // Traeger sie gerade kann (Nummer hinterlegt, innerhalb der Servicezeiten).
+  if (weiterleitung?.verfuegbar) {
+    ort += ` [Weiterleitung an eine Mitarbeiterin oder einen Mitarbeiter ist JETZT verfügbar (Werkzeug weiterleiten). Biete sie an, wo die Regeln es vorsehen; rufe das Werkzeug erst, wenn der Anrufer zustimmt.]`;
+  } else {
+    ort += ` [Weiterleitung ist NICHT verfügbar. Statt "ich verbinde Sie" sage: ${weiterleitung?.hinweis ?? 'Wenden Sie sich bitte direkt an die zuständige Behörde.'} Rufe das Werkzeug weiterleiten nicht auf.]`;
+  }
   // Rechtsgrundlagen der vorigen Antwort: fuer Nachfragen ("Welche Paragrafen
   // genau?") direkt verfuegbar, ohne erneute Werkzeugsuche.
   if (Array.isArray(quellenZuvor) && quellenZuvor.length) {
@@ -230,7 +250,33 @@ export function kontextFuer({ land = null, sprache = 'de', quellenZuvor = [] } =
   return ort;
 }
 
-export async function gespraechsschritt({ nachricht, verlauf = [], land = null, sprache = 'de', quellenZuvor = [], kanal = 'browser', budgetMs = 0 }) {
+/**
+ * Entfernt Paragrafennummern aus der Antwort, die in keinem Werkzeugergebnis
+ * vorkommen ("Paragraf 24 Passgesetz" -> "Passgesetz"). Kleine Modelle
+ * erfinden solche Nummern trotz Prompt-Regel; der Gesetzesname bleibt, die
+ * erfundene Nummer faellt weg. Nur Nummern, die belegt sind, bleiben stehen.
+ */
+export function paragrafenBereinigen(text, belege = '') {
+  if (!text) return text;
+  const belegt = new Set();
+  // "§ 4, 5 Passgesetz" belegt 4 UND 5; ebenso "§§ 21, 22" oder "Paragraf 4 und 5".
+  const LISTE = /(?:§§?|Paragraf(?:en)?)\s*((?:\d+[a-z]?)(?:\s*(?:,|und|bis|-)\s*\d+[a-z]?)*)/gi;
+  for (const m of String(belege).matchAll(LISTE)) {
+    for (const n of m[1].split(/\s*(?:,|und|bis|-)\s*/)) belegt.add(n.toLowerCase());
+  }
+  let entfernt = 0;
+  const bereinigt = text.replace(/(?:§§?|Paragraf(?:en)?)\s*(\d+[a-z]?(?:\s*(?:,|und|bis)\s*\d+[a-z]?)*)\s*/gi, (ganz, nummern) => {
+    const liste = nummern.split(/\s*(?:,|und|bis)\s*/).map((n) => n.toLowerCase());
+    const ok = liste.every((n) => belegt.has(n));
+    if (ok) return ganz;
+    entfernt += 1;
+    return '';
+  });
+  if (entfernt) console.warn(`  antwort: ${entfernt} unbelegte Paragrafenangabe(n) entfernt`);
+  return bereinigt.replace(/\s{2,}/g, ' ').replace(/\s+([.,;])/g, '$1').trim();
+}
+
+export async function gespraechsschritt({ nachricht, verlauf = [], land = null, sprache = 'de', quellenZuvor = [], kanal = 'browser', budgetMs = 0, weiterleitung = null }) {
   if (!llmKonfiguriert()) return mockSchritt({ nachricht, verlauf, land });
 
   // EU-Variante: Mistral statt Claude. Gleicher Vertrag (Werkzeuge, System-
@@ -239,13 +285,13 @@ export async function gespraechsschritt({ nachricht, verlauf = [], land = null, 
   // kanal/budgetMs: am Telefon weniger Runden und ein hartes Zeitbudget.
   if (PROVIDER === 'mistral') {
     const { mistralSchritt } = await import('./mistral.mjs');
-    return mistralSchritt({ nachricht, verlauf, land, sprache, quellenZuvor, kanal, budgetMs });
+    return mistralSchritt({ nachricht, verlauf, land, sprache, quellenZuvor, kanal, budgetMs, weiterleitung });
   }
 
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
   const client = new Anthropic();
 
-  const kontext = kontextFuer({ land, sprache, quellenZuvor });
+  const kontext = kontextFuer({ land, sprache, quellenZuvor, weiterleitung });
 
   /** @type {import('@anthropic-ai/sdk').Anthropic.MessageParam[]} */
   const messages = [
@@ -260,6 +306,7 @@ export async function gespraechsschritt({ nachricht, verlauf = [], land = null, 
 
   const benutzteWerkzeuge = [];
   const quellen = new Set();
+  let belege = ''; // alle Werkzeugergebnisse als Text - Pruefgrundlage fuer Paragrafen
 
   // Manuelle Tool-Schleife: bewusst statt des Beta-Tool-Runners, damit jeder
   // Werkzeugaufruf protokolliert und die Rundenzahl hart begrenzt ist.
@@ -281,7 +328,7 @@ export async function gespraechsschritt({ nachricht, verlauf = [], land = null, 
         .map((b) => b.text)
         .join('\n')
         .trim();
-      return { text, quellen: [...quellen], werkzeuge: benutzteWerkzeuge, modus: 'llm', modell: antwort.model };
+      return { text: paragrafenBereinigen(text, belege), quellen: [...quellen], werkzeuge: benutzteWerkzeuge, modus: 'llm', modell: antwort.model };
     }
 
     messages.push({ role: 'assistant', content: antwort.content });
@@ -292,9 +339,23 @@ export async function gespraechsschritt({ nachricht, verlauf = [], land = null, 
     if (auflegen) {
       benutzteWerkzeuge.push({ name: auflegen.name, eingabe: auflegen.input });
       return {
-        text: auflegen.input.abschied,
+        text: auflegen.input?.abschied || 'Auf Wiederhören.',
         beendet: true,
-        grund: auflegen.input.grund,
+        grund: auflegen.input?.grund,
+        quellen: [...quellen],
+        werkzeuge: benutzteWerkzeuge,
+        modus: 'llm',
+        modell: antwort.model,
+      };
+    }
+    // Weiterleitung ebenso: Entscheidung, keine Auskunft. Der Traeger verbindet.
+    const verbinden = antwort.content.find((b) => b.type === 'tool_use' && b.name === 'weiterleiten');
+    if (verbinden) {
+      benutzteWerkzeuge.push({ name: verbinden.name, eingabe: verbinden.input });
+      return {
+        text: verbinden.input?.ansage || 'Ich verbinde Sie, einen Moment bitte.',
+        weiterleiten: true,
+        grund: verbinden.input?.grund,
         quellen: [...quellen],
         werkzeuge: benutzteWerkzeuge,
         modus: 'llm',
@@ -308,6 +369,7 @@ export async function gespraechsschritt({ nachricht, verlauf = [], land = null, 
       const eingabe = block.input;
       const ergebnis = await werkzeugAusfuehren(block.name, eingabe);
       benutzteWerkzeuge.push({ name: block.name, eingabe });
+      belege += JSON.stringify(ergebnis);
       if (Array.isArray(ergebnis)) {
         for (const t of ergebnis) if (t.meta?.quelle) quellen.add(`${t.id} — ${t.meta.quelle} (Stand ${t.meta.stand})`);
       } else if (ergebnis?.stand) {
@@ -326,7 +388,7 @@ export async function gespraechsschritt({ nachricht, verlauf = [], land = null, 
   }
 
   return {
-    text: 'Die Anfrage war zu verschachtelt für eine direkte Auskunft. Ich verbinde Sie am besten mit einer Mitarbeiterin oder einem Mitarbeiter.',
+    text: 'Die Anfrage war zu verschachtelt für eine direkte Auskunft. Stellen Sie die Frage bitte in einem kürzeren Satz, oder wenden Sie sich direkt an die zuständige Stelle.',
     quellen: [...quellen],
     werkzeuge: benutzteWerkzeuge,
     modus: 'llm-abbruch',

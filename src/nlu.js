@@ -267,17 +267,25 @@ export function erkenneBefehl(text) {
  */
 export function erkenneLand(text) {
   const t = ` ${normalisieren(text)} `;
+  // Nur ganze Woerter zaehlen: "essen" darf nicht in "Adressen" oder
+  // "vergessen" treffen. Bei mehreren Treffern gewinnt der laengste (Stadt
+  // vor Kuerzel), bei gleicher Laenge der zuerst genannte - "nach Mainz
+  // gezogen, vorher Koeln" meint Mainz. Bleibt eine Heuristik; das Modell
+  // fragt bei Widerspruch nach.
+  let bester = null;
   for (const land of LAENDER_LISTE) {
     for (const stichwort of land.stichworte) {
       const sn = normalisieren(stichwort);
-      if (sn.length <= 3) {
-        if (t.includes(` ${sn} `)) return { code: land.code, stichwort: sn };
-      } else if (t.includes(sn)) {
-        return { code: land.code, stichwort: sn };
+      if (!sn) continue;
+      const pos = t.indexOf(` ${sn} `);
+      if (pos < 0) continue;
+      const kandidat = { code: land.code, stichwort: sn, laenge: sn.length, pos };
+      if (!bester || kandidat.laenge > bester.laenge || (kandidat.laenge === bester.laenge && kandidat.pos < bester.pos)) {
+        bester = kandidat;
       }
     }
   }
-  return null;
+  return bester ? { code: bester.code, stichwort: bester.stichwort } : null;
 }
 
 /** Woerter, die eine reine Wohnortangabe bilden ("ich wohne in Koeln"). */

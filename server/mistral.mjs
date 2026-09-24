@@ -16,7 +16,7 @@
  *                       (mit Bezahltarif besser: 'mistral-medium-latest')
  *   ASSISTENT_MAX_TOKENS optional - Standard 512 (kurze, sprechbare Antworten)
  */
-import { WERKZEUGE, werkzeugAusfuehren, SYSTEM, kontextFuer } from './assistent.mjs';
+import { WERKZEUGE, werkzeugAusfuehren, SYSTEM, kontextFuer, paragrafenBereinigen } from './assistent.mjs';
 
 const ENDPUNKT = 'https://api.mistral.ai/v1/chat/completions';
 // Standard 'ministral-14b-latest': Function Calling, im Gratis-Tarif nutzbar
@@ -152,8 +152,8 @@ function quellenAusErgebnis(ergebnis, eingabe, quellen) {
  * Ein Gespraechsschritt mit Mistral. Gleiche Rueckgabeform wie der Claude-Pfad:
  * { text, quellen, werkzeuge, modus, modell, beendet?, grund? }.
  */
-export async function mistralSchritt({ nachricht, verlauf = [], land = null, sprache = 'de', quellenZuvor = [], kanal = 'browser', budgetMs = 0 }) {
-  const kontext = kontextFuer({ land, sprache, quellenZuvor });
+export async function mistralSchritt({ nachricht, verlauf = [], land = null, sprache = 'de', quellenZuvor = [], kanal = 'browser', budgetMs = 0, weiterleitung = null }) {
+  const kontext = kontextFuer({ land, sprache, quellenZuvor, weiterleitung });
   // Am Telefon zaehlt jede Sekunde: weniger Runden, weniger Wiederholungen,
   // und ein hartes Zeitbudget, nach dem der Anruf sauber beendet wird.
   const amTelefon = kanal === 'telefon' || kanal === 'jambonz';
@@ -186,6 +186,7 @@ export async function mistralSchritt({ nachricht, verlauf = [], land = null, spr
 
   const benutzteWerkzeuge = [];
   const quellen = new Set();
+  let belege = ''; // Werkzeugergebnisse als Text - Pruefgrundlage fuer Paragrafen
 
   // Manuelle Tool-Schleife mit harter Rundenbegrenzung (wie im Claude-Pfad).
   for (let runde = 0; runde < maxRunden; runde += 1) {
@@ -199,7 +200,7 @@ export async function mistralSchritt({ nachricht, verlauf = [], land = null, spr
     if (!aufrufe.length) {
       bilanz('llm', runde + 1);
       return {
-        text: (wahl?.content ?? '').trim(),
+        text: paragrafenBereinigen((wahl?.content ?? '').trim(), belege),
         quellen: [...quellen],
         werkzeuge: benutzteWerkzeuge,
         modus: 'llm',
@@ -226,12 +227,30 @@ export async function mistralSchritt({ nachricht, verlauf = [], land = null, spr
       };
     }
 
+    // Weiterleitung ebenso: Entscheidung, keine Auskunft. Der Traeger verbindet.
+    const verbinden = aufrufe.find((tc) => tc.function?.name === 'weiterleiten');
+    if (verbinden) {
+      const eingabe = sicherParsen(verbinden.function.arguments);
+      benutzteWerkzeuge.push({ name: 'weiterleiten', eingabe });
+      bilanz('weiterleiten', runde + 1);
+      return {
+        text: eingabe.ansage || 'Ich verbinde Sie, einen Moment bitte.',
+        weiterleiten: true,
+        grund: eingabe.grund,
+        quellen: [...quellen],
+        werkzeuge: benutzteWerkzeuge,
+        modus: 'llm',
+        modell: daten.model ?? MODELL,
+      };
+    }
+
     // Alle Werkzeuge ausfuehren und je Aufruf ein tool-Ergebnis zurueckgeben.
     for (const tc of aufrufe) {
       const name = tc.function?.name;
       const eingabe = sicherParsen(tc.function?.arguments);
       const ergebnis = await werkzeugAusfuehren(name, eingabe);
       benutzteWerkzeuge.push({ name, eingabe });
+      belege += JSON.stringify(ergebnis);
       quellenAusErgebnis(ergebnis, eingabe, quellen);
       messages.push({
         role: 'tool',
@@ -243,7 +262,7 @@ export async function mistralSchritt({ nachricht, verlauf = [], land = null, spr
   }
 
   return {
-    text: 'Die Anfrage war zu verschachtelt für eine direkte Auskunft. Ich verbinde Sie am besten mit einer Mitarbeiterin oder einem Mitarbeiter.',
+    text: 'Die Anfrage war zu verschachtelt für eine direkte Auskunft. Stellen Sie die Frage bitte in einem kürzeren Satz, oder wenden Sie sich direkt an die zuständige Stelle.',
     quellen: [...quellen],
     werkzeuge: benutzteWerkzeuge,
     modus: 'llm-abbruch',

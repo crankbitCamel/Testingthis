@@ -44,6 +44,9 @@ async function schemaSicherstellen() {
         )`);
       // Spaeter ergaenzte Spalte - idempotent auch fuer bestehende Tabellen.
       await query('ALTER TABLE gespraeche ADD COLUMN IF NOT EXISTS sprache text');
+      // Nachweis der Einwilligung (Art. 7 DSGVO): wann und mit welchem Wortlaut.
+      await query('ALTER TABLE gespraeche ADD COLUMN IF NOT EXISTS einwilligung_zeit timestamptz');
+      await query('ALTER TABLE gespraeche ADD COLUMN IF NOT EXISTS einwilligung_text text');
       await query('CREATE INDEX IF NOT EXISTS gespraeche_call_idx ON gespraeche (call_sid, zeit)');
       await query('CREATE INDEX IF NOT EXISTS gespraeche_zeit_idx ON gespraeche (zeit DESC)');
     })().catch((fehler) => {
@@ -80,8 +83,9 @@ export async function protokolliere(e = {}) {
     await schemaSicherstellen();
     await query(
       `INSERT INTO gespraeche
-         (call_sid, kanal, land, frage, antwort, modus, modell, confidence, quellen, werkzeuge, dauer_ms, beendet, sprache)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::jsonb, $11, $12, $13)`,
+         (call_sid, kanal, land, frage, antwort, modus, modell, confidence, quellen, werkzeuge, dauer_ms, beendet, sprache,
+          einwilligung_zeit, einwilligung_text)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::jsonb, $11, $12, $13, $14, $15)`,
       [
         e.callSid ?? null,
         e.kanal ?? 'telefon',
@@ -96,9 +100,56 @@ export async function protokolliere(e = {}) {
         Number.isInteger(e.dauerMs) ? e.dauerMs : null,
         Boolean(e.beendet),
         e.sprache ?? null,
+        e.einwilligungZeit ? new Date(e.einwilligungZeit) : null,
+        e.einwilligungText ?? null,
       ],
     );
   } catch (fehler) {
     console.warn('  [protokoll] Gespraech nicht gespeichert:', fehler.message);
   }
+}
+
+/**
+ * Widerruf: alle Zeilen eines Anrufs loeschen (Anrufer drueckt waehrend des
+ * Gespraechs die Taste fuer den Widerruf). Liefert die Anzahl geloeschter
+ * Zeilen; Fehler werden geloggt, nie geworfen.
+ */
+export async function protokollLoeschen(callSid) {
+  if (!datenbankKonfiguriert() || !callSid) return 0;
+  try {
+    await schemaSicherstellen();
+    const rows = await query('DELETE FROM gespraeche WHERE call_sid = $1 RETURNING id', [callSid]);
+    return rows.length;
+  } catch (fehler) {
+    console.warn('  [protokoll] Widerruf nicht ausgefuehrt:', fehler.message);
+    return -1;
+  }
+}
+
+/** Loeschfrist: Eintraege aelter als `tage` Tage entfernen. */
+export async function protokollAufraeumen(tage = Number(process.env.PROTOKOLL_TAGE ?? 90)) {
+  if (!datenbankKonfiguriert() || !(tage > 0)) return 0;
+  try {
+    await schemaSicherstellen();
+    const rows = await query("DELETE FROM gespraeche WHERE zeit < now() - ($1::int * interval '1 day') RETURNING id", [Math.floor(tage)]);
+    if (rows.length) console.log(`  [protokoll] Loeschfrist: ${rows.length} Eintraege aelter als ${tage} Tage entfernt`);
+    return rows.length;
+  } catch (fehler) {
+    console.warn('  [protokoll] Loeschlauf fehlgeschlagen:', fehler.message);
+    return -1;
+  }
+}
+
+/**
+ * Taeglichen Loeschlauf im Prozess einplanen (kein Cron noetig). Laeuft kurz
+ * nach dem Start und dann alle 24 Stunden; blockiert das Beenden nicht.
+ */
+export function aufraeumenPlanen() {
+  if (!datenbankKonfiguriert()) return null;
+  const tage = Number(process.env.PROTOKOLL_TAGE ?? 90);
+  if (!(tage > 0)) return null;
+  setTimeout(() => protokollAufraeumen(tage), 30_000).unref();
+  const t = setInterval(() => protokollAufraeumen(tage), 24 * 60 * 60 * 1000);
+  t.unref();
+  return t;
 }

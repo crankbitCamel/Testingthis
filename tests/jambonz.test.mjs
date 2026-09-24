@@ -93,9 +93,33 @@ describe('Jambonz: Aeusserungen', () => {
     assert.equal(verben[1].verb, 'hangup');
   });
 
-  test('Tastendruck ohne Sprache bestaetigt den Rueckweg', async () => {
+  test('unbekannte Taste erklaert die Tastenbelegung, Taste 0 ohne Nummer nennt den Hinweis', async () => {
     const verben = await jambonzEingabe({ call_sid: 'JB1', digits: '5', reason: 'dtmfDetected' }, BASIS);
-    assert.match(verben[0].say.text, /Tastendruck erkannt/);
+    assert.match(verben[0].say.text, /Mit der Null erreichen Sie/);
+    delete process.env.TELEFON_WEITERLEITUNG_NUMMER;
+    const null_ = await jambonzEingabe({ call_sid: 'JB1', digits: '0', reason: 'dtmfDetected' }, BASIS);
+    assert.match(null_[0].say.text, /nicht möglich/);
+  });
+
+  test('Taste 0 mit Zielnummer: Ansage, dial, danach weiter zuhoeren', async () => {
+    process.env.TELEFON_WEITERLEITUNG_NUMMER = '+4930123456';
+    delete process.env.TELEFON_WEITERLEITUNG_ZEITEN;
+    try {
+      const verben = await jambonzEingabe({ call_sid: 'JB1', digits: '0', reason: 'dtmfDetected' }, BASIS);
+      assert.equal(verben[0].verb, 'say');
+      assert.equal(verben[1].verb, 'dial');
+      assert.equal(verben[1].target[0].number, '+4930123456');
+      assert.equal(verben[2].verb, 'gather');
+      assert.match(verben[2].say.text, /niemand ab/);
+    } finally {
+      delete process.env.TELEFON_WEITERLEITUNG_NUMMER;
+    }
+  });
+
+  test('Erkennerfehler beendet mit Stoerungshinweis statt "nichts gehoert"', async () => {
+    const verben = await jambonzEingabe({ call_sid: 'JB7', reason: 'error', error: 'STT down' }, BASIS);
+    assert.match(verben[0].text, /technische Störung/);
+    assert.equal(verben[1].verb, 'hangup');
   });
 
   test('Anrufende raeumt den Zustand auf', () => {

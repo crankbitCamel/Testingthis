@@ -123,6 +123,9 @@ CREATE TABLE IF NOT EXISTS gespraeche (
 );
 -- Spalte spaeter ergaenzt: bestehende Tabellen bekommen sie idempotent nach.
 ALTER TABLE gespraeche ADD COLUMN IF NOT EXISTS sprache text;
+-- Nachweis der Einwilligung (Art. 7 DSGVO): Zeitpunkt und vorgelesener Wortlaut.
+ALTER TABLE gespraeche ADD COLUMN IF NOT EXISTS einwilligung_zeit timestamptz;
+ALTER TABLE gespraeche ADD COLUMN IF NOT EXISTS einwilligung_text text;
 
 CREATE INDEX IF NOT EXISTS gespraeche_call_idx ON gespraeche (call_sid, zeit);
 CREATE INDEX IF NOT EXISTS gespraeche_zeit_idx ON gespraeche (zeit DESC);

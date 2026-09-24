@@ -35,12 +35,30 @@ import { websocketAnnehmen } from './ws.mjs';
 const WHISPER_URL = (process.env.WHISPER_URL ?? 'http://localhost:9000').replace(/\/$/, '');
 const SCHWELLE = Number(process.env.WHISPER_SCHWELLE ?? 500);
 
-// Pausenerkennung in 20-ms-Fenstern.
+// Pausenerkennung in 20-ms-Fenstern. Die Zeiten sind per Umgebung
+// einstellbar, damit auf dem Server ohne Neubau gemessen werden kann.
 const FENSTER_MS = 20;
-const START_FENSTER = 3;      // 60 ms Sprache -> Sprechbeginn
-const ENDE_FENSTER = 35;      // 700 ms Stille -> Aeusserung zu Ende
-const VORLAUF_FENSTER = 15;   // 300 ms vor dem Sprechbeginn mitnehmen
-const MAX_AEUSSERUNG_MS = 15000;
+const fenster = (name, standardMs) => Math.max(1, Math.round(Number(process.env[name] ?? standardMs) / FENSTER_MS));
+const START_FENSTER = fenster('WHISPER_START_MS', 60);      // Sprache -> Sprechbeginn
+const ENDE_FENSTER = fenster('WHISPER_ENDE_MS', 700);       // Stille -> Aeusserung zu Ende
+const VORLAUF_FENSTER = fenster('WHISPER_VORLAUF_MS', 300); // vor dem Sprechbeginn mitnehmen
+const NACHLAUF_FENSTER = fenster('WHISPER_NACHLAUF_MS', 200); // Stille, die Whisper noch bekommt
+const MAX_AEUSSERUNG_MS = Number(process.env.WHISPER_MAX_AEUSSERUNG_MS ?? 15000);
+// Gleichzeitige Whisper-Aufrufe ueber alle Sitzungen: mehr macht auf einer
+// CPU alle langsamer statt einen schneller. Rest wartet in Reihenfolge.
+const PARALLEL = Math.max(1, Number(process.env.WHISPER_PARALLEL ?? 2));
+let aktiv = 0;
+const warteschlange = [];
+async function platz() {
+  if (aktiv < PARALLEL) { aktiv += 1; return; }
+  await new Promise((r) => warteschlange.push(r));
+  aktiv += 1;
+}
+function frei() {
+  aktiv -= 1;
+  const naechster = warteschlange.shift();
+  if (naechster) naechster();
+}
 const ZWISCHEN_MS = 1500;     // Zwischenstand hoechstens alle 1,5 s
 const ZWISCHEN_FENSTER_S = 3; // Zwischenstand erkennt nur die letzten 3 s
 let sitzungsZaehler = 0;      // laufende Nummer fuer Logzeilen (kein Inhalt)
@@ -98,13 +116,19 @@ export async function whisperTranskribieren(wav, sprache = 'de', basis = WHISPER
   const url = `${basis}/asr?task=transcribe&output=json${sprache ? `&language=${encodeURIComponent(sprache)}` : ''}`;
   // Haengt Whisper, darf die Sitzung nicht ewig warten: nach WHISPER_TIMEOUT_MS
   // (Standard 8 s) Fehler melden, Jambonz kann dann reagieren.
-  const antwort = await fetch(url, {
-    method: 'POST',
-    body: form,
-    signal: AbortSignal.timeout(Number(process.env.WHISPER_TIMEOUT_MS ?? 8000)),
-  });
-  if (!antwort.ok) throw new Error(`Whisper ${antwort.status}: ${(await antwort.text()).slice(0, 200)}`);
-  const daten = await antwort.json();
+  await platz();
+  let daten;
+  try {
+    const antwort = await fetch(url, {
+      method: 'POST',
+      body: form,
+      signal: AbortSignal.timeout(Number(process.env.WHISPER_TIMEOUT_MS ?? 8000)),
+    });
+    if (!antwort.ok) throw new Error(`Whisper ${antwort.status}: ${(await antwort.text()).slice(0, 200)}`);
+    daten = await antwort.json();
+  } finally {
+    frei();
+  }
   return {
     text: String(daten.text ?? '').trim(),
     confidence: konfidenzAus(daten),
@@ -216,7 +240,14 @@ export class Sitzung {
   // Laufende Aeusserung abschliessen: zu Whisper, Ergebnis als final senden.
   #abschliessen(wegenStop) {
     const hatte = this.spricht && this.aeusserung.length > START_FENSTER;
-    const pcm = hatte ? Buffer.concat(this.aeusserung) : null;
+    // Den Stilleschwanz (700 ms) nicht komplett an Whisper schicken - 200 ms
+    // reichen als Satzende und sparen Rechenzeit.
+    let fensterListe = this.aeusserung;
+    if (hatte && !wegenStop && this.stillFolge >= ENDE_FENSTER) {
+      const abschneiden = Math.max(0, ENDE_FENSTER - NACHLAUF_FENSTER);
+      fensterListe = this.aeusserung.slice(0, Math.max(START_FENSTER + 1, this.aeusserung.length - abschneiden));
+    }
+    const pcm = hatte ? Buffer.concat(fensterListe) : null;
     this.spricht = false;
     this.aeusserung = [];
     this.lautFolge = 0;

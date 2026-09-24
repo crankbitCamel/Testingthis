@@ -50,9 +50,6 @@ const STIMMEN = {
   de: process.env.JAMBONZ_STIMME_DE ?? '',
   en: process.env.JAMBONZ_STIMME_EN ?? '',
 };
-// Wie oft der Anrufer hintereinander nichts sagen darf, bevor aufgelegt wird
-// (Twilio-Adapter: Hinweis, zweite Chance, Ende).
-const MAX_STUMM = 2;
 // Ab dieser Wartezeit auf den Webhook sagt Jambonz von sich aus "einen
 // Moment", damit der Anrufer nicht in Stille haengt.
 const MOMENT_NACH_S = 1.5;
@@ -114,6 +111,13 @@ const sagUndZuhoeren = (text, basis, s) => [zuhoeren(text, basis, s)];
 function schrittAlsVerben(schritt, basis, s) {
   switch (schritt.art) {
     case 'auflegen': return [say(schritt.text, s), hangup()];
+    // Weiterleitung an Menschen: Ansage, dann waehlen. Nimmt niemand ab,
+    // geht es nach dem dial mit dem naechsten Verb weiter (wieder zuhoeren).
+    case 'verbinden': return [
+      say(schritt.text, s),
+      { verb: 'dial', timeLimit: 3600, timeout: 25, target: [{ type: 'phone', number: schritt.nummer }] },
+      zuhoeren(s.texte.verbindenFehlgeschlagen, basis, s),
+    ];
     case 'warten': return [say(schritt.text ?? s.texte.moment, s), { verb: 'redirect', actionHook: `${basis}/api/jambonz/eingabe` }];
     default: return sagUndZuhoeren(schritt.text, basis, s);
   }
@@ -171,17 +175,8 @@ export async function jambonzEingabe(k = {}, basis = '') {
     return [say(s.texte.stoerung, s), hangup()];
   }
 
-  // Stille: Hinweis, zweite Chance, dann freundlich beenden.
-  if (!text && !taste) {
-    z.stumm = (z.stumm ?? 0) + 1;
-    if (z.stumm >= MAX_STUMM) {
-      anrufBeenden(id);
-      return [say(s.texte.danke, s), hangup()];
-    }
-    return sagUndZuhoeren(s.texte.nichtsGehoert, basis, s);
-  }
-  z.stumm = 0;
-
+  // Stille, Wiederholungen, Tasten und Modellaufruf: alles in dialog.mjs,
+  // damit beide Traeger identisch reagieren.
   const schritt = await aeusserungVerarbeiten({
     anrufId: id, text, konfidenz, taste, kanal: 'jambonz', sofort: true,
   });

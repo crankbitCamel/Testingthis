@@ -47,10 +47,42 @@ describe('Gesprächsrunden am Telefon (Mock)', () => {
     assert.equal(_anrufZustand('CA3').land, 'rp');
   });
 
-  test('leere Erkennung führt zur Bitte um Wiederholung, nicht zum Auflegen', async () => {
+  test('leere Erkennung: erst Hinweis, beim zweiten Mal freundlich auflegen', async () => {
     const antwort = await anrufEingabe({ CallSid: 'CA4', SpeechResult: '' });
-    assert.match(antwort, /nicht verstanden/);
+    assert.match(antwort, /nichts gehört/);
     assert.match(antwort, /<Gather/);
+    const zweite = await anrufEingabe({ CallSid: 'CA4', SpeechResult: '' });
+    assert.match(zweite, /Vielen Dank für Ihren Anruf/);
+    assert.match(zweite, /<Hangup\/>/);
+    assert.equal(_anrufZustand('CA4'), null, 'Zustand aufgeraeumt');
+  });
+
+  test('Taste 2 widerruft die Einwilligung, Taste 0 ohne Zielnummer nennt den Hinweis', async () => {
+    const { einwilligungWaehlen } = await import('../server/dialog.mjs');
+    einwilligungWaehlen('CA_W', '1');
+    assert.equal(_anrufZustand('CA_W').einwilligung, true);
+    const w = await anrufEingabe({ CallSid: 'CA_W', Digits: '2' });
+    assert.match(w, /Protokollierung ist beendet/);
+    assert.equal(_anrufZustand('CA_W').einwilligung, false);
+    const nochmal = await anrufEingabe({ CallSid: 'CA_W', Digits: '2' });
+    assert.match(nochmal, /wird nicht protokolliert/);
+    delete process.env.TELEFON_WEITERLEITUNG_NUMMER;
+    const m = await anrufEingabe({ CallSid: 'CA_W', Digits: '0' });
+    assert.match(m, /Weiterleitung ist im Moment nicht möglich/);
+    assert.doesNotMatch(m, /<Dial/);
+  });
+
+  test('Taste 0 mit Zielnummer verbindet per Dial und hoert danach weiter zu', async () => {
+    process.env.TELEFON_WEITERLEITUNG_NUMMER = '+4930123456';
+    delete process.env.TELEFON_WEITERLEITUNG_ZEITEN;
+    try {
+      const t = await anrufEingabe({ CallSid: 'CA_D', Digits: '0' });
+      assert.match(t, /Ich verbinde Sie/);
+      assert.match(t, /<Dial timeout="25">\+4930123456<\/Dial>/);
+      assert.match(t, /nimmt gerade niemand ab/);
+    } finally {
+      delete process.env.TELEFON_WEITERLEITUNG_NUMMER;
+    }
   });
 
   test('Quellen der letzten Antwort bleiben fuer Nachfragen im Anrufzustand', async () => {
@@ -131,7 +163,7 @@ describe('Sprachwahl per Taste', () => {
     assert.ok(!t.includes('de-DE'), 'kein deutsches Element mehr');
     // Folgerunden bleiben englisch: leere Erkennung -> englische Rueckfrage.
     const leer = await anrufEingabe({ CallSid: 'CA_S2', SpeechResult: '' });
-    assert.match(leer, /didn&apos;t catch that|didn't catch that/);
+    assert.match(leer, /didn&apos;t hear anything|didn't hear anything/);
     assert.match(leer, /language="en-GB"/);
   });
 

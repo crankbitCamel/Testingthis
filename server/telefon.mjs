@@ -84,6 +84,13 @@ const wartenRedirect = (basis = '') =>
 function schrittAlsTwiml(schritt, basis, s) {
   switch (schritt.art) {
     case 'auflegen': return twiml(sag(schritt.text, s) + '<Hangup/>');
+    // Weiterleitung an Menschen: Ansage, dann verbinden. Nimmt niemand ab,
+    // laeuft es mit der Begruessung weiter.
+    case 'verbinden': return twiml(
+      sag(schritt.text, s)
+      + `<Dial timeout="25">${xmlEscape(schritt.nummer)}</Dial>`
+      + zuhoerenInhalt(s.texte.verbindenFehlgeschlagen, basis, s),
+    );
     case 'warten': return schritt.text
       ? twiml(sag(schritt.text, s) + wartenRedirect(basis))
       : twiml('<Pause length="2"/>' + wartenRedirect(basis));

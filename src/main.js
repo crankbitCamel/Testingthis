@@ -33,6 +33,7 @@ const el = {
   optRegion: document.getElementById('opt-region'),
   kiGruppe: document.getElementById('ki-gruppe'),
   optKi: document.getElementById('opt-ki'),
+  optProtokoll: document.getElementById('opt-protokoll'),
   kiStatus: document.getElementById('ki-status'),
   diagnose: document.getElementById('diagnose'),
 };
@@ -341,7 +342,11 @@ async function kiVerarbeiten(eingabe) {
     const antwort = await fetch('/api/assistent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nachricht: eingabe, verlauf: kiVerlauf.slice(-12), land: dialog.land }),
+      // einwilligung: nur mit gesetztem Haekchen protokolliert der Server die Runde.
+      body: JSON.stringify({
+        nachricht: eingabe, verlauf: kiVerlauf.slice(-12), land: dialog.land,
+        einwilligung: el.optProtokoll?.checked === true,
+      }),
     });
     const daten = await antwort.json();
     denkenVerbergen();

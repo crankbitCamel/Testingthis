@@ -106,6 +106,45 @@ export function entferneSchriftauszeichnung(text) {
   return t.replace(/\s{2,}/g, ' ').trim();
 }
 
+const MONATE_EN = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const ABKUERZUNGEN_EN = [
+  [/§§/g, 'sections'],
+  [/§\s?/g, 'section '],
+  [/\bz\.\s?B\./g, 'for example'],
+  [/\bbzw\./g, 'or'],
+  [/\bggf\./g, 'if applicable'],
+  [/\bNr\./g, 'number'],
+  [/\bAbs\./g, 'paragraph'],
+  [/\be\.g\./g, 'for example'],
+  [/\bi\.e\./g, 'that is'],
+  [/\betc\./g, 'and so on'],
+  [/\bEUR\b/g, 'euros'],
+  [/\s?€/g, ' euros'],
+  [/\s?%/g, ' percent'],
+];
+
+/**
+ * Englische Sprechfassung: Markdown weg, Paragrafenzeichen und deutsche
+ * Abkuerzungen aus der Wissensbasis in Worte, ISO-Daten als Monat und Jahr.
+ * Zahlen bleiben Ziffern - englische Stimmen lesen sie korrekt.
+ */
+export function normalisiereEnglisch(text) {
+  let t = entferneSchriftauszeichnung(text);
+  t = t.replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, (ganz, jjjj, mm, tt) => {
+    const m = Number(mm);
+    return m >= 1 && m <= 12 ? `${Number(tt)} ${MONATE_EN[m]} ${jjjj}` : ganz;
+  });
+  t = t.replace(/\b(\d{4})-(\d{2})\b/g, (ganz, jjjj, mm) => {
+    const m = Number(mm);
+    return m >= 1 && m <= 12 ? `${MONATE_EN[m]} ${jjjj}` : ganz;
+  });
+  t = t.replace(/\bStand\b/g, 'as of');
+  for (const [muster, ersatz] of ABKUERZUNGEN_EN) t = t.replace(muster, ersatz);
+  t = t.replace(/(\d+)\s*[–—-]\s*(\d+)(?=\s*[A-Za-z€%])/g, '$1 to $2');
+  t = t.replace(/\s*\|\s*/g, '. ').replace(/\s*[—–]\s*/g, ', ');
+  return t.replace(/\.\s*\./g, '.').replace(/\s{2,}/g, ' ').trim();
+}
+
 /**
  * Normalisiert Text fuer die Sprachausgabe. Reihenfolge ist wichtig:
  * erst Datumsangaben (enthalten Jahreszahlen), dann freie Jahreszahlen,
@@ -128,8 +167,15 @@ export function normalisiereFuerSprache(text) {
     return `${monat} ${zahlAlsWort(jjjj)}`;
   });
 
-  // Freie Jahreszahlen 1900-2099 (nicht Teil groesserer Zahlen/Betraege).
-  t = t.replace(/(?<![\d.,-])((?:19|20)\d{2})(?!\d)(?![.,]\d)/g, (ganz, jahr) => zahlAlsWort(jahr));
+  // Zahlenbereiche mit Strich: "10–14 Tage" -> "10 bis 14 Tage" (vor der
+  // Trenner-Umwandlung, sonst wuerde der Strich zum Komma).
+  t = t.replace(/(\d+)\s*[–—-]\s*(\d+)(?=\s*[A-Za-zÄÖÜäöü€%])/g, '$1 bis $2');
+
+  // Freie Jahreszahlen 1900-2099 als Zahlwort - aber NICHT in Ziffernfolgen
+  // wie Telefonnummern ("0221 2010 0"), Aktenzeichen ("12/2024") oder
+  // Bereichen: nur, wenn davor kein Ziffernblock oder Schraegstrich steht und
+  // danach kein weiterer Ziffernblock folgt.
+  t = t.replace(/(?<![\d.,\/-])(?<!\d\s)((?:19|20)\d{2})(?!\d)(?![.,\/]\d)(?!\s+\d)/g, (ganz, jahr) => zahlAlsWort(jahr));
 
   for (const [muster, ersatz] of ABKUERZUNGEN) t = t.replace(muster, ersatz);
 

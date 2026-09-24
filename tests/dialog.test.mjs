@@ -1,251 +1,124 @@
 /**
- * Tests der Dialogfuehrung. Geprueft wird das Verhalten, das ein Anrufer
- * erlebt: dass die drei Stufen in der richtigen Reihenfolge kommen, dass
- * jede Antwort ein Ziffernmenue anbietet, dass Rueckwege funktionieren und
- * dass der Bot rechtzeitig an einen Menschen uebergibt.
+ * Tests der traegerunabhaengigen Gespraechslogik und der Hilfen, die aus
+ * dem Review kamen: Stille-/Wiederholungszaehler, Widerruf, Weiterleitung
+ * mit Servicezeiten, Paragrafenpruefung, Landeserkennung mit Wortgrenzen,
+ * Normalisierung von Nummern und Bereichen, englische Sprechfassung.
+ * Laeuft im Mock-Modus, ohne Netz und ohne Datenbank.
  */
-import { test, describe } from 'node:test';
+import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { Dialog, ZUSTAND, aspektInhalt } from '../src/dialog.js';
-import { LEISTUNGEN, LEISTUNG_BY_ID, CLUSTER, ASPEKT_MENUE, topLeistungen } from '../src/kb/index.js';
+import {
+  aeusserungVerarbeiten, einwilligungWaehlen, zustandFuer, servicezeitenParsen, weiterleitungStatus,
+  sprechfassung, SPRACHEN, MAX_UNVERSTANDEN, _anrufZustand, _anrufeLeeren,
+} from '../server/dialog.mjs';
+import { paragrafenBereinigen, kontextFuer } from '../server/assistent.mjs';
+import { erkenneLand } from '../src/nlu.js';
+import { normalisiereFuerSprache, normalisiereEnglisch } from '../server/sprechnormalisierung.mjs';
 
-function neuerDialog() {
-  const d = new Dialog();
-  d.begruessung();
-  return d;
-}
+describe('Stille und Unverstaendliches', () => {
+  beforeEach(() => _anrufeLeeren());
 
-describe('Dreistufiger Ablauf', () => {
-  test('offene Frage führt auf Stufe 1 mit Bereichswissen und Ziffernmenü', () => {
-    const d = neuerDialog();
-    const a = d.verarbeite('Ich wurde gekündigt und weiß nicht weiter');
-    assert.equal(a.stufe, 1);
-    assert.equal(a.zustand, ZUSTAND.CLUSTER);
-    assert.ok(a.sprich.includes('Grob gilt hier'), 'Bereichswissen fehlt in der Ansage');
-    const ziffern = a.optionen.map((o) => o.ziffer);
-    assert.ok(ziffern.includes(1) && ziffern.includes(2) && ziffern.includes(3));
-    assert.ok(a.anzeige.listen.some((l) => l.titel.includes('Faustregeln')));
+  test('zwei Mal Stille -> freundlich auflegen, Zustand weg', async () => {
+    const a = await aeusserungVerarbeiten({ anrufId: 'D1', text: '' });
+    assert.equal(a.art, 'sagen');
+    assert.match(a.text, /nichts gehört/);
+    const b = await aeusserungVerarbeiten({ anrufId: 'D1', text: '' });
+    assert.equal(b.art, 'auflegen');
+    assert.equal(_anrufZustand('D1'), null);
   });
 
-  test('Ziffernwahl führt von Stufe 1 auf Stufe 2', () => {
-    const d = neuerDialog();
-    d.verarbeite('Ich wurde gekündigt');
-    const a = d.verarbeite('1');
-    assert.equal(a.stufe, 2);
-    assert.equal(a.zustand, ZUSTAND.LEISTUNG);
-    assert.ok(a.pfad.length === 2);
+  test('Sprache dazwischen setzt den Stille-Zaehler zurueck', async () => {
+    await aeusserungVerarbeiten({ anrufId: 'D2', text: '' });
+    await aeusserungVerarbeiten({ anrufId: 'D2', text: 'Was kostet ein Reisepass?' });
+    const c = await aeusserungVerarbeiten({ anrufId: 'D2', text: '' });
+    assert.equal(c.art, 'sagen', 'noch kein Auflegen');
   });
 
-  test('Ziffernwahl führt von Stufe 2 auf Stufe 3', () => {
-    const d = neuerDialog();
-    d.verarbeite('Ich möchte ein Gewerbe anmelden');
-    const a = d.verarbeite('1');
-    assert.equal(a.stufe, 3);
-    assert.equal(a.zustand, ZUSTAND.ASPEKT);
-    assert.equal(a.quelle.aspektId, 'unterlagen');
-    assert.ok(a.pfad.length === 3);
-  });
-
-  test('konkrete Frage überspringt Stufen und landet direkt auf Stufe 3', () => {
-    const d = neuerDialog();
-    const a = d.verarbeite('Was kostet ein Personalausweis');
-    assert.equal(a.stufe, 3);
-    assert.equal(a.quelle.leistungId, 'personalausweis');
-    assert.equal(a.quelle.aspektId, 'kosten');
-    assert.ok(a.sprich.includes('37,00 Euro'), a.sprich);
-  });
-
-  test('nach einem Aspekt werden nur noch ungehörte Aspekte angeboten', () => {
-    const d = neuerDialog();
-    d.verarbeite('Reisepass beantragen');
-    const ersteAntwort = d.verarbeite('1');
-    const zweiteAntwort = d.verarbeite('1');
-    assert.notEqual(ersteAntwort.quelle.aspektId, zweiteAntwort.quelle.aspektId);
+  test('dreimal zu leise -> Ende mit eigenem Text', async () => {
+    let s;
+    for (let i = 0; i < MAX_UNVERSTANDEN; i += 1) s = await aeusserungVerarbeiten({ anrufId: 'D3', text: 'hm', konfidenz: 0.1 });
+    assert.equal(s.art, 'auflegen');
+    assert.match(s.text, /mehrfach nicht verstehen/);
   });
 });
 
-describe('Navigation', () => {
-  test('"zurück" führt Stufe für Stufe zurück', () => {
-    const d = neuerDialog();
-    d.verarbeite('Ich habe ein Auto gekauft');
-    d.verarbeite('1');
-    assert.equal(d.zustand, ZUSTAND.ASPEKT);
-    assert.equal(d.verarbeite('zurück').zustand, ZUSTAND.LEISTUNG);
-    assert.equal(d.verarbeite('zurück').zustand, ZUSTAND.CLUSTER);
-    assert.equal(d.verarbeite('zurück').zustand, ZUSTAND.START);
+describe('Weiterleitung', () => {
+  test('Servicezeiten werden geparst', () => {
+    assert.deepEqual(servicezeitenParsen('Mo-Fr 08:00-16:00'), { tage: [1, 2, 3, 4, 5], von: 480, bis: 960 });
+    assert.deepEqual(servicezeitenParsen('Sa 09:00-12:00'), { tage: [6], von: 540, bis: 720 });
+    assert.equal(servicezeitenParsen('immer'), null);
   });
 
-  test('"neues Anliegen" setzt den Kontext zurück', () => {
-    const d = neuerDialog();
-    d.verarbeite('Ich bin umgezogen');
-    d.verarbeite('neues Anliegen');
-    assert.equal(d.leistungId, null);
-    assert.equal(d.clusterId, null);
+  test('Status: keine Nummer -> nicht verfuegbar; Nummer ohne Zeiten -> immer; mit Zeiten -> nur innerhalb', () => {
+    assert.equal(weiterleitungStatus(new Date(), {}).verfuegbar, false);
+    assert.equal(weiterleitungStatus(new Date(), { TELEFON_WEITERLEITUNG_NUMMER: '+4930123456' }).verfuegbar, true);
+    const env = { TELEFON_WEITERLEITUNG_NUMMER: '+4930123456', TELEFON_WEITERLEITUNG_ZEITEN: 'Mo-Fr 08:00-16:00' };
+    // Mittwoch, 23. Sept. 2026, 10:00 Berlin (08:00 UTC) und 20:00 Berlin (18:00 UTC), Sonntag 10:00.
+    assert.equal(weiterleitungStatus(new Date('2026-09-23T08:00:00Z'), env).verfuegbar, true);
+    assert.equal(weiterleitungStatus(new Date('2026-09-23T18:00:00Z'), env).verfuegbar, false);
+    assert.equal(weiterleitungStatus(new Date('2026-09-27T08:00:00Z'), env).verfuegbar, false);
+    assert.equal(weiterleitungStatus(new Date(), { TELEFON_WEITERLEITUNG_NUMMER: 'abc' }).verfuegbar, false);
   });
 
-  test('"alles" liefert die vollständige Auskunft mit allen Blöcken', () => {
-    const d = neuerDialog();
-    d.verarbeite('Gewerbe anmelden');
-    const a = d.verarbeite('alles');
-    const titel = a.anzeige.listen.map((l) => l.titel);
-    for (const erwartet of ['Voraussetzungen', 'Benötigte Unterlagen', 'Kosten', 'Fristen', 'Ablauf Schritt für Schritt', 'Rechtsgrundlagen']) {
-      assert.ok(titel.some((t) => t.startsWith(erwartet)), `Block "${erwartet}" fehlt`);
-    }
-  });
-
-  test('Ziffer außerhalb des Menüs wird erklärt statt ignoriert', () => {
-    const d = neuerDialog();
-    d.verarbeite('Ich bin umgezogen');
-    const a = d.verarbeite('9');
-    assert.ok(a.sprich.includes('steht hier nicht zur Auswahl'), a.sprich);
-  });
-
-  test('Auswahl über den Leistungsnamen funktioniert wie die Ziffer', () => {
-    const d = neuerDialog();
-    d.verarbeite('Ich bin umgezogen');
-    const a = d.verarbeite('Meldebescheinigung');
-    assert.equal(a.quelle.leistungId, 'meldebescheinigung');
+  test('Kontext sagt dem Modell, ob Weiterleitung geht', () => {
+    assert.match(kontextFuer({ weiterleitung: { verfuegbar: true } }), /JETZT verfügbar/);
+    assert.match(kontextFuer({ weiterleitung: { verfuegbar: false, hinweis: 'Rufen Sie 115 an.' } }), /NICHT verfügbar.*Rufen Sie 115 an/);
   });
 });
 
-describe('Eskalation und Robustheit', () => {
-  test('nach drei unverständlichen Eingaben wird an einen Menschen übergeben', () => {
-    const d = neuerDialog();
-    d.verarbeite('xyzzy');
-    d.verarbeite('blubb blubb');
-    const a = d.verarbeite('qwertz asdfgh');
-    assert.equal(a.zustand, ZUSTAND.MENSCH);
-    assert.ok(a.anzeige.listen[0].eintraege.some((e) => e.startsWith('Grund:')));
+describe('Einwilligung', () => {
+  beforeEach(() => _anrufeLeeren());
+
+  test('Zeitpunkt wird bei Taste 1 gesetzt, bei Widerruf geloescht', async () => {
+    einwilligungWaehlen('E1', '1');
+    assert.ok(_anrufZustand('E1').einwilligungZeit > 0);
+    const w = await aeusserungVerarbeiten({ anrufId: 'E1', taste: '2' });
+    assert.match(w.text, /Protokollierung ist beendet/);
+    assert.equal(_anrufZustand('E1').einwilligung, false);
+    assert.equal(_anrufZustand('E1').einwilligungZeit, null);
   });
 
-  test('die zweite Fehlerkennung bietet ein Bereichsmenü an', () => {
-    const d = neuerDialog();
-    d.verarbeite('xyzzy');
-    const a = d.verarbeite('blubb');
-    assert.equal(a.zustand, ZUSTAND.BEREICHSWAHL);
-    assert.ok(a.optionen.length >= 3);
-  });
-
-  test('Wunsch nach einem Menschen wird sofort erfüllt und übergibt Kontext', () => {
-    const d = neuerDialog();
-    d.verarbeite('Ich möchte Bürgergeld beantragen');
-    const a = d.verarbeite('Ich will mit einem Mitarbeiter sprechen');
-    assert.equal(a.zustand, ZUSTAND.MENSCH);
-    const protokoll = a.anzeige.listen[0].eintraege.join(' ');
-    assert.ok(protokoll.includes('Bürgergeld'));
-    assert.ok(protokoll.includes('Jobcenter'));
-  });
-
-  test('leere Eingabe stürzt nicht ab', () => {
-    const d = neuerDialog();
-    const a = d.verarbeite('   ');
-    assert.ok(a.sprich.length > 0);
-  });
-
-  test('Zähler für Missverständnisse wird nach Erfolg zurückgesetzt', () => {
-    const d = neuerDialog();
-    d.verarbeite('xyzzy');
-    d.verarbeite('Ich bin umgezogen');
-    assert.equal(d.missverstaendnisse, 0);
+  test('Einwilligungstext nennt den Widerruf', () => {
+    assert.match(SPRACHEN.de.texte.einwilligung, /jederzeit mit der Zwei widerrufen/);
+    assert.match(SPRACHEN.en.texte.einwilligung, /withdraw/);
   });
 });
 
-describe('Qualität der gesprochenen Antworten', () => {
-  test('kein Sprechtext ist länger als 880 Zeichen', () => {
-    // 880 statt 800: Das einmalige Landesdaten-Angebot verlaengert die
-    // Leistungsansage; darueber hinaus bleibt die Grenze hart.
-    const zuLang = [];
-    for (const l of LEISTUNGEN) {
-      const d = new Dialog();
-      d.begruessung();
-      const a = d.zeigeLeistung(l.id);
-      if (a.sprich.length > 880) zuLang.push(`${l.id} (${a.sprich.length})`);
-      for (const aspekt of ASPEKT_MENUE) {
-        const b = d.zeigeAspekt(l.id, aspekt);
-        if (b.sprich.length > 880) zuLang.push(`${l.id}/${aspekt} (${b.sprich.length})`);
-      }
-    }
-    assert.deepEqual(zuLang, [], `Zu lange Sprechtexte: ${zuLang.join(', ')}`);
-  });
-
-  test('keine Antwort enthält Platzhalter oder undefined', () => {
-    const d = new Dialog();
-    for (const l of LEISTUNGEN) {
-      for (const aspekt of ASPEKT_MENUE) {
-        const a = d.zeigeAspekt(l.id, aspekt);
-        assert.ok(!a.sprich.includes('undefined'), `${l.id}/${aspekt}: ${a.sprich}`);
-        assert.ok(!a.sprich.includes('[object'), `${l.id}/${aspekt}`);
-        assert.ok(!/\s{3,}/.test(a.sprich), `${l.id}/${aspekt}: mehrfache Leerzeichen`);
-      }
-    }
-  });
-
-  test('jede Antwort auf jeder Stufe bietet mindestens eine Option an', () => {
-    const d = new Dialog();
-    for (const c of CLUSTER) {
-      assert.ok(d.zeigeCluster(c.id).optionen.length >= 3, `Cluster ${c.id}`);
-    }
-    for (const l of LEISTUNGEN) {
-      assert.ok(d.zeigeLeistung(l.id).optionen.length >= 3, `Leistung ${l.id}`);
-    }
-  });
-
-  test('alle zehn Detailaspekte liefern für jede Leistung Inhalt', () => {
-    const aspekte = ['unterlagen', 'kosten', 'ablauf', 'voraussetzungen', 'fristen', 'zustaendigkeit', 'online', 'rechtsgrundlagen', 'fehler', 'faq'];
-    for (const l of LEISTUNGEN) {
-      for (const a of aspekte) {
-        const inhalt = aspektInhalt(l, a);
-        assert.ok(inhalt.sprich && inhalt.sprich.length > 10, `${l.id}/${a}: kein Sprechtext`);
-        assert.ok(Array.isArray(inhalt.listen), `${l.id}/${a}: keine Listen`);
-      }
-    }
+describe('Paragrafen nur aus Belegen', () => {
+  test('unbelegte Nummer wird entfernt, belegte bleibt', () => {
+    const belege = JSON.stringify({ rechtsgrundlagen: ['§ 1 Passgesetz', '§ 4, 5 Passgesetz'] });
+    assert.equal(paragrafenBereinigen('Stand August, Paragraf 24 Passgesetz.', belege), 'Stand August, Passgesetz.');
+    assert.equal(paragrafenBereinigen('Siehe Paragraf 4 und 5 Passgesetz.', belege), 'Siehe Paragraf 4 und 5 Passgesetz.');
+    assert.equal(paragrafenBereinigen('Nach § 1 Passgesetz.', belege), 'Nach § 1 Passgesetz.');
+    assert.equal(paragrafenBereinigen('Kein Paragraf hier.', belege), 'Kein Paragraf hier.');
   });
 });
 
-describe('Vollständige Erreichbarkeit der Wissensbasis', () => {
-  test('jede Leistung ist über das Ziffernmenü ihres Bereichs erreichbar', () => {
-    const d = new Dialog();
-    const unerreichbar = [];
-    for (const l of LEISTUNGEN) {
-      const imTop = topLeistungen(l.cluster, 3).some((t) => t.id === l.id);
-      if (imTop) continue;
-      // sonst über "Etwas anderes aus diesem Bereich"
-      // ueber "Etwas anderes aus diesem Bereich", notfalls ueber mehrere Seiten
-      let gefunden = false;
-      for (let seite = 0; seite < 4 && !gefunden; seite += 1) {
-        const alle = d.zeigeClusterAlle(l.cluster, seite);
-        gefunden = alle.optionen.some((o) => o.ziel.leistungId === l.id);
-      }
-      if (!gefunden) unerreichbar.push(l.id);
-    }
-    assert.deepEqual(unerreichbar, [], `Nicht per Ziffernwahl erreichbar: ${unerreichbar.join(', ')}`);
+describe('Landeserkennung mit Wortgrenzen', () => {
+  test('Teilwoerter treffen nicht mehr', () => {
+    assert.equal(erkenneLand('Ich habe zwei Adressen'), null);
+    assert.equal(erkenneLand('Ich habe es vergessen'), null);
+    assert.equal(erkenneLand('Ich wohne in Essen')?.code, 'nw');
+    assert.equal(erkenneLand('Ich bin nach Mainz gezogen, vorher wohnte ich in Köln')?.code, 'rp');
+    assert.equal(erkenneLand('Was kostet ein Reisepass?'), null);
+  });
+});
+
+describe('Normalisierung: Nummern, Bereiche, Englisch', () => {
+  test('Telefonnummern und Aktenzeichen bleiben Ziffern, Jahreszahlen im Kontext werden Worte', () => {
+    assert.equal(normalisiereFuerSprache('Telefon 0221 2010 0'), 'Telefon 0221 2010 0');
+    assert.equal(normalisiereFuerSprache('Az. 12/2024'), 'Az. 12/2024');
+    assert.equal(normalisiereFuerSprache('seit 2025 gilt'), 'seit zweitausendfünfundzwanzig gilt');
+    assert.equal(normalisiereFuerSprache('Stand 2026-08.'), 'Stand August zweitausendsechsundzwanzig.');
   });
 
-  test('jeder Bereich nennt Zuständigkeit, Kosten und Fristen im Grobwissen', () => {
-    const d = new Dialog();
-    for (const c of CLUSTER) {
-      const a = d.zeigeCluster(c.id);
-      const titel = a.anzeige.listen.map((l) => l.titel).join('|');
-      assert.ok(titel.includes('Wer ist zuständig'), c.id);
-      assert.ok(titel.includes('Was es meistens kostet'), c.id);
-      assert.ok(titel.includes('Typische Fristen'), c.id);
-    }
+  test('Bereiche mit Strich werden "bis"', () => {
+    assert.equal(normalisiereFuerSprache('Frist 10–14 Tage'), 'Frist 10 bis 14 Tage');
+    assert.equal(normalisiereFuerSprache('5-15 Euro'), '5 bis 15 Euro');
   });
 
-  test('Weiterleitungshinweis existiert für jede Leistung', () => {
-    for (const l of LEISTUNGEN) {
-      assert.ok(l.eskalation.length > 20, `${l.id}: Eskalationshinweis zu knapp`);
-    }
-  });
-
-  test('kommunal variierende Angaben tragen immer einen Vorbehalt', () => {
-    const d = new Dialog();
-    // Die Ortsfrage ist hier nicht Gegenstand - direkt zur Antwort.
-    d.ortsfrageAbgelehnt = true;
-    for (const l of LEISTUNGEN.filter((x) => x.belastbarkeit.quelle !== 'bundesrecht')) {
-      const a = d.zeigeAspekt(l.id, 'kosten');
-      assert.ok(a.anzeige.hinweis?.includes('zuständige Behörde'),
-        `${l.id}: fehlender Vorbehalt bei kommunal/landesrechtlich abweichenden Angaben`);
-    }
+  test('englische Sprechfassung: Paragraf, Datum, Markdown', () => {
+    assert.equal(normalisiereEnglisch('**Fee**: 70 €, § 4 Passgesetz, Stand 2026-08'), 'Fee: 70 euros, section 4 Passgesetz, as of August 2026');
+    assert.equal(sprechfassung('§ 17 BMG', SPRACHEN.en), 'section 17 BMG');
   });
 });

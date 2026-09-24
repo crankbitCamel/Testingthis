@@ -390,6 +390,27 @@ in `deploy/` (`jambonz-installieren.sh`, `server-einrichten.sh`,
 `docker-compose.server.yml`); Geheimnisse nach Vorlage `.env.example`.
 Kostenrechnung und Entscheidungen: **`docs/eu-sprachpipeline.md`**.
 
+**Gesprächsregeln, für beide Träger gleich (`server/dialog.mjs`):**
+
+- **Tasten im Gespräch:** `0` verbindet mit einer Mitarbeiterin oder einem
+  Mitarbeiter (Zielnummer `TELEFON_WEITERLEITUNG_NUMMER`, Servicezeiten
+  `TELEFON_WEITERLEITUNG_ZEITEN` wie `Mo-Fr 08:00-16:00`; ohne Nummer oder
+  außerhalb der Zeiten kommt ein Hinweis statt einer falschen Zusage). `2`
+  widerruft die Einwilligung und löscht die Einträge dieses Anrufs. Das Modell
+  hat dafür das Werkzeug `weiterleiten` und erfährt im Kontext, ob die
+  Weiterleitung gerade möglich ist.
+- **Stille und Unverständliches:** nach 2× Stille bzw. 3× zu leiser Erkennung
+  endet der Anruf freundlich (`TELEFON_MAX_STUMM`, `TELEFON_MAX_UNVERSTANDEN`).
+- **Einwilligung nachweisbar:** Zeitpunkt und vorgelesener Wortlaut werden mit
+  jedem Protokolleintrag gespeichert (`einwilligung_zeit`, `einwilligung_text`);
+  der Einwilligungssatz nennt den Widerruf; der Browser protokolliert nur mit
+  gesetztem Häkchen. Löschfrist `PROTOKOLL_TAGE` (Standard 90) läuft täglich
+  im Server. Äußerungstexte erscheinen nur mit `LOG_TEXT=1` im Server-Log.
+- **Paragrafen nur aus Belegen:** Nummern, die in keinem Werkzeugergebnis
+  vorkommen, werden aus der Antwort entfernt (`paragrafenBereinigen`).
+- **Zeitbudget je Runde:** 20 s für das Modell (`TELEFON_RUNDEN_BUDGET_MS`),
+  danach „zu lange“ und auflegen; Mistral auf 25 Anfragen/Minute begrenzt.
+
 **Whisper-Brücke: eigener Erkenner für Jambonz.** Jambonz kann fremde
 Erkenner über seine Custom-Speech-Schnittstelle anbinden: Es öffnet pro
 Äußerung einen WebSocket, schickt rohe 8-kHz-Audioframes und erwartet

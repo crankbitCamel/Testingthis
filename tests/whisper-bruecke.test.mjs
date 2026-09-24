@@ -91,8 +91,9 @@ describe('Erkennungssitzung (Pausenerkennung + Protokoll)', () => {
     assert.equal(gesendet[0].alternatives[0].transcript, 'erkannt 1');
     assert.equal(gesendet[0].language, 'de');
     assert.equal(aufrufe[0].sprache, 'de');
-    // Etwa 1 s Ton + 300 ms Vorlauf + 700 ms Nachlauf, in Bytes bei 8 kHz/16 bit.
-    assert.ok(aufrufe[0].bytes > 1.8 * RATE * 2 && aufrufe[0].bytes < 2.2 * RATE * 2, `Bytes ${aufrufe[0].bytes}`);
+    // Etwa 1 s Ton + 300 ms Vorlauf + 200 ms Nachlauf (der Rest der 700 ms
+    // Stille wird abgeschnitten), in Bytes bei 8 kHz/16 bit.
+    assert.ok(aufrufe[0].bytes > 1.3 * RATE * 2 && aufrufe[0].bytes < 1.7 * RATE * 2, `Bytes ${aufrufe[0].bytes}`);
   });
 
   test('nur Stille -> nichts gesendet; stop schliesst', async () => {

@@ -13,7 +13,7 @@ import { sprachwahl, sprachSetzen, einwilligungSetzen, anrufEingabe, anrufWarten
 import {
   jambonzAnruf, jambonzSprache, jambonzEinwilligung, jambonzEingabe, jambonzStatus, signaturPruefen,
 } from '../server/jambonz.mjs';
-import { protokolliere } from '../server/gespraechslog.mjs';
+import { protokolliere, aufraeumenPlanen } from '../server/gespraechslog.mjs';
 
 const WURZEL = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const PORT = Number(process.env.PORT ?? 4115);
@@ -101,12 +101,17 @@ const server = createServer(async (anfrage, antwort) => {
         const beginn = Date.now();
         const ergebnis = await gespraechsschritt({ nachricht, verlauf: verlaufSicher, land: landSicher });
         json(antwort, 200, ergebnis);
-        protokolliere({
-          kanal: 'browser', land: land || null, frage: nachricht,
-          antwort: ergebnis.text, modus: ergebnis.modus, modell: ergebnis.modell,
-          quellen: ergebnis.quellen, werkzeuge: ergebnis.werkzeuge,
-          dauerMs: Date.now() - beginn, beendet: Boolean(ergebnis.beendet),
-        });
+        // Protokoll nur mit ausdruecklicher Einwilligung des Nutzers (Feld
+        // "einwilligung": true im Koerper) - wie am Telefon per Taste 1.
+        if (koerper.einwilligung === true) {
+          protokolliere({
+            kanal: 'browser', land: landSicher, frage: nachricht,
+            antwort: ergebnis.text, modus: ergebnis.modus, modell: ergebnis.modell,
+            quellen: ergebnis.quellen, werkzeuge: ergebnis.werkzeuge,
+            dauerMs: Date.now() - beginn, beendet: Boolean(ergebnis.beendet),
+            einwilligungZeit: Date.now(), einwilligungText: 'Browser: Häkchen "Gespräch schriftlich protokollieren"',
+          });
+        }
       } catch (fehler) {
         // Details nur ins Server-Log, nicht zum Client (keine Pfade, keine
         // Upstream-Fehlertexte nach aussen).
@@ -238,5 +243,7 @@ server.requestTimeout = 30_000;
 
 server.listen(PORT, HOST, () => {
   console.log(`Verwaltungsassistent laeuft auf http://${HOST}:${PORT}`);
+  // Loeschfrist fuers Gespraechsprotokoll (PROTOKOLL_TAGE, Standard 90).
+  if (aufraeumenPlanen()) console.log(`Protokoll-Loeschfrist aktiv: ${process.env.PROTOKOLL_TAGE ?? 90} Tage`);
   console.log('Beenden mit Strg+C');
 });

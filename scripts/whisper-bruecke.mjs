@@ -10,4 +10,13 @@
  */
 import { brueckeStarten } from '../server/whisper-bruecke.mjs';
 
-brueckeStarten();
+const server = brueckeStarten();
+
+// Sauber herunterfahren: laufende Erkennungen duerfen zu Ende kommen (max. 20 s).
+function herunterfahren(signal) {
+  console.log(`${signal}: Whisper-Bruecke schliesst ...`);
+  server.close(() => process.exit(0));
+  setTimeout(() => process.exit(0), 20_000).unref();
+}
+process.on('SIGTERM', () => herunterfahren('SIGTERM'));
+process.on('SIGINT', () => herunterfahren('SIGINT'));

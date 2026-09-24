@@ -13,7 +13,10 @@ import { sprachwahl, sprachSetzen, einwilligungSetzen, anrufEingabe, anrufWarten
 import {
   jambonzAnruf, jambonzSprache, jambonzEinwilligung, jambonzEingabe, jambonzStatus, signaturPruefen,
 } from '../server/jambonz.mjs';
-import { protokolliere, aufraeumenPlanen } from '../server/gespraechslog.mjs';
+import { protokolliere, aufraeumenPlanen, datenbankPruefen } from '../server/gespraechslog.mjs';
+import { ladeIndex } from '../server/retrieval.mjs';
+import { anrufeAnzahl } from '../server/dialog.mjs';
+import { prometheusText, setze } from '../server/metriken.mjs';
 
 const WURZEL = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const PORT = Number(process.env.PORT ?? 4115);
@@ -81,6 +84,22 @@ const server = createServer(async (anfrage, antwort) => {
         anbieter: prov,
         modell,
       });
+      return;
+    }
+    // Gesundheit: Index geladen, Datenbank antwortet (falls konfiguriert).
+    // 503 bei Teilausfall - fuer Compose-Healthcheck und Monitoring.
+    if (url.pathname === '/api/health') {
+      const [index, db] = await Promise.all([
+        ladeIndex().then(() => ({ ok: true })).catch((f) => ({ ok: false, fehler: f.message })),
+        datenbankPruefen(),
+      ]);
+      const ok = index.ok && db.ok;
+      json(antwort, ok ? 200 : 503, { ok, index, datenbank: db, anrufe: anrufeAnzahl(), llm: llmKonfiguriert() ? 'bereit' : 'mock' });
+      return;
+    }
+    if (url.pathname === '/metrics') {
+      setze('anrufe_aktiv', anrufeAnzahl());
+      antwort.writeHead(200, { 'Content-Type': 'text/plain; version=0.0.4; charset=utf-8' }).end(prometheusText());
       return;
     }
     if (url.pathname === '/api/assistent' && anfrage.method === 'POST') {
@@ -240,6 +259,19 @@ const server = createServer(async (anfrage, antwort) => {
 // ganze Anfrage binnen 30 s.
 server.headersTimeout = 15_000;
 server.requestTimeout = 30_000;
+
+// Sauber herunterfahren: keine neuen Verbindungen, laufende Webhooks zu Ende
+// bringen (max. 25 s), dann beenden. Compose gibt 30 s (stop_grace_period).
+function herunterfahren(signal) {
+  console.log(`${signal}: Server schliesst ...`);
+  server.close(() => process.exit(0));
+  setTimeout(() => process.exit(0), 25_000).unref();
+}
+process.on('SIGTERM', () => herunterfahren('SIGTERM'));
+process.on('SIGINT', () => herunterfahren('SIGINT'));
+
+// Index vor dem ersten Anruf laden, damit nicht der erste Anrufer wartet.
+ladeIndex().catch((f) => console.warn('Index nicht geladen:', f.message));
 
 server.listen(PORT, HOST, () => {
   console.log(`Verwaltungsassistent laeuft auf http://${HOST}:${PORT}`);

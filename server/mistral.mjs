@@ -17,6 +17,7 @@
  *   ASSISTENT_MAX_TOKENS optional - Standard 512 (kurze, sprechbare Antworten)
  */
 import { WERKZEUGE, werkzeugAusfuehren, SYSTEM, kontextFuer, paragrafenBereinigen } from './assistent.mjs';
+import { zaehle } from './metriken.mjs';
 
 const ENDPUNKT = 'https://api.mistral.ai/v1/chat/completions';
 // Standard 'ministral-14b-latest': Function Calling, im Gratis-Tarif nutzbar
@@ -118,6 +119,7 @@ async function mistralAnfrage(messages, { toolChoice = 'auto', signal = null, ma
     }
 
     const text = await antwort.text();
+    zaehle('mistral_requests_total', { status: String(antwort.status) });
     if (antwort.ok) return JSON.parse(text);
 
     letzterFehler = new Error(`Mistral-API ${antwort.status}: ${text.slice(0, 400)}`);

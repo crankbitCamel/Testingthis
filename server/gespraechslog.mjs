@@ -109,6 +109,20 @@ export async function protokolliere(e = {}) {
   }
 }
 
+/** Gesundheitspruefung: Schema da und Datenbank antwortet (max. 2 s). */
+export async function datenbankPruefen() {
+  if (!datenbankKonfiguriert()) return { konfiguriert: false, ok: true };
+  try {
+    await Promise.race([
+      schemaSicherstellen().then(() => query('SELECT 1')),
+      new Promise((_, ablehnen) => setTimeout(() => ablehnen(new Error('Zeitueberschreitung')), 2000).unref()),
+    ]);
+    return { konfiguriert: true, ok: true };
+  } catch (fehler) {
+    return { konfiguriert: true, ok: false, fehler: fehler.message };
+  }
+}
+
 /**
  * Widerruf: alle Zeilen eines Anrufs loeschen (Anrufer drueckt waehrend des
  * Gespraechs die Taste fuer den Widerruf). Liefert die Anzahl geloeschter

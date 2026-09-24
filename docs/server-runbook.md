@@ -115,9 +115,22 @@ docker compose exec app npm run db:import
 Prüfen:
 
 ```bash
+curl -s http://127.0.0.1:4115/api/health     # {"ok":true,"index":{"ok":true},"datenbank":{"ok":true},...}
 curl -s http://127.0.0.1:4115/api/status     # {"llm":"bereit","anbieter":"mistral",...}
 curl -s http://127.0.0.1:4116/status         # {"dienst":"whisper-bruecke","whisper":"erreichbar",...}
+docker compose ps                            # alle Dienste "healthy"
 ```
+
+Metriken für das mitinstallierte Grafana: `curl -s http://127.0.0.1:4115/metrics`
+(Prometheus-Format: Rundendauer je Kanal, Mistral-Anfragen nach Status,
+Erkennungsdauer, aktive Anrufe). In Telegraf/Prometheus als Scrape-Ziel
+`http://127.0.0.1:4115/metrics` eintragen.
+
+Weiterleitung an Menschen (Taste 0 und Werkzeug des Modells): in `.env`
+`TELEFON_WEITERLEITUNG_NUMMER=+49...` und optional
+`TELEFON_WEITERLEITUNG_ZEITEN="Mo-Fr 08:00-16:00"` setzen. Ohne Nummer hört
+der Anrufer einen Hinweis statt einer Zusage. Jambonz wählt über den
+sipgate-Trunk (Ausgehend ab 0,5 ct/min).
 
 Ist das Repository privat, vorher einen Deploy-Key anlegen:
 `ssh-keygen -t ed25519 -f /root/.ssh/deploy -N ""`, den `.pub`-Inhalt unter

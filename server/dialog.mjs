@@ -25,6 +25,7 @@ import { gespraechsschritt, llmKonfiguriert } from './assistent.mjs';
 import { erkenneLand } from '../src/nlu.js';
 import { protokolliere, protokollLoeschen } from './gespraechslog.mjs';
 import { normalisiereFuerSprache, normalisiereEnglisch, entferneSchriftauszeichnung } from './sprechnormalisierung.mjs';
+import { beobachte, zaehle } from './metriken.mjs';
 
 // ---------------------------------------------------------------------------
 // Sprachen: alles, was je Sprache verschieden ist, an EINER Stelle.
@@ -357,7 +358,12 @@ export async function aeusserungVerarbeiten({ anrufId, text, konfidenz, taste, k
     });
   };
   // Latenz ist kein personenbezogenes Datum: immer loggen, ohne Inhalt.
-  const bilanz = (ergebnis) => console.log(`  runde ${kanal} anruf=${anrufKurz(anrufId)} modus=${ergebnis.modus} llm_ms=${Date.now() - beginn} werkzeuge=${ergebnis.werkzeuge?.length ?? 0}${ergebnis.beendet ? ' beendet' : ''}${ergebnis.weiterleiten ? ' weiterleiten' : ''}`);
+  const bilanz = (ergebnis) => {
+    const ms = Date.now() - beginn;
+    console.log(`  runde ${kanal} anruf=${anrufKurz(anrufId)} modus=${ergebnis.modus} llm_ms=${ms} werkzeuge=${ergebnis.werkzeuge?.length ?? 0}${ergebnis.beendet ? ' beendet' : ''}${ergebnis.weiterleiten ? ' weiterleiten' : ''}`);
+    beobachte('runde_dauer_ms', ms, { kanal });
+    zaehle('runden_total', { kanal, modus: ergebnis.modus ?? 'unbekannt' });
+  };
   // Zeitueberschreitung ist keine "technische Stoerung": eigener Text, auflegen.
   const fehlerSchritt = (fehler) => {
     console.error(`  sprachmodell ${kanal} anruf=${anrufKurz(anrufId)}: ${fehler.message}`);
@@ -427,6 +433,9 @@ export function antwortAbholen(anrufId) {
   }
   return { art: 'warten' };
 }
+
+/** Anzahl bekannter Anrufzustaende (fuer Gesundheit und Metriken). */
+export function anrufeAnzahl() { return anrufe.size; }
 
 /** Nur fuer Tests: Zustand eines Anrufs einsehen bzw. alles verwerfen. */
 export function _anrufZustand(anrufId) { return anrufe.get(anrufId) ?? null; }

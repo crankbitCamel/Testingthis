@@ -31,6 +31,7 @@
 import { createServer } from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
 import { websocketAnnehmen } from './ws.mjs';
+import { beobachte, zaehle } from './metriken.mjs';
 
 const WHISPER_URL = (process.env.WHISPER_URL ?? 'http://localhost:9000').replace(/\/$/, '');
 const SCHWELLE = Number(process.env.WHISPER_SCHWELLE ?? 500);
@@ -263,7 +264,10 @@ export class Sitzung {
         const e = await this.transkribieren(wavVerpacken(pcm, this.rate), this.sprache);
         if (final) {
           // Latenz-Logzeile ohne Inhalt: Audiodauer, Whisper-Dauer, Konfidenz.
-          console.log(`  stt sitzung=${this.nummer} audio_ms=${Math.round(pcm.length / 2 / this.rate * 1000)} whisper_ms=${this.jetzt() - beginn} konf=${e.confidence} zeichen=${e.text.length}`);
+          const whisperMs = this.jetzt() - beginn;
+          console.log(`  stt sitzung=${this.nummer} audio_ms=${Math.round(pcm.length / 2 / this.rate * 1000)} whisper_ms=${whisperMs} konf=${e.confidence} zeichen=${e.text.length}`);
+          beobachte('stt_dauer_ms', whisperMs, { sprache: this.sprache });
+          zaehle('stt_aeusserungen_total', { sprache: this.sprache });
         }
         if (!final && !e.text) return;
         this.senden(JSON.stringify({

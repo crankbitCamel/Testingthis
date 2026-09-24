@@ -55,17 +55,23 @@ services:
       - whisper-modelle:/root/.cache
     # Whisper braucht Kerne: bei 5 gleichzeitigen Anrufern spaeter 8 vCPU;
     # lokal einfach alles nehmen, was der Laptop hat.
+    # Gesund erst, wenn das Modell geladen ist (erster Start laedt es
+    # herunter, daher lange Startphase). Das Image hat Python, kein curl.
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:9000/docs', timeout=4).status==200 else 1)"]
+      interval: 15s
+      timeout: 6s
+      retries: 5
+      start_period: 300s
 
   # Whisper-Bruecke: eigener Erkenner fuer Jambonz (Custom Speech API).
   # Jambonz oeffnet WebSockets zu Port 4116 und bekommt Transkripte aus
   # unserem Whisper. Token = API-Key des Custom-Vendors in Jambonz.
   whisper-bruecke:
     profiles: ["app"]
-    image: node:22
+    build: .
+    image: verwaltung:latest
     container_name: verwaltung-whisper-bruecke
-    working_dir: /app
-    volumes:
-      - ./:/app
     command: node scripts/whisper-bruecke.mjs
     environment:
       HOST: 0.0.0.0
@@ -74,20 +80,34 @@ services:
       WHISPER_BRUECKE_TOKEN: ${WHISPER_BRUECKE_TOKEN:-}
     ports:
       - "${BIND_ADDR:-127.0.0.1}:4116:4116"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4116/status').then(r=>r.json()).then(j=>process.exit(j.whisper==='erreichbar'?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    stop_grace_period: 30s
     depends_on:
-      - whisper
+      whisper:
+        condition: service_healthy
 
   # Optional: die App selbst im Container (Profil "app"). Im Container muss
   # der Server auf 0.0.0.0 lauschen, damit Port 4115 nach aussen erreichbar
   # ist; die Datenbank heisst dann "postgres", nicht "localhost".
   app:
     profiles: ["app"]
-    image: node:22
+    # Eigenes Image (Dockerfile): Abhaengigkeiten beim Bauen, nicht bei jedem
+    # Start; laeuft als Nutzer "node"; kein Bind-Mount des Repositorys.
+    build: .
+    image: verwaltung:latest
     container_name: verwaltung-app
-    working_dir: /app
-    volumes:
-      - ./:/app
-    command: sh -c "npm install && npm run build:chunks && npm start"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4115/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    stop_grace_period: 30s
     environment:
       HOST: 0.0.0.0
       PORT: 4115

@@ -1,0 +1,16 @@
+.git
+.env
+.env.*
+!.env.example
+node_modules
+dist
+docs
+tests
+deploy
+extern
+*.mp3
+*.m4a
+*.wav
+*.ogg
+*.log
+.claude

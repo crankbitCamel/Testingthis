@@ -49,12 +49,30 @@ fi
 
 echo "== Container"
 $COMPOSE pull --quiet postgres whisper || true
-$COMPOSE up -d --build
+$COMPOSE build --quiet
+$COMPOSE up -d
 echo "   warte auf Postgres ..."
 for _ in $(seq 1 30); do
   if $COMPOSE exec -T postgres pg_isready -U verwaltung -d verwaltung >/dev/null 2>&1; then break; fi
   sleep 2
 done
+echo "   warte auf Whisper (laedt beim ersten Start das Modell, bis zu 5 Minuten) ..."
+for _ in $(seq 1 100); do
+  if curl -fs -m 4 http://127.0.0.1:9000/docs >/dev/null 2>&1; then break; fi
+  sleep 3
+done
+# Warmup: erste Erkennung dauert laenger (Modell in den Speicher); eine
+# Sekunde Stille genuegt, damit der erste Anrufer nicht darauf wartet.
+python3 - <<'PY' 2>/dev/null || true
+import struct, urllib.request, io
+pcm = b"\x00\x00" * 8000
+wav = b"RIFF" + struct.pack("<I", 36 + len(pcm)) + b"WAVEfmt " + struct.pack("<IHHIIHH", 16, 1, 1, 8000, 16000, 2, 16) + b"data" + struct.pack("<I", len(pcm)) + pcm
+grenze = "----warmup"
+body = (f"--{grenze}\r\nContent-Disposition: form-data; name=\"audio_file\"; filename=\"w.wav\"\r\nContent-Type: audio/wav\r\n\r\n").encode() + wav + f"\r\n--{grenze}--\r\n".encode()
+req = urllib.request.Request("http://127.0.0.1:9000/asr?task=transcribe&language=de&output=json", data=body, headers={"Content-Type": f"multipart/form-data; boundary={grenze}"})
+urllib.request.urlopen(req, timeout=120).read()
+print("   Whisper warm.")
+PY
 
 echo "== Wissensbasis importieren"
 $COMPOSE exec -T app npm run --silent db:import || echo "   Import fehlgeschlagen - spaeter erneut: $COMPOSE exec app npm run db:import"

@@ -9,7 +9,7 @@ import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   aeusserungVerarbeiten, einwilligungWaehlen, zustandFuer, servicezeitenParsen, weiterleitungStatus,
-  sprechfassung, SPRACHEN, MAX_UNVERSTANDEN, _anrufZustand, _anrufeLeeren,
+  antwortAbholen, sprechfassung, SPRACHEN, MAX_UNVERSTANDEN, MAX_POLLS, _anrufZustand, _anrufeLeeren, _jobs,
 } from '../server/dialog.mjs';
 import { paragrafenBereinigen, kontextFuer } from '../server/assistent.mjs';
 import { erkenneLand } from '../src/nlu.js';
@@ -39,6 +39,43 @@ describe('Stille und Unverstaendliches', () => {
     for (let i = 0; i < MAX_UNVERSTANDEN; i += 1) s = await aeusserungVerarbeiten({ anrufId: 'D3', text: 'hm', konfidenz: 0.1 });
     assert.equal(s.art, 'auflegen');
     assert.match(s.text, /mehrfach nicht verstehen/);
+  });
+});
+
+describe('Hintergrund-Antwort abholen (Poll-Pfad)', () => {
+  beforeEach(() => { _anrufeLeeren(); _jobs().clear(); });
+
+  test('kein Job -> weiter zuhoeren; laufend -> warten; fertig -> sagen', () => {
+    zustandFuer('P1');
+    assert.equal(antwortAbholen('P1').art, 'sagen');
+    _jobs().set('P1', { status: 'pending', polls: 0, erstellt: Date.now() });
+    assert.equal(antwortAbholen('P1').art, 'warten');
+    _jobs().set('P1', { status: 'done', ergebnis: { text: 'Antwort', quellen: [] }, polls: 0, erstellt: Date.now() });
+    const s = antwortAbholen('P1');
+    assert.equal(s.art, 'sagen');
+    assert.equal(s.text, 'Antwort');
+    assert.equal(_jobs().has('P1'), false);
+  });
+
+  test('zu viele Nachfragen -> "zu lange" und auflegen; Budgetfehler ebenso, Stoerung sonst', () => {
+    zustandFuer('P2');
+    _jobs().set('P2', { status: 'pending', polls: MAX_POLLS, erstellt: Date.now() });
+    const z = antwortAbholen('P2');
+    assert.equal(z.art, 'auflegen');
+    assert.match(z.text, /zu lange/);
+    zustandFuer('P3');
+    _jobs().set('P3', { status: 'error', fehler: { name: 'BudgetFehler' }, polls: 0, erstellt: Date.now() });
+    assert.match(antwortAbholen('P3').text, /zu lange/);
+    zustandFuer('P4');
+    _jobs().set('P4', { status: 'error', fehler: new Error('x'), polls: 0, erstellt: Date.now() });
+    assert.match(antwortAbholen('P4').text, /technische Störung/);
+  });
+
+  test('fertiger Job mit beendet -> auflegen und Zustand weg', () => {
+    zustandFuer('P5');
+    _jobs().set('P5', { status: 'done', ergebnis: { text: 'Tschüss', beendet: true }, polls: 0, erstellt: Date.now() });
+    assert.equal(antwortAbholen('P5').art, 'auflegen');
+    assert.equal(_anrufZustand('P5'), null);
   });
 });
 

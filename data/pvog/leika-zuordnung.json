@@ -1,0 +1,2836 @@
+{
+ "hinweis": "Automatisch über die PVOG-Suche zugeordnet. Bitte je Leistung prüfen, ggf. \"leika\" aus den Kandidaten wählen und \"geprueft\": true setzen.",
+ "referenzort": {
+  "ars": "053150000000",
+  "name": "Köln"
+ },
+ "erstellt": "2026-10-04T07:58:37.604Z",
+ "leistungen": {
+  "wohnsitz-anmeldung": {
+   "name": "Wohnsitz anmelden oder ummelden",
+   "leikaAlt": "Meldebescheinigung/Anmeldung einer Wohnung (LeiKa 99083016)",
+   "leika": "99115005104001",
+   "pvogName": "Wohnsitz Anmeldung als Hauptwohnsitz",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121407321",
+     "pvogName": "Wohnsitz Anmeldung als Hauptwohnsitz",
+     "score": 0.5,
+     "leikakeys": [
+      "99115005104001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121407320",
+     "pvogName": "Wohnsitz anmelden",
+     "score": 0.5,
+     "leikakeys": [
+      "99115005104000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121407316",
+     "pvogName": "Wohnsitz Abmeldung des Nebenwohnsitzes",
+     "score": 0.25,
+     "leikakeys": [
+      "99115005070002"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121345242",
+     "pvogName": "Gewerbe anmelden",
+     "score": 0.25,
+     "leikakeys": [
+      "99050012104000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "wohnsitz-abmeldung": {
+   "name": "Wohnsitz abmelden",
+   "leikaAlt": "Abmeldung einer Wohnung (LeiKa 99083020)",
+   "leika": "99115005070000",
+   "pvogName": "Wohnsitz Abmeldung",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121407311",
+     "pvogName": "Wohnsitz Abmeldung",
+     "score": 1,
+     "leikakeys": [
+      "99115005070000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121407316",
+     "pvogName": "Wohnsitz Abmeldung des Nebenwohnsitzes",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99115005070002"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121407320",
+     "pvogName": "Wohnsitz anmelden",
+     "score": 0.5,
+     "leikakeys": [
+      "99115005104000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121345227",
+     "pvogName": "Gewerbe Abmelden",
+     "score": 0.5,
+     "leikakeys": [
+      "99050012070000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "personalausweis": {
+   "name": "Personalausweis beantragen",
+   "leikaAlt": "Personalausweis - Ausstellung (LeiKa 99011001)",
+   "leika": "99008001012000",
+   "pvogName": "Personalausweis beantragen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121300542",
+     "pvogName": "Personalausweis beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99008001012000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121300545",
+     "pvogName": "Personalausweis erstmalig beantragen",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99008001012001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121300548",
+     "pvogName": "Vorläufigen Personalausweis beantragen",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99008001012002"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121300550",
+     "pvogName": "Personalausweis bei Verlust neu beantragen",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99008001012003"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "reisepass": {
+   "name": "Reisepass beantragen",
+   "leikaAlt": "Reisepass - Ausstellung (LeiKa 99011014)",
+   "leika": "99085001012000",
+   "pvogName": "Reisepass beantragen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121370768",
+     "pvogName": "Reisepass beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99085001012000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.100521036",
+     "pvogName": "Reisepass im Ausland beantragen",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99085001012012"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121370776",
+     "pvogName": "Express-Reisepass beantragen",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99085001012002"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121370782",
+     "pvogName": "Vorläufigen Reisepass beantragen",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99085001012005"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "ausweis-verlust": {
+   "name": "Verlust oder Diebstahl von Ausweis und Pass melden",
+   "leikaAlt": "Personalausweis - Verlustanzeige (LeiKa 99011001)",
+   "leika": "99008001014002",
+   "pvogName": "Verlust des eigenen Personalausweises melden",
+   "score": 0.33,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121300588",
+     "pvogName": "Verlust des eigenen Personalausweises melden",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99008001014002"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121300550",
+     "pvogName": "Personalausweis bei Verlust neu beantragen",
+     "score": 0.16666666666666666,
+     "leikakeys": [
+      "99008001012003"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121300548",
+     "pvogName": "Vorläufigen Personalausweis beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99008001012002"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121300595",
+     "pvogName": "Personalausweis abholen",
+     "score": 0,
+     "leikakeys": [
+      "99008001040000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "meldebescheinigung": {
+   "name": "Meldebescheinigung beantragen",
+   "leikaAlt": "Meldebescheinigung - Ausstellung (LeiKa 99083016)",
+   "leika": "99115003012000",
+   "pvogName": "amtliche Meldebestätigung Ausstellung",
+   "score": 0.33,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121406395",
+     "pvogName": "amtliche Meldebestätigung Ausstellung",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99115003012000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121346865",
+     "pvogName": "Spielhallen Erlaubnis  im Reisegewerbe beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99050028005001"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102837982",
+     "pvogName": "Gründung oder Schließung eines Unternehmens",
+     "score": 0,
+     "leikakeys": [
+      "99154049000000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121407320",
+     "pvogName": "Wohnsitz anmelden",
+     "score": 0,
+     "leikakeys": [
+      "99115005104000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "fuehrungszeugnis": {
+   "name": "Führungszeugnis beantragen",
+   "leikaAlt": "Führungszeugnis - Beantragung (LeiKa 99026001)",
+   "leika": "99049001001000",
+   "pvogName": "Führungszeugnis beantragen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "B100019.LB.577649",
+     "pvogName": "Führungszeugnis beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99049001001000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121346865",
+     "pvogName": "Spielhallen Erlaubnis  im Reisegewerbe beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99050028005001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121353746",
+     "pvogName": "Ersatzausstellung der Erlaubnisurkunde oder Gemeinschaftslizenz beantragen",
+     "score": 0.2,
+     "leikakeys": [
+      "99055031012000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102837982",
+     "pvogName": "Gründung oder Schließung eines Unternehmens",
+     "score": 0,
+     "leikakeys": [
+      "99154049000000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "eid-online-ausweisfunktion": {
+   "name": "Online-Ausweisfunktion aktivieren oder PIN zurücksetzen",
+   "leikaAlt": "Personalausweis - Online-Ausweisfunktion (LeiKa 99011001)",
+   "leika": "99008004180000",
+   "pvogName": "Allgemeine Beeidigung  als Gerichtsdolmetscher oder Gerichtsdolmetscherin beantragen",
+   "score": 0.17,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.143668957",
+     "pvogName": "Allgemeine Beeidigung  als Gerichtsdolmetscher oder Gerichtsdolmetscherin beantragen",
+     "score": 0.16666666666666666,
+     "leikakeys": [
+      "99018174001000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121302859",
+     "pvogName": "eID-Karte als europäische Bürgerin oder europäischer Bürger beantragen",
+     "score": 0.14285714285714285,
+     "leikakeys": [
+      "99008005012000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.126384034",
+     "pvogName": "Allgemeine Vereidigung als Dolmetscher oder Dolmetscherin nach Landesgesetz beantragen",
+     "score": 0.125,
+     "leikakeys": [
+      "99018163263000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121302856",
+     "pvogName": "Adressänderung auf der eID-Karte beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99008005011001"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "wohnungsgeberbestaetigung": {
+   "name": "Wohnungsgeberbestätigung ausstellen oder erhalten",
+   "leikaAlt": "Mitwirkung des Wohnungsgebers bei der Anmeldung (LeiKa 99083016)",
+   "leika": "99115005104000",
+   "pvogName": "Wohnsitz anmelden",
+   "score": 0,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121407320",
+     "pvogName": "Wohnsitz anmelden",
+     "score": 0,
+     "leikakeys": [
+      "99115005104000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121407321",
+     "pvogName": "Wohnsitz Anmeldung als Hauptwohnsitz",
+     "score": 0,
+     "leikakeys": [
+      "99115005104001"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "auskunftssperre": {
+   "name": "Auskunftssperre im Melderegister eintragen lassen",
+   "leikaAlt": "Melderegisterauskunft - Auskunftssperre (LeiKa 99083020)",
+   "leika": null,
+   "pvogName": "Einfache Melderegisterauskunft",
+   "score": 0.25,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121406398",
+     "pvogName": "Einfache Melderegisterauskunft",
+     "score": 0.25,
+     "leikakeys": [
+      "99115004001001"
+     ]
+    }
+   ],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "kfz-zulassung": {
+   "name": "Fahrzeug zulassen",
+   "leikaAlt": "Fahrzeugzulassung - Erstzulassung und Wiederzulassung (LeiKa 99045002)",
+   "leika": "99036020001000",
+   "pvogName": "Tageszulassung für ein Fahrzeug beantragen",
+   "score": 0.33,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121337526",
+     "pvogName": "Tageszulassung für ein Fahrzeug beantragen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99036025001000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121337552",
+     "pvogName": "Außerbetriebsetzung für ein Fahrzeug beantragen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99036026017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121337079",
+     "pvogName": "Erstzulassung eines Fahrzeugs (Neuzulassung) beantragen",
+     "score": 0.2,
+     "leikakeys": [
+      "99036020001000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121337097",
+     "pvogName": "Erstzulassung eines Fahrzeugs aus einem EU-Mitgliedstaat beantragen",
+     "score": 0.16666666666666666,
+     "leikakeys": [
+      "99036020001002"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "kfz-ummeldung": {
+   "name": "Fahrzeug ummelden oder umschreiben",
+   "leikaAlt": "Fahrzeugzulassung - Umschreibung (LeiKa 99045002)",
+   "leika": null,
+   "pvogName": null,
+   "score": 0,
+   "geprueft": true,
+   "kandidaten": [],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "kfz-abmeldung": {
+   "name": "Fahrzeug außer Betrieb setzen",
+   "leikaAlt": "Fahrzeugzulassung - Außerbetriebsetzung (LeiKa 99045002)",
+   "leika": "99036026017000",
+   "pvogName": "Außerbetriebsetzung für ein Fahrzeug beantragen",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121337552",
+     "pvogName": "Außerbetriebsetzung für ein Fahrzeug beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99036026017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121337517",
+     "pvogName": "Außerbetriebsetzung für ein zulassungsfreies Fahrzeug beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99036024017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.126128731",
+     "pvogName": "Außerbetriebsetzung für ein Fahrzeug mit Wechselkennzeichen beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99036026017001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121332926",
+     "pvogName": "Betriebserlaubnis für ein zulassungsfreies Fahrzeug beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99026006005000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "wunschkennzeichen": {
+   "name": "Wunschkennzeichen reservieren",
+   "leikaAlt": "Fahrzeugzulassung - Wunschkennzeichen (LeiKa 99045002)",
+   "leika": "99036049069000",
+   "pvogName": "Wunschkennzeichen für ein Fahrzeug beantragen",
+   "score": 0.33,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121338256",
+     "pvogName": "Wunschkennzeichen für ein Fahrzeug beantragen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99036049069000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121337594",
+     "pvogName": "Kennzeichen für elektrisch betriebene Fahrzeuge (E-Kennzeichen) beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99036031069000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "fuehrerschein-ersterteilung": {
+   "name": "Fahrerlaubnis erstmals beantragen",
+   "leikaAlt": "Fahrerlaubnis - Ersterteilung (LeiKa 99042001)",
+   "leika": "99108047001001",
+   "pvogName": "Internationalen Führerschein beantragen",
+   "score": 0.33,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121402094",
+     "pvogName": "Internationalen Führerschein beantragen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99108062012000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121400698",
+     "pvogName": "Neuen Führerschein wegen Diebstahl, Unleserlichkeit oder Verlust beantragen",
+     "score": 0.125,
+     "leikakeys": [
+      "99108049012005"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121400683",
+     "pvogName": "Alten Führerschein in neuen Führerschein umtauschen",
+     "score": 0,
+     "leikakeys": [
+      "99108049012001"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102837920",
+     "pvogName": "Führerschein erwerben oder verlängern",
+     "score": 0,
+     "leikakeys": [
+      "99154016000000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "fuehrerschein-umtausch": {
+   "name": "Führerschein umtauschen",
+   "leikaAlt": "Fahrerlaubnis - Umtausch (LeiKa 99042005)",
+   "leika": "99108049012001",
+   "pvogName": "Alten Führerschein in neuen Führerschein umtauschen",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121400683",
+     "pvogName": "Alten Führerschein in neuen Führerschein umtauschen",
+     "score": 0.5,
+     "leikakeys": [
+      "99108049012001"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102837920",
+     "pvogName": "Führerschein erwerben oder verlängern",
+     "score": 0.25,
+     "leikakeys": [
+      "99154016000000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121400698",
+     "pvogName": "Neuen Führerschein wegen Diebstahl, Unleserlichkeit oder Verlust beantragen",
+     "score": 0.125,
+     "leikakeys": [
+      "99108049012005"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121400649",
+     "pvogName": "Umschreibung einer Dienstfahrerlaubnis in allgemeine Fahrerlaubnis beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99108047050003"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "fuehrerschein-verlust": {
+   "name": "Ersatzführerschein bei Verlust oder Diebstahl",
+   "leikaAlt": "Fahrerlaubnis - Ersatzausfertigung (LeiKa 99042005)",
+   "leika": "99108049012005",
+   "pvogName": "Neuen Führerschein wegen Diebstahl, Unleserlichkeit oder Verlust beantragen",
+   "score": 0.38,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121400698",
+     "pvogName": "Neuen Führerschein wegen Diebstahl, Unleserlichkeit oder Verlust beantragen",
+     "score": 0.375,
+     "leikakeys": [
+      "99108049012005"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121370796",
+     "pvogName": "Reisepass Meldung wegen Verlust",
+     "score": 0.25,
+     "leikakeys": [
+      "99085001014003"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121372921",
+     "pvogName": "Kinderreisepass Meldung wegen Verlust",
+     "score": 0.25,
+     "leikakeys": [
+      "99085003014003"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121300550",
+     "pvogName": "Personalausweis bei Verlust neu beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99008001012003"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "internationaler-fuehrerschein": {
+   "name": "Internationalen Führerschein beantragen",
+   "leikaAlt": "Internationaler Führerschein - Ausstellung (LeiKa 99042005)",
+   "leika": "99108062012000",
+   "pvogName": "Internationalen Führerschein beantragen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121402094",
+     "pvogName": "Internationalen Führerschein beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99108062012000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102837920",
+     "pvogName": "Führerschein erwerben oder verlängern",
+     "score": 0.25,
+     "leikakeys": [
+      "99154016000000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "bewohnerparkausweis": {
+   "name": "Bewohnerparkausweis beantragen",
+   "leikaAlt": "Bewohnerparkausweis - Ausstellung (LeiKa 99045015)",
+   "leika": "99108001001000",
+   "pvogName": "Bewohnerparkausweis Erteilung",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121396864",
+     "pvogName": "Bewohnerparkausweis Erteilung",
+     "score": 0.5,
+     "leikakeys": [
+      "99108001001000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121396869",
+     "pvogName": "Bewohnerparkausweis Verlängerung",
+     "score": 0.5,
+     "leikakeys": [
+      "99108001020000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121396871",
+     "pvogName": "Neuausstellung des Bewohnerparkausweises wegen Verlust beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99108001036001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121396866",
+     "pvogName": "Neuausstellung des Bewohnerparkausweises wegen Änderung der Personen-, Adress- oder Kfz-Daten beantragen",
+     "score": 0.2222222222222222,
+     "leikakeys": [
+      "99108001011001"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "schwerbehindertenparkausweis": {
+   "name": "Parkausweis für Menschen mit Behinderung beantragen",
+   "leikaAlt": "Parkerleichterungen für schwerbehinderte Menschen (LeiKa 99045015)",
+   "leika": "99108009012000",
+   "pvogName": null,
+   "score": 0,
+   "geprueft": true,
+   "kandidaten": [],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "geburtsurkunde": {
+   "name": "Geburt anzeigen und Geburtsurkunde beantragen",
+   "leikaAlt": "Geburtsurkunde - Ausstellung (LeiKa 99012001)",
+   "leika": "99027002012000",
+   "pvogName": "Geburtsurkunde beantragen",
+   "score": 0.75,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121332951",
+     "pvogName": "Geburtsurkunde beantragen",
+     "score": 0.75,
+     "leikakeys": [
+      "99027002012000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121332957",
+     "pvogName": "Mehrsprachige Geburtsurkunde beantragen",
+     "score": 0.75,
+     "leikakeys": [
+      "99027002012002"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121332965",
+     "pvogName": "Geburt im Ausland beurkunden lassen",
+     "score": 0.5,
+     "leikakeys": [
+      "99027003026000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121332963",
+     "pvogName": "Geburtsurkunde beantragen bei Geburt im Ausland oder in einem ehemaligen deutschen Gebiet",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99027002012003"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "kindergeld": {
+   "name": "Kindergeld beantragen",
+   "leikaAlt": "Kindergeld - Beantragung (LeiKa 99075001)",
+   "leika": "99041008017000",
+   "pvogName": "Kindergeld beantragen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "B100019.LB.576986",
+     "pvogName": "Kindergeld beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99041008017000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.581863",
+     "pvogName": "Kinderzuschlag beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99107016017000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.101740601",
+     "pvogName": "Baukindergeld beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99148028080000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121386439",
+     "pvogName": "Freibeträge für Kind über 18 Jahren beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99102002060002"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "elterngeld": {
+   "name": "Elterngeld beantragen",
+   "leikaAlt": "Elterngeld - Beantragung (LeiKa 99075002)",
+   "leika": "99041006017000",
+   "pvogName": "Elterngeld beantragen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121339181",
+     "pvogName": "Elterngeld beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99041006017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121339180",
+     "pvogName": "Elterngeld Informationserteilung",
+     "score": 0.5,
+     "leikakeys": [
+      "99041006013000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.581863",
+     "pvogName": "Kinderzuschlag beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99107016017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121339182",
+     "pvogName": "Elterngeld - Berechnung",
+     "score": 0.5,
+     "leikakeys": [
+      "99041006151000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "kita-platz": {
+   "name": "Kita-Platz oder Kindertagespflege beantragen",
+   "leikaAlt": "Kindertagesbetreuung - Betreuungsplatz (LeiKa 99075011)",
+   "leika": null,
+   "pvogName": "Ermäßigung der Kita-Kosten beantragen",
+   "score": 0.4,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121391597",
+     "pvogName": "Ermäßigung der Kita-Kosten beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99107007149000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121391593",
+     "pvogName": "Befreiung von den Kita-Kosten beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99107007010000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121366628",
+     "pvogName": "Kind bei Tagesmutter oder Tagesvater anmelden",
+     "score": 0.4,
+     "leikakeys": [
+      "99071005080000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121296644",
+     "pvogName": "Entschädigung nach dem Infektionsschutzgesetz Gewährung",
+     "score": 0,
+     "leikakeys": [
+      "99003054080000"
+     ]
+    }
+   ],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "vaterschaftsanerkennung": {
+   "name": "Vaterschaft anerkennen und Sorgeerklärung abgeben",
+   "leikaAlt": "Vaterschaftsanerkennung - Beurkundung (LeiKa 99075008)",
+   "leika": "99133001026000",
+   "pvogName": "Gemeinsame Sorge für ein Kind erklären",
+   "score": 0.25,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121319948",
+     "pvogName": "Gemeinsame Sorge für ein Kind erklären",
+     "score": 0.25,
+     "leikakeys": [
+      "99013005026000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121417823",
+     "pvogName": "Vaterschaftsanerkennung",
+     "score": 0.25,
+     "leikakeys": [
+      "99133001026000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121366646",
+     "pvogName": "Beratung und Beistandschaft bei Fragen zum Unterhalt durch das Jugendamt erhalten",
+     "score": 0,
+     "leikakeys": [
+      "99072002077000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121332982",
+     "pvogName": "Ausdruck aus dem Geburtenregister",
+     "score": 0,
+     "leikakeys": [
+      "99027005250000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "unterhaltsvorschuss": {
+   "name": "Unterhaltsvorschuss beantragen",
+   "leikaAlt": "Unterhaltsvorschuss - Beantragung (LeiKa 99075006)",
+   "leika": "99107021017000",
+   "pvogName": "Unterhaltsvorschuss",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121393359",
+     "pvogName": "Unterhaltsvorschuss",
+     "score": 0.5,
+     "leikakeys": [
+      "99107021017000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.581863",
+     "pvogName": "Kinderzuschlag beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99107016017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121395876",
+     "pvogName": "Änderungen mitteilen, die wichtig sind für den Bezug von Unterhaltsvorschuss",
+     "score": 0.16666666666666666,
+     "leikakeys": [
+      "99107103017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121395873",
+     "pvogName": "Jährlich prüfen lassen, ob mein Kind Unterhaltsvorschuss bekommt",
+     "score": 0.14285714285714285,
+     "leikakeys": [
+      "99107102017000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "bildung-und-teilhabe": {
+   "name": "Leistungen für Bildung und Teilhabe beantragen",
+   "leikaAlt": "Bildung und Teilhabe - Leistungen (LeiKa 99075014)",
+   "leika": null,
+   "pvogName": "Leistungen im Rahmen der sozialen Entschädigung zur Teilhabe an Bildung beantragen",
+   "score": 0.57,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.169461773",
+     "pvogName": "Leistungen im Rahmen der sozialen Entschädigung zur Teilhabe an Bildung beantragen",
+     "score": 0.5714285714285714,
+     "leikakeys": [
+      "99107136017003"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.581863",
+     "pvogName": "Kinderzuschlag beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99107016017000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.106311931",
+     "pvogName": "Grundsicherungsgeld beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99107108017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121395884",
+     "pvogName": "Bürgergeld beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99107108017000"
+     ]
+    }
+   ],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "mutterschutz": {
+   "name": "Mutterschutz und Mutterschaftsgeld",
+   "leikaAlt": "Mutterschaftsgeld und Mutterschutz (LeiKa 99075010)",
+   "leika": "99107018017001",
+   "pvogName": "Mutterschaftsgeld als gesetzlich Krankenversicherte beantragen",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "B100019.LB.107396311",
+     "pvogName": "Mutterschaftsgeld als gesetzlich Krankenversicherte beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99107018017001"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.932485",
+     "pvogName": "Erstattung für gezahltes Entgelt im Mutterschutz beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99107038039000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121392476",
+     "pvogName": "Hilfe zur Gesundheit Bewilligung bei Schwangerschaft und Mutterschaft",
+     "score": 0.4,
+     "leikakeys": [
+      "99107013017001"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.107396312",
+     "pvogName": "Mutterschaftsgeld als privat Krankenversicherte oder bei einer gesetzlichen Krankenkasse als Familienversicherte beantragen",
+     "score": 0.2222222222222222,
+     "leikakeys": [
+      "99107018017002"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "eheschliessung": {
+   "name": "Eheschließung anmelden",
+   "leikaAlt": "Eheschließung - Anmeldung (LeiKa 99012004)",
+   "leika": "99059001104000",
+   "pvogName": "Heirat anmelden",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121356058",
+     "pvogName": "Heirat anmelden",
+     "score": 0.5,
+     "leikakeys": [
+      "99059001104000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121388418",
+     "pvogName": "Elektronische Lohnsteuerabzugsmerkmale Änderung bei Heirat",
+     "score": 0,
+     "leikakeys": [
+      "99102036011003"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121300564",
+     "pvogName": "Personalausweis neu beantragen wegen Namensänderung bei Heirat",
+     "score": 0,
+     "leikakeys": [
+      "99008001012006"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121370791",
+     "pvogName": "Reisepass wegen Namensänderung durch Heirat oder Lebenspartnerschaft neu beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99085001012010"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "ehefaehigkeitszeugnis": {
+   "name": "Ehefähigkeitszeugnis für eine Heirat im Ausland",
+   "leikaAlt": "Ehefähigkeitszeugnis - Ausstellung (LeiKa 99012004)",
+   "leika": "99059002012000",
+   "pvogName": "Ehefähigkeitszeugnis beantragen",
+   "score": 0.25,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121356068",
+     "pvogName": "Ehefähigkeitszeugnis beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99059002012000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "sterbefall": {
+   "name": "Sterbefall beurkunden und Sterbeurkunde erhalten",
+   "leikaAlt": "Sterbefall - Beurkundung (LeiKa 99012009)",
+   "leika": "99101004012000",
+   "pvogName": "Sterbeurkunde eines Familienmitglieds beantragen",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121385148",
+     "pvogName": "Sterbeurkunde eines Familienmitglieds beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99101004012000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.582435",
+     "pvogName": "Waisenrente von der gesetzlichen Unfallversicherung erhalten",
+     "score": 0.25,
+     "leikakeys": [
+      "99111022080000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "bestattung": {
+   "name": "Bestattung und Grabstelle regeln",
+   "leikaAlt": "Bestattung - Friedhofsangelegenheiten (LeiKa 99012009)",
+   "leika": null,
+   "pvogName": "Übernahme der Bestattungskosten beantragen",
+   "score": 0.33,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121385186",
+     "pvogName": "Übernahme der Bestattungskosten beantragen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99101014080000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102780564",
+     "pvogName": "Sterbegeld von der Landwirtschaftlichen Unfallversicherung erhalten",
+     "score": 0,
+     "leikakeys": [
+      "99157025080000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.582410",
+     "pvogName": "Sterbegeld für Hinterbliebene aus der gesetzlichen Unfallversicherung erhalten",
+     "score": 0,
+     "leikakeys": [
+      "99111018080000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121385148",
+     "pvogName": "Sterbeurkunde eines Familienmitglieds beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99101004012000"
+     ]
+    }
+   ],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "personenstandsurkunde": {
+   "name": "Personenstandsurkunden bestellen",
+   "leikaAlt": "Personenstandsurkunde - Ausstellung (LeiKa 99012012)",
+   "leika": "99059004012000",
+   "pvogName": "Urkunden Ersatz",
+   "score": 0,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121321372",
+     "pvogName": "Urkunden Ersatz",
+     "score": 0,
+     "leikakeys": [
+      "99014002036000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121332982",
+     "pvogName": "Ausdruck aus dem Geburtenregister",
+     "score": 0,
+     "leikakeys": [
+      "99027005250000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121356074",
+     "pvogName": "Ausstellen einer Eheurkunde beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99059004012000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121368798",
+     "pvogName": "Ausstellen einer Lebenspartnerschaftsurkunde beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99079003012000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "kirchenaustritt": {
+   "name": "Kirchenaustritt erklären",
+   "leikaAlt": "Kirchenaustritt - Erklärung (LeiKa 99000000)",
+   "leika": null,
+   "pvogName": null,
+   "score": 0,
+   "geprueft": true,
+   "kandidaten": [],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "buergergeld": {
+   "name": "Bürgergeld beantragen",
+   "leikaAlt": "Bürgergeld - Beantragung (LeiKa 99074001)",
+   "leika": "99107108017000",
+   "pvogName": "Bürgergeld beantragen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121395884",
+     "pvogName": "Bürgergeld beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99107108017000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.106311931",
+     "pvogName": "Grundsicherungsgeld beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99107108017000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102713860",
+     "pvogName": "Einstiegsgeld beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99007030017000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102713862",
+     "pvogName": "Leistungen zur Eingliederung von Selbständigen beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99007031017000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "arbeitslosengeld": {
+   "name": "Arbeitslos melden und Arbeitslosengeld beantragen",
+   "leikaAlt": "Arbeitslosengeld - Beantragung (LeiKa 99074003)",
+   "leika": "99038001017000",
+   "pvogName": "Arbeitslos melden",
+   "score": 0.75,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "B100019.LB.102730320",
+     "pvogName": "Arbeitslos melden",
+     "score": 0.75,
+     "leikakeys": [
+      "99038006029000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.576842",
+     "pvogName": "Arbeitslosengeld beantragen",
+     "score": 0.75,
+     "leikakeys": [
+      "99038001017000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102730306",
+     "pvogName": "Veränderungen der persönlichen Lage bei Arbeitslosigkeit melden",
+     "score": 0.6,
+     "leikakeys": [
+      "99038008261000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.574730",
+     "pvogName": "Gründungszuschuss beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99007005017000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "wohngeld": {
+   "name": "Wohngeld beantragen",
+   "leikaAlt": "Wohngeld - Beantragung (LeiKa 99076001)",
+   "leika": "99107023037000",
+   "pvogName": "Wohngeld Weiterleistung beantragen",
+   "score": 0.67,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121394048",
+     "pvogName": "Wohngeld Weiterleistung beantragen",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99107023037001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121394019",
+     "pvogName": "Wohngeld Erhöhung beantragen",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99107023011001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121394041",
+     "pvogName": "Wohngeld erstmalig oder neu beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99107023037000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.581863",
+     "pvogName": "Kinderzuschlag beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99107016017000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "schwerbehindertenausweis": {
+   "name": "Schwerbehindertenausweis beantragen",
+   "leikaAlt": "Schwerbehindertenausweis - Ausstellung (LeiKa 99073002)",
+   "leika": "99015007012000",
+   "pvogName": "Schwerbehindertenausweis beantragen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121322749",
+     "pvogName": "Schwerbehindertenausweis beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99015007012000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.593465",
+     "pvogName": "Kraftfahrzeugsteuervergünstigung für schwerbehinderte Personen beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99102015149000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121322735",
+     "pvogName": "Feststellung einer Behinderung beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99015004037000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121392448",
+     "pvogName": "Hilfe zum Lebensunterhalt (Sozialhilfe) beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99107012017000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "sozialhilfe": {
+   "name": "Sozialhilfe und Grundsicherung im Alter beantragen",
+   "leikaAlt": "Grundsicherung im Alter und bei Erwerbsminderung (LeiKa 99074010)",
+   "leika": "99107009017000",
+   "pvogName": "Sozialhilfe beantragen",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121392419",
+     "pvogName": "Sozialhilfe beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99107009017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121392448",
+     "pvogName": "Hilfe zum Lebensunterhalt (Sozialhilfe) beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99107012017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121393301",
+     "pvogName": "Hilfe zur Pflege beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99107014017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121385186",
+     "pvogName": "Übernahme der Bestattungskosten beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99101014080000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "wohnberechtigungsschein": {
+   "name": "Wohnberechtigungsschein beantragen",
+   "leikaAlt": "Wohnberechtigungsschein - Ausstellung (LeiKa 99076004)",
+   "leika": "99107022012000",
+   "pvogName": "Wohnberechtigungsschein beantragen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121393397",
+     "pvogName": "Wohnberechtigungsschein beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99107022012000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "rente-altersrente": {
+   "name": "Altersrente beantragen",
+   "leikaAlt": "Altersrente - Beantragung (LeiKa 99107004)",
+   "leika": "99114045017001",
+   "pvogName": "Regelaltersrente von der Landwirtschaftlichen Alterskasse beantragen ",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "B100019.LB.102780597",
+     "pvogName": "Regelaltersrente von der Landwirtschaftlichen Alterskasse beantragen ",
+     "score": 0.5,
+     "leikakeys": [
+      "99158004017001"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102751197",
+     "pvogName": "Altersrente für langjährig Versicherte beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99114045017002"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102780598",
+     "pvogName": "Vorzeitige Altersrente für Ehegatten von der Landwirtschaftlichen Alterskasse beantragen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99158004017002"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102753303",
+     "pvogName": "Rente für Bergleute beantragen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99114014017000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "gewerbeanmeldung": {
+   "name": "Gewerbe anmelden",
+   "leikaAlt": "Gewerbeanmeldung (LeiKa 99050001)",
+   "leika": "99050012104000",
+   "pvogName": "Gewerbe anmelden",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121345242",
+     "pvogName": "Gewerbe anmelden",
+     "score": 1,
+     "leikakeys": [
+      "99050012104000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121345236",
+     "pvogName": "Gewerbe ummelden",
+     "score": 0.5,
+     "leikakeys": [
+      "99050012071000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121370750",
+     "pvogName": "Taxigenehmigung Erteilung",
+     "score": 0,
+     "leikakeys": [
+      "99084012001000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121370752",
+     "pvogName": "Erweiterung der Taxigenehmigung beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99084012049000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "gewerbeummeldung": {
+   "name": "Gewerbe ummelden",
+   "leikaAlt": "Gewerbeummeldung (LeiKa 99050001)",
+   "leika": "99050012071000",
+   "pvogName": "Gewerbe ummelden",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121345236",
+     "pvogName": "Gewerbe ummelden",
+     "score": 1,
+     "leikakeys": [
+      "99050012071000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102837976",
+     "pvogName": "Netzwerk Einheitlicher Ansprechpartner",
+     "score": 0,
+     "leikakeys": [
+      "99155002000000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102837982",
+     "pvogName": "Gründung oder Schließung eines Unternehmens",
+     "score": 0,
+     "leikakeys": [
+      "99154049000000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121422546",
+     "pvogName": "Netzwerk einheitlicher Ansprechpartner für einfache Abwicklung von Verwaltungsverfahren nutzen",
+     "score": 0,
+     "leikakeys": [
+      "99144017215000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "gewerbeabmeldung": {
+   "name": "Gewerbe abmelden",
+   "leikaAlt": "Gewerbeabmeldung (LeiKa 99050001)",
+   "leika": "99050012070000",
+   "pvogName": "Gewerbe Abmelden",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121345227",
+     "pvogName": "Gewerbe Abmelden",
+     "score": 1,
+     "leikakeys": [
+      "99050012070000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102796730",
+     "pvogName": "Unternehmen, selbstständige oder freiberufliche Tätigkeit bei der gesetzlichen Unfallversicherung abmelden",
+     "score": 0.125,
+     "leikakeys": [
+      "99111025070000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102778714",
+     "pvogName": "Abmelden von Unternehmen oder selbstständiger Tätigkeit in der Land- und Forstwirtschaft oder im Gartenbau",
+     "score": 0.125,
+     "leikakeys": [
+      "99157001070000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121344198",
+     "pvogName": "Entlassung aus der Bestellung als bevollmächtigter Bezirksschornsteinfeger beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99050003044000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "gaststaettenerlaubnis": {
+   "name": "Gaststättenerlaubnis beantragen",
+   "leikaAlt": "Gaststättenerlaubnis - Erteilung (LeiKa 99050010)",
+   "leika": "99025002005000",
+   "pvogName": "Vorläufige Gaststättenerlaubnis beantragen",
+   "score": 0.67,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121331823",
+     "pvogName": "Vorläufige Gaststättenerlaubnis beantragen",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99025002005001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121331811",
+     "pvogName": "Gaststättenerlaubnis",
+     "score": 0.5,
+     "leikakeys": [
+      "99025002005000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121344178",
+     "pvogName": "Schankerlaubnis beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99050002005000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121331831",
+     "pvogName": "Gaststättengewerbe, Gestattung aus besonderem Anlass beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99025002056000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "reisegewerbekarte": {
+   "name": "Reisegewerbekarte beantragen",
+   "leikaAlt": "Reisegewerbekarte - Erteilung (LeiKa 99050004)",
+   "leika": "99050023005000",
+   "pvogName": "Reisegewerbekarte beantragen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121345956",
+     "pvogName": "Reisegewerbekarte beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99050023005000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121345963",
+     "pvogName": "Reisegewerbe Bewilligung",
+     "score": 0.5,
+     "leikakeys": [
+      "99050023017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121346865",
+     "pvogName": "Spielhallen Erlaubnis  im Reisegewerbe beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99050028005001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121345971",
+     "pvogName": "Reisegewerbekarte verlängern lassen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99050023020000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "gewerbezentralregister": {
+   "name": "Auskunft aus dem Gewerbezentralregister beantragen",
+   "leikaAlt": "Gewerbezentralregister - Auskunft (LeiKa 99026003)",
+   "leika": "99052002109000",
+   "pvogName": "Auskunft aus dem Gewerbezentralregister beantragen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "B100019.LB.577922",
+     "pvogName": "Auskunft aus dem Gewerbezentralregister beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99052002109000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121346865",
+     "pvogName": "Spielhallen Erlaubnis  im Reisegewerbe beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99050028005001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121353746",
+     "pvogName": "Ersatzausstellung der Erlaubnisurkunde oder Gemeinschaftslizenz beantragen",
+     "score": 0.2,
+     "leikakeys": [
+      "99055031012000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102837982",
+     "pvogName": "Gründung oder Schließung eines Unternehmens",
+     "score": 0,
+     "leikakeys": [
+      "99154049000000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "steuerliche-erfassung": {
+   "name": "Fragebogen zur steuerlichen Erfassung und Steuernummer",
+   "leikaAlt": "Steuerliche Erfassung von Unternehmen (LeiKa 99102040)",
+   "leika": "99102019120000",
+   "pvogName": "Steuernummer für Versicherungsteuer oder Feuerschutzsteuer beantragen",
+   "score": 0.4,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "B100019.LB.102554744",
+     "pvogName": "Steuernummer für Versicherungsteuer oder Feuerschutzsteuer beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99102096107000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102587245",
+     "pvogName": "Steuernummer oder Steuer-Identifikationsnummer für das IT-Verfahren EMCS zur Nutzung der Internet-EMCS-Anwendung (IEA) erfassen oder ändern lassen",
+     "score": 0.25,
+     "leikakeys": [
+      "99102105058000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102748130",
+     "pvogName": "Steuernummer oder Steueridentifikationsnummer in den Stammdaten für die Nutzung der Internet-Ausfuhranmeldung-Plus (IAA Plus) eintragen oder ändern lassen",
+     "score": 0.18181818181818182,
+     "leikakeys": [
+      "99122056058000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102837982",
+     "pvogName": "Gründung oder Schließung eines Unternehmens",
+     "score": 0,
+     "leikakeys": [
+      "99154049000000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "bauantrag": {
+   "name": "Baugenehmigung beantragen",
+   "leikaAlt": "Baugenehmigung - Erteilung (LeiKa 99056001)",
+   "leika": "99012070006001",
+   "pvogName": "Abbruchgenehmigung beantragen",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121318180",
+     "pvogName": "Abbruchgenehmigung beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99012077006000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121318159",
+     "pvogName": "Baugenehmigung für die Nutzungsänderung einer Anlage beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99012071006000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121318162",
+     "pvogName": "Verlängerung der Baugenehmigung für die Nutzungsänderung einer Anlage beantragen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99012071020001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121318160",
+     "pvogName": "Baugenehmigung für die Nutzungsänderung einer Anlage im vereinfachten Verfahren beantragen",
+     "score": 0.2857142857142857,
+     "leikakeys": [
+      "99012071006001"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "bauvoranfrage": {
+   "name": "Bauvoranfrage stellen",
+   "leikaAlt": "Vorbescheid - Erteilung (LeiKa 99056001)",
+   "leika": "99012068006000",
+   "pvogName": "Bauvoranfrage stellen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121318147",
+     "pvogName": "Bauvoranfrage stellen",
+     "score": 1,
+     "leikakeys": [
+      "99012068006000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "denkmalschutz-erlaubnis": {
+   "name": "Denkmalrechtliche Erlaubnis beantragen",
+   "leikaAlt": "Denkmalrechtliche Erlaubnis (LeiKa 99062001)",
+   "leika": null,
+   "pvogName": "Förderung aus dem Denkmalpflegeprogramm „National wertvolle Kulturdenkmäler“ beantragen",
+   "score": 0.33,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "B100019.LB.102541844",
+     "pvogName": "Förderung aus dem Denkmalpflegeprogramm „National wertvolle Kulturdenkmäler“ beantragen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99148049017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121318180",
+     "pvogName": "Abbruchgenehmigung beantragen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99012077006000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121423743",
+     "pvogName": "Förderanträge im Rahmen des Denkmalschutz-Sonderprogramms VIII Bewilligung",
+     "score": 0.16666666666666666,
+     "leikakeys": [
+      "99148048017000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121318185",
+     "pvogName": "Beseitigungsanzeige einreichen",
+     "score": 0,
+     "leikakeys": [
+      "99012078261000"
+     ]
+    }
+   ],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "abgeschlossenheitsbescheinigung": {
+   "name": "Abgeschlossenheitsbescheinigung beantragen",
+   "leikaAlt": "Abgeschlossenheitsbescheinigung (LeiKa 99056012)",
+   "leika": "99012002012000",
+   "pvogName": "Abgeschlossenheitsbescheinigung nach dem Wohnungseigentumsgesetz beantragen",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121315487",
+     "pvogName": "Abgeschlossenheitsbescheinigung nach dem Wohnungseigentumsgesetz beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99012002012000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "auslaender-aufenthaltserlaubnis": {
+   "name": "Aufenthaltserlaubnis beantragen oder verlängern",
+   "leikaAlt": "Aufenthaltserlaubnis - Erteilung und Verlängerung (LeiKa 99087001)",
+   "leika": "99010019020001",
+   "pvogName": "Verlängerung der Aufenthaltserlaubnis zur betrieblichen Aus- und Weiterbildung beantragen",
+   "score": 0.6,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121306493",
+     "pvogName": "Verlängerung der Aufenthaltserlaubnis zur betrieblichen Aus- und Weiterbildung beantragen",
+     "score": 0.6,
+     "leikakeys": [
+      "99010019020001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121314127",
+     "pvogName": "Verlängerung der Aufenthaltserlaubnis für den Nachzug des Ehegatten zu Ausländern beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99010023020005"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121312543",
+     "pvogName": "Beantragen einer Verlängerung der Aufenthaltserlaubnis aus dringenden humanitären oder persönlichen Gründen",
+     "score": 0.4444444444444444,
+     "leikakeys": [
+      "99010022020011"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121308131",
+     "pvogName": "Verlängerung der Aufenthaltserlaubnis für die Ausbildungsplatzsuche zur Durchführung einer qualifizierten Berufsausbildung beantragen",
+     "score": 0.375,
+     "leikakeys": [
+      "99010019020014"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "niederlassungserlaubnis": {
+   "name": "Niederlassungserlaubnis beantragen",
+   "leikaAlt": "Niederlassungserlaubnis - Erteilung (LeiKa 99087004)",
+   "leika": "99010003001013",
+   "pvogName": "Niederlassungserlaubnis für Familienangehörige von Deutschen beantragen",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121304914",
+     "pvogName": "Niederlassungserlaubnis für Familienangehörige von Deutschen beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99010003001013"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121304165",
+     "pvogName": "Niederlassungserlaubnis für minderjährige ausländische Kinder beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99010003001002"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121304151",
+     "pvogName": "Niederlassungserlaubnis für hoch qualifizierte Fachkräfte beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99010003001001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121304901",
+     "pvogName": "Niederlassungserlaubnis für anerkannte Asylberechtigte und Flüchtlinge beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99010003001011"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "einbuergerung": {
+   "name": "Einbürgerung beantragen",
+   "leikaAlt": "Einbürgerung - Antrag (LeiKa 99088001)",
+   "leika": "99099002067000",
+   "pvogName": "Einbürgerung Verleihung",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121384112",
+     "pvogName": "Einbürgerung Verleihung",
+     "score": 0.5,
+     "leikakeys": [
+      "99099002067000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102758197",
+     "pvogName": "Einbürgerung für ehemalige Deutsche im Ausland beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99099002067001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121384124",
+     "pvogName": "Einbürgerung für seit der Geburt staatenlose Personen beantragen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99099002067008"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121384116",
+     "pvogName": "Einbürgerung Verleihung der deutschen Staatsangehörigkeit für Ausländer mit Einbürgerungsanspruch",
+     "score": 0.16666666666666666,
+     "leikakeys": [
+      "99099002067003"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "verpflichtungserklaerung": {
+   "name": "Verpflichtungserklärung für Besuchsvisum abgeben",
+   "leikaAlt": "Verpflichtungserklärung nach § 68 AufenthG (LeiKa 99087010)",
+   "leika": "99010005261000",
+   "pvogName": "Verpflichtungserklärung zur Übernahme einer Baulast  abgeben",
+   "score": 0.4,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121319202",
+     "pvogName": "Verpflichtungserklärung zur Übernahme einer Baulast  abgeben",
+     "score": 0.4,
+     "leikakeys": [
+      "99012088261001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121304935",
+     "pvogName": "Verpflichtungserklärung zur Übernahme der Kosten einer ausländischen Person in Deutschland abgeben",
+     "score": 0.25,
+     "leikakeys": [
+      "99010005261000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121319201",
+     "pvogName": "Entgegennahme einer Verpflichtungserklärung zur Übernahme einer Baulast",
+     "score": 0.2,
+     "leikakeys": [
+      "99012088261000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121319203",
+     "pvogName": "Entgegennahme einer Verpflichtungserklärung zur Übernahme einer Baulast",
+     "score": 0.2,
+     "leikakeys": [
+      "99012088261002"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "anerkennung-berufsabschluss": {
+   "name": "Ausländischen Berufsabschluss anerkennen lassen",
+   "leikaAlt": "Anerkennung ausländischer Berufsqualifikationen (LeiKa 99083030)",
+   "leika": "99019003016000",
+   "pvogName": "ausländische Berufsausbildungsabschlüsse Anerkennung",
+   "score": 0.75,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121327376",
+     "pvogName": "ausländische Berufsausbildungsabschlüsse Anerkennung",
+     "score": 0.75,
+     "leikakeys": [
+      "99019003016000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121426342",
+     "pvogName": "Anerkennung einer ausländischen Berufsqualifikation im Bereich Hauswirtschaft und Familienpflege beantragen",
+     "score": 0.375,
+     "leikakeys": [
+      "99150075037000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121428304",
+     "pvogName": "Anerkennung für berufsfachschulische und fachschulische Abschlüsse mit einer ausländischen Berufsqualifikation beantragen",
+     "score": 0.375,
+     "leikakeys": [
+      "99150088037000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121328612",
+     "pvogName": "Bildungsabschlüsse aus anderen Bundesländern Anerkennung",
+     "score": 0.25,
+     "leikakeys": [
+      "99019007016000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "sperrmuell": {
+   "name": "Sperrmüll anmelden",
+   "leikaAlt": "Sperrmüllabfuhr - Anmeldung (LeiKa 99043010)",
+   "leika": null,
+   "pvogName": null,
+   "score": 0,
+   "geprueft": true,
+   "kandidaten": [],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "muelltonne": {
+   "name": "Mülltonne anmelden, ändern oder abmelden",
+   "leikaAlt": "Abfallbehälter - An- und Abmeldung (LeiKa 99043005)",
+   "leika": null,
+   "pvogName": "Recycling und Abfallentsorgung",
+   "score": 0,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "B100019.LB.102840712",
+     "pvogName": "Recycling und Abfallentsorgung",
+     "score": 0,
+     "leikakeys": [
+      "99154078000000"
+     ]
+    }
+   ],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "hundesteuer": {
+   "name": "Hund anmelden und Hundesteuer zahlen",
+   "leikaAlt": "Hundesteuer - Anmeldung (LeiKa 99114001)",
+   "leika": "99102013104000",
+   "pvogName": "Hundesteuer Anmeldung",
+   "score": 0.75,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121387243",
+     "pvogName": "Hundesteuer Anmeldung",
+     "score": 0.75,
+     "leikakeys": [
+      "99102013104000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121387244",
+     "pvogName": "Hundesteuer Ermäßigung",
+     "score": 0.5,
+     "leikakeys": [
+      "99102013149000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121387241",
+     "pvogName": "Hundesteuer Befreiung",
+     "score": 0.5,
+     "leikakeys": [
+      "99102013010000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121387242",
+     "pvogName": "Hundesteuer Abmeldung",
+     "score": 0.5,
+     "leikakeys": [
+      "99102013070000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "baumfaellgenehmigung": {
+   "name": "Baumfällgenehmigung beantragen",
+   "leikaAlt": "Fällgenehmigung nach Baumschutzsatzung (LeiKa 99061006)",
+   "leika": "99090023276000",
+   "pvogName": "Beseitigung oder Abschneiden bestimmter Bäume, Hecken, lebender Zäune, Gebüsche innerhalb eines bestimmten Zeitraums beantragen",
+   "score": 0.07,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121381259",
+     "pvogName": "Beseitigung oder Abschneiden bestimmter Bäume, Hecken, lebender Zäune, Gebüsche innerhalb eines bestimmten Zeitraums beantragen",
+     "score": 0.07142857142857142,
+     "leikakeys": [
+      "99090023276000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "fundbuero": {
+   "name": "Fundsache abgeben oder verlorene Sache suchen",
+   "leikaAlt": "Fundsachen - Verwaltung (LeiKa 99000010)",
+   "leika": null,
+   "pvogName": "Neuen Führerschein wegen Diebstahl, Unleserlichkeit oder Verlust beantragen",
+   "score": 0.13,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121400698",
+     "pvogName": "Neuen Führerschein wegen Diebstahl, Unleserlichkeit oder Verlust beantragen",
+     "score": 0.125,
+     "leikakeys": [
+      "99108049012005"
+     ]
+    }
+   ],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "jagdschein": {
+   "name": "Jagdschein beantragen oder verlängern",
+   "leikaAlt": "Jagdschein - Erteilung (LeiKa 99058001)",
+   "leika": "99067004001000",
+   "pvogName": "Jagdschein erstmalig beantragen",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121361869",
+     "pvogName": "Jagdschein erstmalig beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99067004001000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121361880",
+     "pvogName": "Jagdschein nach Einziehung erneut beantragen",
+     "score": 0.4,
+     "leikakeys": [
+      "99067004123000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121361874",
+     "pvogName": "Jagdschein einziehen",
+     "score": 0.25,
+     "leikakeys": [
+      "99067004052000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121361872",
+     "pvogName": "Jagdschein ändern lassen",
+     "score": 0.25,
+     "leikakeys": [
+      "99067004011000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "fischereischein": {
+   "name": "Fischereischein (Angelschein) beantragen",
+   "leikaAlt": "Fischereischein - Erteilung (LeiKa 99034004)",
+   "leika": "99042001012000",
+   "pvogName": "Ausstellung eines Fischereischeins",
+   "score": 0.33,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121339849",
+     "pvogName": "Ausstellung eines Fischereischeins",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99042001012000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121339855",
+     "pvogName": "Fischerprüfung Abnahme",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99042003031000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121345966",
+     "pvogName": "Ausnahmen von Verboten im Reisegewerbe beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99050023017001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.159645371",
+     "pvogName": "Ausstellung eines Ersatzfischereischeins bei Verlust des Scheckkarten-Fischereischeins",
+     "score": 0.16666666666666666,
+     "leikakeys": [
+      "99042039012000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "bussgeldbescheid-einspruch": {
+   "name": "Einspruch gegen einen Bußgeldbescheid einlegen",
+   "leikaAlt": "Ordnungswidrigkeitenverfahren - Einspruch (LeiKa 99109001)",
+   "leika": null,
+   "pvogName": "Bußgeldverfahren der Künstlersozialkasse bei Verstoß gegen Pflichten",
+   "score": 0.4,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "B100019.LB.102775799",
+     "pvogName": "Bußgeldverfahren der Künstlersozialkasse bei Verstoß gegen Pflichten",
+     "score": 0.4,
+     "leikakeys": [
+      "99107095058000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.104352128",
+     "pvogName": "Auskunft aus dem Wettbewerbsregister beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99600002001000"
+     ]
+    }
+   ],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "sondernutzungserlaubnis": {
+   "name": "Sondernutzungserlaubnis für öffentliche Flächen beantragen",
+   "leikaAlt": "Sondernutzungserlaubnis (LeiKa 99045020)",
+   "leika": "99053004006000",
+   "pvogName": "Sondernutzung öffentlicher Grünflächen beantragen",
+   "score": 0.75,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121352687",
+     "pvogName": "Sondernutzung öffentlicher Grünflächen beantragen",
+     "score": 0.75,
+     "leikakeys": [
+      "99053004006000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121351682",
+     "pvogName": "Die Erlaubnis für ein Prostitutionsfahrzeug beantragen",
+     "score": 0.25,
+     "leikakeys": [
+      "99050182005000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121398084",
+     "pvogName": "Sondernutzung von Straßen Erlaubnis außerhalb der Ortschaft",
+     "score": 0.2,
+     "leikakeys": [
+      "99108012005002"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "halteverbotszone": {
+   "name": "Halteverbotszone für einen Umzug einrichten",
+   "leikaAlt": "Verkehrsrechtliche Anordnung - Haltverbot (LeiKa 99045020)",
+   "leika": "99108011153000",
+   "pvogName": "Parkausweis für schwerbehinderte Menschen verlängern",
+   "score": 0,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121398039",
+     "pvogName": "Parkausweis für schwerbehinderte Menschen verlängern",
+     "score": 0,
+     "leikakeys": [
+      "99108009020000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "veranstaltung-anmelden": {
+   "name": "Veranstaltung oder Versammlung anmelden",
+   "leikaAlt": "Veranstaltungen und Versammlungen - Anzeige und Erlaubnis (LeiKa 99045025)",
+   "leika": "99089016008000",
+   "pvogName": "Eine Versammlung anmelden",
+   "score": 0.5,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121376005",
+     "pvogName": "Eine Versammlung anmelden",
+     "score": 0.5,
+     "leikakeys": [
+      "99089016008000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121347617",
+     "pvogName": "Tierausstellung, Tiermarkt oder Tierbörse anmelden",
+     "score": 0.4,
+     "leikakeys": [
+      "99050032002001"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102924703",
+     "pvogName": "Sich über Vorhaben zum Stromnetzausbau informieren, beteiligen und zu anstehenden Veranstaltungen anmelden",
+     "score": 0.2222222222222222,
+     "leikakeys": [
+      "99030020058000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102924705",
+     "pvogName": "Sich über Vorhaben zum Stromnetzausbau informieren, beteiligen und zu anstehenden Veranstaltungen anmelden",
+     "score": 0.2222222222222222,
+     "leikakeys": [
+      "99030021058000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "grundsteuer": {
+   "name": "Grundsteuer und Grundsteuerbescheid",
+   "leikaAlt": "Grundsteuer - Festsetzung (LeiKa 99102010)",
+   "leika": "99102012002000",
+   "pvogName": "Grundsteuerbescheid erhalten",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121387227",
+     "pvogName": "Grundsteuerbescheid erhalten",
+     "score": 1,
+     "leikakeys": [
+      "99102012002000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121387236",
+     "pvogName": "Grundsteuerbescheid für Grundstücke erhalten",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99102012002002"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121387232",
+     "pvogName": "Grundsteuerbescheid für land- und forstwirtschaftlich genutzte Flächen bzw. Betriebe der Land- und Forstwirtschaft erhalten",
+     "score": 0.25,
+     "leikakeys": [
+      "99102012002001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121418856",
+     "pvogName": "Verkürzte Prüfung zur Steuerberaterin oder Steuerberater beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99135002057000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "zweitwohnungsteuer": {
+   "name": "Zweitwohnungsteuer anmelden",
+   "leikaAlt": "Zweitwohnungsteuer - Anmeldung (LeiKa 99114010)",
+   "leika": "99102017002000",
+   "pvogName": "Erklärung zur Zweitwohnungssteuer abgeben",
+   "score": 0.33,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121387261",
+     "pvogName": "Erklärung zur Zweitwohnungssteuer abgeben",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99102017002000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102837925",
+     "pvogName": "Bedingungen und Verpflichtungen im Zusammenhang mit Kauf und Verkauf von Immobilien",
+     "score": 0,
+     "leikakeys": [
+      "99154021000000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "gewerbesteuer": {
+   "name": "Gewerbesteuer und Gewerbesteuerbescheid",
+   "leikaAlt": "Gewerbesteuer - Festsetzung (LeiKa 99102015)",
+   "leika": "99102010002000",
+   "pvogName": "Gewerbesteuer bezahlen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121387215",
+     "pvogName": "Gewerbesteuer bezahlen",
+     "score": 1,
+     "leikakeys": [
+      "99102010002000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.101357854",
+     "pvogName": "elektronische Übermittlung der Steuererklärung und Bezug von Steuervordrucken",
+     "score": 0,
+     "leikakeys": [
+      "99102046013000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102840703",
+     "pvogName": "Sonstige Steuern",
+     "score": 0,
+     "leikakeys": [
+      "99154069000000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102837925",
+     "pvogName": "Bedingungen und Verpflichtungen im Zusammenhang mit Kauf und Verkauf von Immobilien",
+     "score": 0,
+     "leikakeys": [
+      "99154021000000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "steuer-identifikationsnummer": {
+   "name": "Steuerliche Identifikationsnummer erhalten oder erneut mitteilen lassen",
+   "leikaAlt": "Steuerliche Identifikationsnummer - Mitteilung (LeiKa 99102001)",
+   "leika": "99102064058000",
+   "pvogName": "Steuernummer oder Steuer-Identifikationsnummer für das IT-Verfahren EMCS zur Nutzung der Internet-EMCS-Anwendung (IEA) erfassen oder ändern lassen",
+   "score": 0.33,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "B100019.LB.102587245",
+     "pvogName": "Steuernummer oder Steuer-Identifikationsnummer für das IT-Verfahren EMCS zur Nutzung der Internet-EMCS-Anwendung (IEA) erfassen oder ändern lassen",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99102105058000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102730390",
+     "pvogName": "Steueridentifikationsnummer erhalten",
+     "score": 0.2857142857142857,
+     "leikakeys": [
+      "99102044101000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102748130",
+     "pvogName": "Steuernummer oder Steueridentifikationsnummer in den Stammdaten für die Nutzung der Internet-Ausfuhranmeldung-Plus (IAA Plus) eintragen oder ändern lassen",
+     "score": 0.2727272727272727,
+     "leikakeys": [
+      "99122056058000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102837988",
+     "pvogName": "Unternehmensgründung: Vertragsrecht, einschließlich Verzugszinsen",
+     "score": 0,
+     "leikakeys": [
+      "99154054000000"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "einkommensteuererklaerung": {
+   "name": "Einkommensteuererklärung abgeben",
+   "leikaAlt": "Einkommensteuer - Erklärung (LeiKa 99102003)",
+   "leika": "99102008002000",
+   "pvogName": "Elektronische Lohnsteuerabzugsmerkmale Änderung bei Heirat",
+   "score": 0,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121388418",
+     "pvogName": "Elektronische Lohnsteuerabzugsmerkmale Änderung bei Heirat",
+     "score": 0,
+     "leikakeys": [
+      "99102036011003"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.101357854",
+     "pvogName": "elektronische Übermittlung der Steuererklärung und Bezug von Steuervordrucken",
+     "score": 0,
+     "leikakeys": [
+      "99102046013000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.103262323",
+     "pvogName": "Wahlrecht für Unternehmen mit Sitz im EU-Ausland zur Besteuerung von Waren im One-Stop-Shop (OSS) beantragen",
+     "score": 0,
+     "leikakeys": [
+      "99102150058002"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121389524",
+     "pvogName": "Steuererklärung Beratung zur steuerlichen Berücksichtigung von Kinderbetreuungskosten",
+     "score": 0,
+     "leikakeys": [
+      "99102046018001"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  },
+  "steuerklassenwechsel": {
+   "name": "Steuerklasse wechseln",
+   "leikaAlt": "Lohnsteuerklassenwechsel (LeiKa 99102011)",
+   "leika": null,
+   "pvogName": null,
+   "score": 0,
+   "geprueft": true,
+   "kandidaten": [],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "schulanmeldung": {
+   "name": "Kind zur Schule anmelden",
+   "leikaAlt": "Schulanmeldung und Einschulung (LeiKa 99065001)",
+   "leika": null,
+   "pvogName": "Beratung beim Übergang in eine weiterführende Schule",
+   "score": 0.17,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121372978",
+     "pvogName": "Beratung beim Übergang in eine weiterführende Schule",
+     "score": 0.16666666666666666,
+     "leikakeys": [
+      "99088008018000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.142388380",
+     "pvogName": "Einschulungsuntersuchung durchführen",
+     "score": 0,
+     "leikakeys": [
+      "99003108058001"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121350692",
+     "pvogName": "Verpflichtenden jährlichen Prüfungsbericht  oder Negativerklärung als Bauträger und/oder Baubetreuer einreichen",
+     "score": 0,
+     "leikakeys": [
+      "99050154261000"
+     ]
+    },
+    {
+     "pvogId": "B100019.LB.102730341",
+     "pvogName": "Förderung einer Maßnahme zur Aktivierung und beruflichen Eingliederung von der Agentur für Arbeit bekommen",
+     "score": 0,
+     "leikakeys": [
+      "99007009027002"
+     ]
+    }
+   ],
+   "pruefung": "keine passende PVOG-Leistung in Köln gefunden - Quelle: Satzung oder Stadtseite"
+  },
+  "bafoeg": {
+   "name": "BAföG beantragen",
+   "leikaAlt": "Ausbildungsförderung nach dem BAföG (LeiKa 99065010)",
+   "leika": "99022001017003",
+   "pvogName": "BAföG für ein Studium beantragen",
+   "score": 0.67,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121331226",
+     "pvogName": "BAföG für ein Studium beantragen",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99022001017003"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121331219",
+     "pvogName": "BAföG für einen Schulbesuch beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99022001017002"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121417163",
+     "pvogName": "Aufstiegsfortbildungsförderung (Aufstiegs-BAföG) beantragen",
+     "score": 0.5,
+     "leikakeys": [
+      "99131004027000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.176743809",
+     "pvogName": "Information zu Darlehensbedingungen für BAföG",
+     "score": 0.3333333333333333,
+     "leikakeys": [
+      "99022009013000"
+     ]
+    }
+   ],
+   "pruefung": "automatischer Treffer bestätigt"
+  },
+  "schuelerbefoerderung": {
+   "name": "Schülerbeförderung und Schülerfahrkarte beantragen",
+   "leikaAlt": "Schülerbeförderung - Kostenübernahme (LeiKa 99065015)",
+   "leika": "99088011039000",
+   "pvogName": "Entlastung von der Schülerbeförderung beantragen",
+   "score": 1,
+   "geprueft": true,
+   "kandidaten": [
+    {
+     "pvogId": "L100002.LB.121372992",
+     "pvogName": "Entlastung von der Schülerbeförderung beantragen",
+     "score": 1,
+     "leikakeys": [
+      "99088011278000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121372987",
+     "pvogName": "Schülerbeförderung Erstattung",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99088011039000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121372991",
+     "pvogName": "Zuständigkeit für die Schülerbeförderung",
+     "score": 0.6666666666666666,
+     "leikakeys": [
+      "99088011058000"
+     ]
+    },
+    {
+     "pvogId": "L100002.LB.121372989",
+     "pvogName": "Schülerbeförderung Erstattung der Kosten für Behinderte und Kranke",
+     "score": 0.4,
+     "leikakeys": [
+      "99088011039002"
+     ]
+    }
+   ],
+   "pruefung": "von Hand korrigiert nach gezielter Suche"
+  }
+ }
+}

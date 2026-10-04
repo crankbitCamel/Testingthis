@@ -1,0 +1,1806 @@
+{
+ "quelle": "Destatis, Gemeindeverzeichnis-Onlineprodukt, Gebietsstand 31.12.2024, Bevölkerung Zensus-Basis 2022",
+ "anzahl": 200,
+ "kommunen": [
+  {
+   "ars": "110000000000",
+   "name": "Berlin",
+   "nameAmtlich": "Berlin, Stadt",
+   "land": "11",
+   "bundesland": "Berlin",
+   "einwohner": 3685265,
+   "plz": "10178"
+  },
+  {
+   "ars": "020000000000",
+   "name": "Hamburg",
+   "nameAmtlich": "Hamburg, Freie und Hansestadt",
+   "land": "02",
+   "bundesland": "Hamburg",
+   "einwohner": 1862565,
+   "plz": "20038"
+  },
+  {
+   "ars": "091620000000",
+   "name": "München",
+   "nameAmtlich": "München, Landeshauptstadt",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 1505005,
+   "plz": "80313"
+  },
+  {
+   "ars": "053150000000",
+   "name": "Köln",
+   "nameAmtlich": "Köln, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 1024621,
+   "plz": "50667"
+  },
+  {
+   "ars": "064120000000",
+   "name": "Frankfurt am Main",
+   "nameAmtlich": "Frankfurt am Main, Stadt",
+   "land": "06",
+   "bundesland": "Hessen",
+   "einwohner": 756021,
+   "plz": "60311"
+  },
+  {
+   "ars": "051110000000",
+   "name": "Düsseldorf",
+   "nameAmtlich": "Düsseldorf, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 618685,
+   "plz": "40213"
+  },
+  {
+   "ars": "081110000000",
+   "name": "Stuttgart",
+   "nameAmtlich": "Stuttgart, Landeshauptstadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 612663,
+   "plz": "70173"
+  },
+  {
+   "ars": "147130000000",
+   "name": "Leipzig",
+   "nameAmtlich": "Leipzig, Stadt",
+   "land": "14",
+   "bundesland": "Sachsen",
+   "einwohner": 611850,
+   "plz": "04109"
+  },
+  {
+   "ars": "059130000000",
+   "name": "Dortmund",
+   "nameAmtlich": "Dortmund, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 603462,
+   "plz": "44135"
+  },
+  {
+   "ars": "040110000000",
+   "name": "Bremen",
+   "nameAmtlich": "Bremen, Stadt",
+   "land": "04",
+   "bundesland": "Bremen",
+   "einwohner": 586271,
+   "plz": "28195"
+  },
+  {
+   "ars": "051130000000",
+   "name": "Essen",
+   "nameAmtlich": "Essen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 574682,
+   "plz": "45121"
+  },
+  {
+   "ars": "146120000000",
+   "name": "Dresden",
+   "nameAmtlich": "Dresden, Stadt",
+   "land": "14",
+   "bundesland": "Sachsen",
+   "einwohner": 564904,
+   "plz": "01067"
+  },
+  {
+   "ars": "095640000000",
+   "name": "Nürnberg",
+   "nameAmtlich": "Nürnberg",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 529508,
+   "plz": "90403"
+  },
+  {
+   "ars": "032410001001",
+   "name": "Hannover",
+   "nameAmtlich": "Hannover, Landeshauptstadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 522131,
+   "plz": "30159"
+  },
+  {
+   "ars": "051120000000",
+   "name": "Duisburg",
+   "nameAmtlich": "Duisburg, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 502270,
+   "plz": "47051"
+  },
+  {
+   "ars": "059110000000",
+   "name": "Bochum",
+   "nameAmtlich": "Bochum, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 358676,
+   "plz": "44787"
+  },
+  {
+   "ars": "051240000000",
+   "name": "Wuppertal",
+   "nameAmtlich": "Wuppertal, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 358193,
+   "plz": "42275"
+  },
+  {
+   "ars": "057110000000",
+   "name": "Bielefeld",
+   "nameAmtlich": "Bielefeld, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 331605,
+   "plz": "33602"
+  },
+  {
+   "ars": "053140000000",
+   "name": "Bonn",
+   "nameAmtlich": "Bonn, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 323336,
+   "plz": "53111"
+  },
+  {
+   "ars": "082220000000",
+   "name": "Mannheim",
+   "nameAmtlich": "Mannheim, Universitätsstadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 318035,
+   "plz": "68159"
+  },
+  {
+   "ars": "082120000000",
+   "name": "Karlsruhe",
+   "nameAmtlich": "Karlsruhe, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 309050,
+   "plz": "76133"
+  },
+  {
+   "ars": "055150000000",
+   "name": "Münster",
+   "nameAmtlich": "Münster, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 308258,
+   "plz": "48143"
+  },
+  {
+   "ars": "097610000000",
+   "name": "Augsburg",
+   "nameAmtlich": "Augsburg",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 301105,
+   "plz": "86150"
+  },
+  {
+   "ars": "064140000000",
+   "name": "Wiesbaden",
+   "nameAmtlich": "Wiesbaden, Landeshauptstadt",
+   "land": "06",
+   "bundesland": "Hessen",
+   "einwohner": 288850,
+   "plz": "65183"
+  },
+  {
+   "ars": "055130000000",
+   "name": "Gelsenkirchen",
+   "nameAmtlich": "Gelsenkirchen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 267930,
+   "plz": "45879"
+  },
+  {
+   "ars": "051160000000",
+   "name": "Mönchengladbach",
+   "nameAmtlich": "Mönchengladbach, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 267213,
+   "plz": "41061"
+  },
+  {
+   "ars": "053340002002",
+   "name": "Aachen",
+   "nameAmtlich": "Aachen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 262670,
+   "plz": "52058"
+  },
+  {
+   "ars": "031010000000",
+   "name": "Braunschweig",
+   "nameAmtlich": "Braunschweig, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 252962,
+   "plz": "38100"
+  },
+  {
+   "ars": "010020000000",
+   "name": "Kiel",
+   "nameAmtlich": "Kiel, Landeshauptstadt",
+   "land": "01",
+   "bundesland": "Schleswig-Holstein",
+   "einwohner": 252668,
+   "plz": "24103"
+  },
+  {
+   "ars": "145110000000",
+   "name": "Chemnitz",
+   "nameAmtlich": "Chemnitz, Stadt",
+   "land": "14",
+   "bundesland": "Sachsen",
+   "einwohner": 245618,
+   "plz": "09111"
+  },
+  {
+   "ars": "150030000000",
+   "name": "Magdeburg",
+   "nameAmtlich": "Magdeburg, Landeshauptstadt",
+   "land": "15",
+   "bundesland": "Sachsen-Anhalt",
+   "einwohner": 244329,
+   "plz": "39104"
+  },
+  {
+   "ars": "083110000000",
+   "name": "Freiburg im Breisgau",
+   "nameAmtlich": "Freiburg im Breisgau, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 237460,
+   "plz": "79098"
+  },
+  {
+   "ars": "051140000000",
+   "name": "Krefeld",
+   "nameAmtlich": "Krefeld, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 231406,
+   "plz": "47798"
+  },
+  {
+   "ars": "150020000000",
+   "name": "Halle (Saale)",
+   "nameAmtlich": "Halle (Saale), Stadt",
+   "land": "15",
+   "bundesland": "Sachsen-Anhalt",
+   "einwohner": 226767,
+   "plz": "06108"
+  },
+  {
+   "ars": "073150000000",
+   "name": "Mainz",
+   "nameAmtlich": "Mainz, Stadt",
+   "land": "07",
+   "bundesland": "Rheinland-Pfalz",
+   "einwohner": 224684,
+   "plz": "55116"
+  },
+  {
+   "ars": "160510000000",
+   "name": "Erfurt",
+   "nameAmtlich": "Erfurt, Stadt",
+   "land": "16",
+   "bundesland": "Thüringen",
+   "einwohner": 218793,
+   "plz": "99084"
+  },
+  {
+   "ars": "010030000000",
+   "name": "Lübeck",
+   "nameAmtlich": "Lübeck, Hansestadt",
+   "land": "01",
+   "bundesland": "Schleswig-Holstein",
+   "einwohner": 216889,
+   "plz": "23539"
+  },
+  {
+   "ars": "051190000000",
+   "name": "Oberhausen",
+   "nameAmtlich": "Oberhausen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 213646,
+   "plz": "46045"
+  },
+  {
+   "ars": "130030000000",
+   "name": "Rostock, Hanse- und Universitätsstadt",
+   "nameAmtlich": "Rostock, Hanse- und Universitätsstadt",
+   "land": "13",
+   "bundesland": "Mecklenburg-Vorpommern",
+   "einwohner": 205307,
+   "plz": "18055"
+  },
+  {
+   "ars": "066110000000",
+   "name": "Kassel, documenta-Stadt",
+   "nameAmtlich": "Kassel, documenta-Stadt",
+   "land": "06",
+   "bundesland": "Hessen",
+   "einwohner": 197230,
+   "plz": "34117"
+  },
+  {
+   "ars": "059140000000",
+   "name": "Hagen",
+   "nameAmtlich": "Hagen, Stadt der FernUniversität",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 190384,
+   "plz": "58095"
+  },
+  {
+   "ars": "120540000000",
+   "name": "Potsdam",
+   "nameAmtlich": "Potsdam, Stadt",
+   "land": "12",
+   "bundesland": "Brandenburg",
+   "einwohner": 184754,
+   "plz": "14469"
+  },
+  {
+   "ars": "100410100100",
+   "name": "Saarbrücken",
+   "nameAmtlich": "Saarbrücken, Landeshauptstadt",
+   "land": "10",
+   "bundesland": "Saarland",
+   "einwohner": 182971,
+   "plz": "66111"
+  },
+  {
+   "ars": "059150000000",
+   "name": "Hamm",
+   "nameAmtlich": "Hamm, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 179968,
+   "plz": "59065"
+  },
+  {
+   "ars": "073140000000",
+   "name": "Ludwigshafen am Rhein",
+   "nameAmtlich": "Ludwigshafen am Rhein, Stadt",
+   "land": "07",
+   "bundesland": "Rheinland-Pfalz",
+   "einwohner": 177222,
+   "plz": "67059"
+  },
+  {
+   "ars": "034030000000",
+   "name": "Oldenburg (Oldenburg)",
+   "nameAmtlich": "Oldenburg (Oldenburg), Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 176614,
+   "plz": "26105"
+  },
+  {
+   "ars": "051170000000",
+   "name": "Mülheim an der Ruhr",
+   "nameAmtlich": "Mülheim an der Ruhr, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 173050,
+   "plz": "45468"
+  },
+  {
+   "ars": "053160000000",
+   "name": "Leverkusen",
+   "nameAmtlich": "Leverkusen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 168581,
+   "plz": "51373"
+  },
+  {
+   "ars": "064110000000",
+   "name": "Darmstadt",
+   "nameAmtlich": "Darmstadt, Wissenschaftsstadt",
+   "land": "06",
+   "bundesland": "Hessen",
+   "einwohner": 167029,
+   "plz": "64283"
+  },
+  {
+   "ars": "034040000000",
+   "name": "Osnabrück",
+   "nameAmtlich": "Osnabrück, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 166057,
+   "plz": "49074"
+  },
+  {
+   "ars": "051220000000",
+   "name": "Solingen",
+   "nameAmtlich": "Solingen, Klingenstadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 165626,
+   "plz": "42651"
+  },
+  {
+   "ars": "057740032032",
+   "name": "Paderborn",
+   "nameAmtlich": "Paderborn, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 156378,
+   "plz": "33104"
+  },
+  {
+   "ars": "059160000000",
+   "name": "Herne",
+   "nameAmtlich": "Herne, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 155851,
+   "plz": "44623"
+  },
+  {
+   "ars": "082210000000",
+   "name": "Heidelberg",
+   "nameAmtlich": "Heidelberg, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 155756,
+   "plz": "69117"
+  },
+  {
+   "ars": "051620024024",
+   "name": "Neuss",
+   "nameAmtlich": "Neuss, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 154317,
+   "plz": "41460"
+  },
+  {
+   "ars": "093620000000",
+   "name": "Regensburg",
+   "nameAmtlich": "Regensburg",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 151389,
+   "plz": "93019"
+  },
+  {
+   "ars": "091610000000",
+   "name": "Ingolstadt",
+   "nameAmtlich": "Ingolstadt",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 141185,
+   "plz": "85047"
+  },
+  {
+   "ars": "082310000000",
+   "name": "Pforzheim",
+   "nameAmtlich": "Pforzheim, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 134912,
+   "plz": "75175"
+  },
+  {
+   "ars": "096630000000",
+   "name": "Würzburg",
+   "nameAmtlich": "Würzburg",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 133258,
+   "plz": "97070"
+  },
+  {
+   "ars": "064130000000",
+   "name": "Offenbach am Main",
+   "nameAmtlich": "Offenbach am Main, Stadt",
+   "land": "06",
+   "bundesland": "Hessen",
+   "einwohner": 132746,
+   "plz": "63065"
+  },
+  {
+   "ars": "095630000000",
+   "name": "Fürth",
+   "nameAmtlich": "Fürth",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 132036,
+   "plz": "90744"
+  },
+  {
+   "ars": "081210000000",
+   "name": "Heilbronn",
+   "nameAmtlich": "Heilbronn, Universitätsstadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 131986,
+   "plz": "74072"
+  },
+  {
+   "ars": "084210000000",
+   "name": "Ulm",
+   "nameAmtlich": "Ulm, Universitätsstadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 129882,
+   "plz": "89073"
+  },
+  {
+   "ars": "031030000000",
+   "name": "Wolfsburg",
+   "nameAmtlich": "Wolfsburg, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 129560,
+   "plz": "38440"
+  },
+  {
+   "ars": "031590016016",
+   "name": "Göttingen",
+   "nameAmtlich": "Göttingen, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 127259,
+   "plz": "37083"
+  },
+  {
+   "ars": "084150061061",
+   "name": "Reutlingen",
+   "nameAmtlich": "Reutlingen, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 118852,
+   "plz": "72764"
+  },
+  {
+   "ars": "040120000000",
+   "name": "Bremerhaven",
+   "nameAmtlich": "Bremerhaven, Stadt",
+   "land": "04",
+   "bundesland": "Bremen",
+   "einwohner": 118610,
+   "plz": "27576"
+  },
+  {
+   "ars": "055120000000",
+   "name": "Bottrop",
+   "nameAmtlich": "Bottrop, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 118535,
+   "plz": "46236"
+  },
+  {
+   "ars": "095620000000",
+   "name": "Erlangen",
+   "nameAmtlich": "Erlangen",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 115928,
+   "plz": "91051"
+  },
+  {
+   "ars": "055620032032",
+   "name": "Recklinghausen",
+   "nameAmtlich": "Recklinghausen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 115344,
+   "plz": "45657"
+  },
+  {
+   "ars": "051200000000",
+   "name": "Remscheid",
+   "nameAmtlich": "Remscheid, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 113828,
+   "plz": "42853"
+  },
+  {
+   "ars": "071110000000",
+   "name": "Koblenz",
+   "nameAmtlich": "Koblenz, Stadt",
+   "land": "07",
+   "bundesland": "Rheinland-Pfalz",
+   "einwohner": 113378,
+   "plz": "56068"
+  },
+  {
+   "ars": "053780004004",
+   "name": "Bergisch Gladbach",
+   "nameAmtlich": "Bergisch Gladbach, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 111361,
+   "plz": "51465"
+  },
+  {
+   "ars": "160530000000",
+   "name": "Jena",
+   "nameAmtlich": "Jena, Stadt",
+   "land": "16",
+   "bundesland": "Thüringen",
+   "einwohner": 109725,
+   "plz": "07743"
+  },
+  {
+   "ars": "031020000000",
+   "name": "Salzgitter",
+   "nameAmtlich": "Salzgitter, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 104970,
+   "plz": "38226"
+  },
+  {
+   "ars": "072110000000",
+   "name": "Trier",
+   "nameAmtlich": "Trier, Stadt",
+   "land": "07",
+   "bundesland": "Rheinland-Pfalz",
+   "einwohner": 104342,
+   "plz": "54290"
+  },
+  {
+   "ars": "059700040040",
+   "name": "Siegen",
+   "nameAmtlich": "Siegen, Universitätsstadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 102685,
+   "plz": "57072"
+  },
+  {
+   "ars": "051700024024",
+   "name": "Moers",
+   "nameAmtlich": "Moers, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 101503,
+   "plz": "47441"
+  },
+  {
+   "ars": "057540008008",
+   "name": "Gütersloh",
+   "nameAmtlich": "Gütersloh, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 100479,
+   "plz": "33330"
+  },
+  {
+   "ars": "073120000000",
+   "name": "Kaiserslautern",
+   "nameAmtlich": "Kaiserslautern, Stadt",
+   "land": "07",
+   "bundesland": "Rheinland-Pfalz",
+   "einwohner": 100426,
+   "plz": "67657"
+  },
+  {
+   "ars": "032540021021",
+   "name": "Hildesheim",
+   "nameAmtlich": "Hildesheim, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 98510,
+   "plz": "31134"
+  },
+  {
+   "ars": "130040000000",
+   "name": "Schwerin",
+   "nameAmtlich": "Schwerin, Landeshauptstadt",
+   "land": "13",
+   "bundesland": "Mecklenburg-Vorpommern",
+   "einwohner": 98308,
+   "plz": "19053"
+  },
+  {
+   "ars": "064350014014",
+   "name": "Hanau, Brüder-Grimm-Stadt",
+   "nameAmtlich": "Hanau, Brüder-Grimm-Stadt",
+   "land": "06",
+   "bundesland": "Hessen",
+   "einwohner": 97956,
+   "plz": "63450"
+  },
+  {
+   "ars": "010010000000",
+   "name": "Flensburg",
+   "nameAmtlich": "Flensburg, Stadt",
+   "land": "01",
+   "bundesland": "Schleswig-Holstein",
+   "einwohner": 96326,
+   "plz": "24937"
+  },
+  {
+   "ars": "081160019019",
+   "name": "Esslingen am Neckar",
+   "nameAmtlich": "Esslingen am Neckar, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 96182,
+   "plz": "73728"
+  },
+  {
+   "ars": "160520000000",
+   "name": "Gera",
+   "nameAmtlich": "Gera, Stadt",
+   "land": "16",
+   "bundesland": "Thüringen",
+   "einwohner": 95608,
+   "plz": "07545"
+  },
+  {
+   "ars": "120520000000",
+   "name": "Cottbus/Chóśebuz",
+   "nameAmtlich": "Cottbus/Chóśebuz, Stadt",
+   "land": "12",
+   "bundesland": "Brandenburg",
+   "einwohner": 95123,
+   "plz": "03046"
+  },
+  {
+   "ars": "053580008008",
+   "name": "Düren",
+   "nameAmtlich": "Düren, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 94568,
+   "plz": "52349"
+  },
+  {
+   "ars": "081180048048",
+   "name": "Ludwigsburg",
+   "nameAmtlich": "Ludwigsburg, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 92858,
+   "plz": "71638"
+  },
+  {
+   "ars": "084160041041",
+   "name": "Tübingen",
+   "nameAmtlich": "Tübingen, Universitätsstadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 92322,
+   "plz": "72070"
+  },
+  {
+   "ars": "059620024024",
+   "name": "Iserlohn",
+   "nameAmtlich": "Iserlohn, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 91811,
+   "plz": "58636"
+  },
+  {
+   "ars": "059540036036",
+   "name": "Witten",
+   "nameAmtlich": "Witten, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 91808,
+   "plz": "58452"
+  },
+  {
+   "ars": "083265004074",
+   "name": "Villingen-Schwenningen",
+   "nameAmtlich": "Villingen-Schwenningen, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 89756,
+   "plz": "78050"
+  },
+  {
+   "ars": "051580028028",
+   "name": "Ratingen",
+   "nameAmtlich": "Ratingen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 89368,
+   "plz": "40878"
+  },
+  {
+   "ars": "065310005005",
+   "name": "Gießen",
+   "nameAmtlich": "Gießen, Universitätsstadt",
+   "land": "06",
+   "bundesland": "Hessen",
+   "einwohner": 89179,
+   "plz": "35390"
+  },
+  {
+   "ars": "145240330330",
+   "name": "Zwickau",
+   "nameAmtlich": "Zwickau, Stadt, Hochschulstadt",
+   "land": "14",
+   "bundesland": "Sachsen",
+   "einwohner": 87410,
+   "plz": "08056"
+  },
+  {
+   "ars": "083355004043",
+   "name": "Konstanz",
+   "nameAmtlich": "Konstanz, Universitätsstadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 86919,
+   "plz": "78462"
+  },
+  {
+   "ars": "055620024024",
+   "name": "Marl",
+   "nameAmtlich": "Marl, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 86766,
+   "plz": "45772"
+  },
+  {
+   "ars": "073190000000",
+   "name": "Worms",
+   "nameAmtlich": "Worms, Stadt",
+   "land": "07",
+   "bundesland": "Rheinland-Pfalz",
+   "einwohner": 86753,
+   "plz": "67547"
+  },
+  {
+   "ars": "059780024024",
+   "name": "Lünen",
+   "nameAmtlich": "Lünen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 86163,
+   "plz": "44532"
+  },
+  {
+   "ars": "057700024024",
+   "name": "Minden",
+   "nameAmtlich": "Minden, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 84013,
+   "plz": "32423"
+  },
+  {
+   "ars": "010600063063",
+   "name": "Norderstedt",
+   "nameAmtlich": "Norderstedt, Stadt",
+   "land": "01",
+   "bundesland": "Schleswig-Holstein",
+   "einwohner": 82844,
+   "plz": "22846"
+  },
+  {
+   "ars": "051580032032",
+   "name": "Velbert",
+   "nameAmtlich": "Velbert, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 82463,
+   "plz": "42551"
+  },
+  {
+   "ars": "034010000000",
+   "name": "Delmenhorst",
+   "nameAmtlich": "Delmenhorst, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 81406,
+   "plz": "27749"
+  },
+  {
+   "ars": "010040000000",
+   "name": "Neumünster",
+   "nameAmtlich": "Neumünster, Stadt",
+   "land": "01",
+   "bundesland": "Schleswig-Holstein",
+   "einwohner": 79809,
+   "plz": "24534"
+  },
+  {
+   "ars": "051660032032",
+   "name": "Viersen",
+   "nameAmtlich": "Viersen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 78373,
+   "plz": "41747"
+  },
+  {
+   "ars": "055660076076",
+   "name": "Rheine",
+   "nameAmtlich": "Rheine, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 77209,
+   "plz": "48431"
+  },
+  {
+   "ars": "094610000000",
+   "name": "Bamberg",
+   "nameAmtlich": "Bamberg",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 77150,
+   "plz": "96031"
+  },
+  {
+   "ars": "053820068068",
+   "name": "Troisdorf",
+   "nameAmtlich": "Troisdorf, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 75901,
+   "plz": "53840"
+  },
+  {
+   "ars": "034050000000",
+   "name": "Wilhelmshaven",
+   "nameAmtlich": "Wilhelmshaven, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 75745,
+   "plz": "26382"
+  },
+  {
+   "ars": "055620014014",
+   "name": "Gladbeck",
+   "nameAmtlich": "Gladbeck, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 75499,
+   "plz": "45964"
+  },
+  {
+   "ars": "150010000000",
+   "name": "Dessau-Roßlau",
+   "nameAmtlich": "Dessau-Roßlau, Stadt",
+   "land": "15",
+   "bundesland": "Sachsen-Anhalt",
+   "einwohner": 75402,
+   "plz": "06844"
+  },
+  {
+   "ars": "055620012012",
+   "name": "Dorsten",
+   "nameAmtlich": "Dorsten, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 75277,
+   "plz": "46284"
+  },
+  {
+   "ars": "059580004004",
+   "name": "Arnsberg",
+   "nameAmtlich": "Arnsberg, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 74879,
+   "plz": "59759"
+  },
+  {
+   "ars": "033550022022",
+   "name": "Lüneburg",
+   "nameAmtlich": "Lüneburg, Hansestadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 74785,
+   "plz": "21335"
+  },
+  {
+   "ars": "057660020020",
+   "name": "Detmold",
+   "nameAmtlich": "Detmold, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 74278,
+   "plz": "32756"
+  },
+  {
+   "ars": "120510000000",
+   "name": "Brandenburg an der Havel",
+   "nameAmtlich": "Brandenburg an der Havel, Stadt",
+   "land": "12",
+   "bundesland": "Brandenburg",
+   "einwohner": 74113,
+   "plz": "14770"
+  },
+  {
+   "ars": "065340014014",
+   "name": "Marburg",
+   "nameAmtlich": "Marburg, Universitätsstadt",
+   "land": "06",
+   "bundesland": "Hessen",
+   "einwohner": 73544,
+   "plz": "35037"
+  },
+  {
+   "ars": "055620004004",
+   "name": "Castrop-Rauxel",
+   "nameAmtlich": "Castrop-Rauxel, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 73282,
+   "plz": "44575"
+  },
+  {
+   "ars": "055540008008",
+   "name": "Bocholt",
+   "nameAmtlich": "Bocholt, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 73257,
+   "plz": "46395"
+  },
+  {
+   "ars": "096610000000",
+   "name": "Aschaffenburg",
+   "nameAmtlich": "Aschaffenburg",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 73091,
+   "plz": "63701"
+  },
+  {
+   "ars": "094620000000",
+   "name": "Bayreuth",
+   "nameAmtlich": "Bayreuth",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 72940,
+   "plz": "95410"
+  },
+  {
+   "ars": "092610000000",
+   "name": "Landshut",
+   "nameAmtlich": "Landshut",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 71863,
+   "plz": "84026"
+  },
+  {
+   "ars": "059620032032",
+   "name": "Lüdenscheid",
+   "nameAmtlich": "Lüdenscheid, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 71212,
+   "plz": "58507"
+  },
+  {
+   "ars": "059740028028",
+   "name": "Lippstadt",
+   "nameAmtlich": "Lippstadt, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 68739,
+   "plz": "59555"
+  },
+  {
+   "ars": "097630000000",
+   "name": "Kempten (Allgäu)",
+   "nameAmtlich": "Kempten (Allgäu)",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 67645,
+   "plz": "87435"
+  },
+  {
+   "ars": "081365001088",
+   "name": "Aalen",
+   "nameAmtlich": "Aalen, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 67621,
+   "plz": "73430"
+  },
+  {
+   "ars": "057580012012",
+   "name": "Herford",
+   "nameAmtlich": "Herford, Hansestadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 67503,
+   "plz": "32052"
+  },
+  {
+   "ars": "071380045045",
+   "name": "Neuwied",
+   "nameAmtlich": "Neuwied, Stadt",
+   "land": "07",
+   "bundesland": "Rheinland-Pfalz",
+   "einwohner": 67083,
+   "plz": "56564"
+  },
+  {
+   "ars": "051700008008",
+   "name": "Dinslaken",
+   "nameAmtlich": "Dinslaken, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 66993,
+   "plz": "46535"
+  },
+  {
+   "ars": "033510006006",
+   "name": "Celle",
+   "nameAmtlich": "Celle, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 66834,
+   "plz": "29221"
+  },
+  {
+   "ars": "053620032032",
+   "name": "Kerpen, Kolpingstadt",
+   "nameAmtlich": "Kerpen, Kolpingstadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 66585,
+   "plz": "50171"
+  },
+  {
+   "ars": "051620008008",
+   "name": "Grevenbroich",
+   "nameAmtlich": "Grevenbroich, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 65983,
+   "plz": "41515"
+  },
+  {
+   "ars": "160550000000",
+   "name": "Weimar",
+   "nameAmtlich": "Weimar, Stadt",
+   "land": "16",
+   "bundesland": "Thüringen",
+   "einwohner": 65954,
+   "plz": "99423"
+  },
+  {
+   "ars": "064330012012",
+   "name": "Rüsselsheim am Main",
+   "nameAmtlich": "Rüsselsheim am Main, Stadt",
+   "land": "06",
+   "bundesland": "Hessen",
+   "einwohner": 65627,
+   "plz": "65428"
+  },
+  {
+   "ars": "145230320320",
+   "name": "Plauen",
+   "nameAmtlich": "Plauen, Stadt",
+   "land": "14",
+   "bundesland": "Sachsen",
+   "einwohner": 65599,
+   "plz": "08523"
+  },
+  {
+   "ars": "066310009009",
+   "name": "Fulda",
+   "nameAmtlich": "Fulda, Stadt",
+   "land": "06",
+   "bundesland": "Hessen",
+   "einwohner": 65434,
+   "plz": "36037"
+  },
+  {
+   "ars": "091630000000",
+   "name": "Rosenheim",
+   "nameAmtlich": "Rosenheim",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 65274,
+   "plz": "83013"
+  },
+  {
+   "ars": "081365007065",
+   "name": "Schwäbisch Gmünd",
+   "nameAmtlich": "Schwäbisch Gmünd, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 64416,
+   "plz": "73525"
+  },
+  {
+   "ars": "051620004004",
+   "name": "Dormagen",
+   "nameAmtlich": "Dormagen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 63799,
+   "plz": "41539"
+  },
+  {
+   "ars": "083175010096",
+   "name": "Offenburg",
+   "nameAmtlich": "Offenburg, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 62993,
+   "plz": "77652"
+  },
+  {
+   "ars": "084355002016",
+   "name": "Friedrichshafen",
+   "nameAmtlich": "Friedrichshafen, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 62796,
+   "plz": "88045"
+  },
+  {
+   "ars": "097750135135",
+   "name": "Neu-Ulm, GKSt",
+   "nameAmtlich": "Neu-Ulm, GKSt",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 62641,
+   "plz": "89210"
+  },
+  {
+   "ars": "053620028028",
+   "name": "Hürth",
+   "nameAmtlich": "Hürth, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 62160,
+   "plz": "50354"
+  },
+  {
+   "ars": "053620008008",
+   "name": "Bergheim",
+   "nameAmtlich": "Bergheim, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 61611,
+   "plz": "50126"
+  },
+  {
+   "ars": "081150045045",
+   "name": "Sindelfingen",
+   "nameAmtlich": "Sindelfingen, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 61422,
+   "plz": "71063"
+  },
+  {
+   "ars": "055620020020",
+   "name": "Herten",
+   "nameAmtlich": "Herten, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 60941,
+   "plz": "45699"
+  },
+  {
+   "ars": "051700048048",
+   "name": "Wesel",
+   "nameAmtlich": "Wesel, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 60785,
+   "plz": "46483"
+  },
+  {
+   "ars": "130710107107",
+   "name": "Neubrandenburg, Vier-Tore-Stadt",
+   "nameAmtlich": "Neubrandenburg, Vier-Tore-Stadt",
+   "land": "13",
+   "bundesland": "Mecklenburg-Vorpommern",
+   "einwohner": 60344,
+   "plz": "17033"
+  },
+  {
+   "ars": "053660016016",
+   "name": "Euskirchen",
+   "nameAmtlich": "Euskirchen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 60021,
+   "plz": "53879"
+  },
+  {
+   "ars": "051580020020",
+   "name": "Langenfeld (Rheinland)",
+   "nameAmtlich": "Langenfeld (Rheinland), Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 59975,
+   "plz": "40764"
+  },
+  {
+   "ars": "032410005005",
+   "name": "Garbsen",
+   "nameAmtlich": "Garbsen, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 59903,
+   "plz": "30823"
+  },
+  {
+   "ars": "081175005026",
+   "name": "Göppingen",
+   "nameAmtlich": "Göppingen, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 58937,
+   "plz": "73033"
+  },
+  {
+   "ars": "059780036036",
+   "name": "Unna",
+   "nameAmtlich": "Unna, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 58333,
+   "plz": "59423"
+  },
+  {
+   "ars": "032520006006",
+   "name": "Hameln",
+   "nameAmtlich": "Hameln, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 58244,
+   "plz": "31785"
+  },
+  {
+   "ars": "053340032032",
+   "name": "Stolberg (Rhld.), Kupferstadt",
+   "nameAmtlich": "Stolberg (Rhld.), Kupferstadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 57684,
+   "plz": "52222"
+  },
+  {
+   "ars": "053340012012",
+   "name": "Eschweiler",
+   "nameAmtlich": "Eschweiler, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 57534,
+   "plz": "52249"
+  },
+  {
+   "ars": "081190079079",
+   "name": "Waiblingen",
+   "nameAmtlich": "Waiblingen, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 57313,
+   "plz": "71332"
+  },
+  {
+   "ars": "120530000000",
+   "name": "Frankfurt (Oder)",
+   "nameAmtlich": "Frankfurt (Oder), Stadt",
+   "land": "12",
+   "bundesland": "Brandenburg",
+   "einwohner": 57107,
+   "plz": "15230"
+  },
+  {
+   "ars": "051620022022",
+   "name": "Meerbusch",
+   "nameAmtlich": "Meerbusch, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 57078,
+   "plz": "40670"
+  },
+  {
+   "ars": "034560015015",
+   "name": "Nordhorn",
+   "nameAmtlich": "Nordhorn, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 56973,
+   "plz": "48529"
+  },
+  {
+   "ars": "082110000000",
+   "name": "Baden-Baden",
+   "nameAmtlich": "Baden-Baden, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 56881,
+   "plz": "76530"
+  },
+  {
+   "ars": "064340001001",
+   "name": "Bad Homburg v. d. Höhe",
+   "nameAmtlich": "Bad Homburg v. d. Höhe, Stadt",
+   "land": "06",
+   "bundesland": "Hessen",
+   "einwohner": 56688,
+   "plz": "61343"
+  },
+  {
+   "ars": "053820056056",
+   "name": "Sankt Augustin",
+   "nameAmtlich": "Sankt Augustin, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 56521,
+   "plz": "53757"
+  },
+  {
+   "ars": "034540032032",
+   "name": "Lingen (Ems)",
+   "nameAmtlich": "Lingen (Ems), Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 56498,
+   "plz": "49808"
+  },
+  {
+   "ars": "053620036036",
+   "name": "Pulheim",
+   "nameAmtlich": "Pulheim, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 56150,
+   "plz": "50259"
+  },
+  {
+   "ars": "130750039039",
+   "name": "Greifswald, Universitäts- und Hansestadt",
+   "nameAmtlich": "Greifswald, Universitäts- und Hansestadt",
+   "land": "13",
+   "bundesland": "Mecklenburg-Vorpommern",
+   "einwohner": 56092,
+   "plz": "17489"
+  },
+  {
+   "ars": "146260110110",
+   "name": "Görlitz",
+   "nameAmtlich": "Görlitz, Stadt, Hochschulstadt",
+   "land": "14",
+   "bundesland": "Sachsen",
+   "einwohner": 55186,
+   "plz": "02826"
+  },
+  {
+   "ars": "051580016016",
+   "name": "Hilden",
+   "nameAmtlich": "Hilden, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 55157,
+   "plz": "40721"
+  },
+  {
+   "ars": "065320023023",
+   "name": "Wetzlar",
+   "nameAmtlich": "Wetzlar, Stadt",
+   "land": "06",
+   "bundesland": "Hessen",
+   "einwohner": 54665,
+   "plz": "35578"
+  },
+  {
+   "ars": "096620000000",
+   "name": "Schweinfurt",
+   "nameAmtlich": "Schweinfurt",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 54481,
+   "plz": "97420"
+  },
+  {
+   "ars": "071330006006",
+   "name": "Bad Kreuznach",
+   "nameAmtlich": "Bad Kreuznach, Stadt",
+   "land": "07",
+   "bundesland": "Rheinland-Pfalz",
+   "einwohner": 54168,
+   "plz": "55545"
+  },
+  {
+   "ars": "032410010010",
+   "name": "Langenhagen",
+   "nameAmtlich": "Langenhagen, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 54142,
+   "plz": "30853"
+  },
+  {
+   "ars": "130730088088",
+   "name": "Stralsund",
+   "nameAmtlich": "Stralsund, Hansestadt",
+   "land": "13",
+   "bundesland": "Mecklenburg-Vorpommern",
+   "einwohner": 54094,
+   "plz": "18439"
+  },
+  {
+   "ars": "057660008008",
+   "name": "Bad Salzuflen",
+   "nameAmtlich": "Bad Salzuflen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 53958,
+   "plz": "32105"
+  },
+  {
+   "ars": "059540016016",
+   "name": "Hattingen",
+   "nameAmtlich": "Hattingen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 53044,
+   "plz": "45525"
+  },
+  {
+   "ars": "092620000000",
+   "name": "Passau",
+   "nameAmtlich": "Passau",
+   "land": "09",
+   "bundesland": "Bayern",
+   "einwohner": 53039,
+   "plz": "94030"
+  },
+  {
+   "ars": "051540036036",
+   "name": "Kleve",
+   "nameAmtlich": "Kleve, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 53028,
+   "plz": "47533"
+  },
+  {
+   "ars": "073160000000",
+   "name": "Neustadt an der Weinstraße",
+   "nameAmtlich": "Neustadt an der Weinstraße, Stadt",
+   "land": "07",
+   "bundesland": "Rheinland-Pfalz",
+   "einwohner": 52945,
+   "plz": "67433"
+  },
+  {
+   "ars": "055700004004",
+   "name": "Ahlen",
+   "nameAmtlich": "Ahlen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 52666,
+   "plz": "59227"
+  },
+  {
+   "ars": "031580037037",
+   "name": "Wolfenbüttel",
+   "nameAmtlich": "Wolfenbüttel, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 52604,
+   "plz": "38300"
+  },
+  {
+   "ars": "053620024024",
+   "name": "Frechen",
+   "nameAmtlich": "Frechen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 52309,
+   "plz": "50226"
+  },
+  {
+   "ars": "059620040040",
+   "name": "Menden (Sauerland)",
+   "nameAmtlich": "Menden (Sauerland), Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 52255,
+   "plz": "58706"
+  },
+  {
+   "ars": "055660028028",
+   "name": "Ibbenbüren",
+   "nameAmtlich": "Ibbenbüren, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 51803,
+   "plz": "49477"
+  },
+  {
+   "ars": "081150003003",
+   "name": "Böblingen",
+   "nameAmtlich": "Böblingen, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 51483,
+   "plz": "71032"
+  },
+  {
+   "ars": "083365003050",
+   "name": "Lörrach",
+   "nameAmtlich": "Lörrach, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 51349,
+   "plz": "79539"
+  },
+  {
+   "ars": "010560015015",
+   "name": "Elmshorn",
+   "nameAmtlich": "Elmshorn, Stadt",
+   "land": "01",
+   "bundesland": "Schleswig-Holstein",
+   "einwohner": 51342,
+   "plz": "25335"
+  },
+  {
+   "ars": "053740012012",
+   "name": "Gummersbach",
+   "nameAmtlich": "Gummersbach, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 51290,
+   "plz": "51643"
+  },
+  {
+   "ars": "031570006006",
+   "name": "Peine",
+   "nameAmtlich": "Peine, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 50987,
+   "plz": "31224"
+  },
+  {
+   "ars": "083175007065",
+   "name": "Lahr/Schwarzwald",
+   "nameAmtlich": "Lahr/Schwarzwald, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 50775,
+   "plz": "77933"
+  },
+  {
+   "ars": "082165005043",
+   "name": "Rastatt",
+   "nameAmtlich": "Rastatt, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 50741,
+   "plz": "76437"
+  },
+  {
+   "ars": "084365005064",
+   "name": "Ravensburg",
+   "nameAmtlich": "Ravensburg, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 50628,
+   "plz": "88212"
+  },
+  {
+   "ars": "057700004004",
+   "name": "Bad Oeynhausen",
+   "nameAmtlich": "Bad Oeynhausen, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 50620,
+   "plz": "32545"
+  },
+  {
+   "ars": "081355002019",
+   "name": "Heidenheim an der Brenz",
+   "nameAmtlich": "Heidenheim an der Brenz, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 50618,
+   "plz": "89522"
+  },
+  {
+   "ars": "055540020020",
+   "name": "Gronau (Westf.)",
+   "nameAmtlich": "Gronau (Westf.), Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 50547,
+   "plz": "48599"
+  },
+  {
+   "ars": "033520011011",
+   "name": "Cuxhaven",
+   "nameAmtlich": "Cuxhaven, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 49697,
+   "plz": "27472"
+  },
+  {
+   "ars": "073180000000",
+   "name": "Speyer",
+   "nameAmtlich": "Speyer, Stadt",
+   "land": "07",
+   "bundesland": "Rheinland-Pfalz",
+   "einwohner": 49564,
+   "plz": "67346"
+  },
+  {
+   "ars": "081150028028",
+   "name": "Leonberg",
+   "nameAmtlich": "Leonberg, Stadt",
+   "land": "08",
+   "bundesland": "Baden-Württemberg",
+   "einwohner": 49480,
+   "plz": "71229"
+  },
+  {
+   "ars": "051660036036",
+   "name": "Willich",
+   "nameAmtlich": "Willich, Stadt",
+   "land": "05",
+   "bundesland": "Nordrhein-Westfalen",
+   "einwohner": 49413,
+   "plz": "47877"
+  },
+  {
+   "ars": "034020000000",
+   "name": "Emden",
+   "nameAmtlich": "Emden, Stadt",
+   "land": "03",
+   "bundesland": "Niedersachsen",
+   "einwohner": 49202,
+   "plz": "26721"
+  }
+ ]
+}

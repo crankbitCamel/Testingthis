@@ -12,3 +12,7 @@ extern/eingang/*
 *.m4a
 *.wav
 *.ogg
+
+# PVOG-Rohantworten (Cache, jederzeit neu abrufbar)
+data/pvog/cache/
+data/pvog/ergebnisse/

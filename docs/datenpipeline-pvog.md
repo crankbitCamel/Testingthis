@@ -97,6 +97,38 @@ kreisfrei (`064150000000` statt `064350014014` laut Destatis 2024). Beim
 Abgleich nur gleichnamige Orte im selben Land übernehmen (Schwerin traf einen
 Ort in Brandenburg).
 
+## In die Datenbank übernehmen
+
+Die Ergebnisse liegen komprimiert im Repository: `data/pvog/pvog-paket.json.gz`
+(~8 MB, identische Bundes- und Landestexte nur einmal). Ein neuer Abruf ist
+dafür nicht nötig.
+
+```powershell
+git pull
+docker compose up -d postgres
+$env:DATABASE_URL="postgres://verwaltung:verwaltung@localhost:5432/verwaltung?sslmode=disable"
+npm install
+npm run pvog:import -- --dry-run    # zählt nur
+npm run pvog:import                 # legt Tabellen an und schreibt (~5 s)
+```
+
+Ergebnis: Tabellen `pvog_texte` und `pvog_leistungen` (Schema `db/pvog.sql`)
+und die Sicht `pvog_auskunft`, die beides zusammensetzt. Spalte `belegt` ist
+die Regel „ohne Quelle keine Zahl“: wahr nur mit Quell-URL **und** Datum.
+
+```powershell
+docker exec -it verwaltung-postgres psql -U verwaltung -d verwaltung -c "SELECT kommune, gebuehr_betraege, quelle_url, freigabe_datum, belegt FROM pvog_auskunft WHERE leistung_id='reisepass' LIMIT 5;"
+```
+
+Der Import ist wiederholbar: Upsert, danach werden Zeilen gelöscht, die im
+Paket nicht mehr vorkommen. Aktualisieren:
+
+```powershell
+npm run pvog:abrufen; npm run pvog:paket; npm run pvog:import
+```
+
+Auf dem Server identisch, dort per `docker compose exec app npm run pvog:import`.
+
 ## Regeln für die Verwendung im Assistenten
 
 1. **Ohne Quelle keine Zahl.** Ein Betrag wird nur genannt, wenn der Datensatz

@@ -55,3 +55,17 @@ describe('Normalisieren', () => {
     assert.equal(s.abgerufen, '2026-10-04T08:00:00Z');
   });
 });
+
+describe('Paket im Repository', () => {
+  test('setzt Textfelder wieder ein, Gebuehren und Quellen sind da', async () => {
+    const { paketLesen, PAKET } = await import('../scripts/pvog.mjs');
+    const { existsSync } = await import('node:fs');
+    if (!existsSync(PAKET)) return;
+    const p = await paketLesen();
+    assert.equal(p.saetze.length, p.anzahl);
+    const koeln = p.saetze.find((s) => s.kommune.ars === '053150000000' && s.leistungId === 'reisepass');
+    assert.ok(koeln, 'Reisepass Koeln vorhanden');
+    assert.ok(koeln.gebuehren.betraegeEuro.includes(70) && koeln.gebuehren.betraegeEuro.includes(37.5));
+    assert.ok(koeln.onlineDienste[0].uri.startsWith('https://www.stadt-koeln.de/'));
+  });
+});

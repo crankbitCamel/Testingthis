@@ -346,10 +346,46 @@ async function abrufen() {
   console.log(`-> data/pvog/ergebnisse/*.json, data/pvog/uebersicht.csv`);
 }
 
+// ------------------------------------------------------------------ Paket --
+// Alle Ergebnisse als ein komprimiertes Paket fuers Repository: identische
+// Textbloecke (Landes- und Bundestexte wiederholen sich je Kommune) stehen
+// nur einmal drin. ~10.000 Saetze -> ~8 MB statt ~80 MB.
+export const PAKET = join(DATEN, 'pvog-paket.json.gz');
+const TEXTFELDER = ['kurzinfo', 'beschreibung', 'voraussetzungen', 'unterlagen', 'gebuehren', 'fristen',
+  'fristenDetails', 'bearbeitungsdauer', 'ablauf', 'hinweise', 'rechtsgrundlagen', 'weiterfuehrend'];
+
+async function paketBauen() {
+  const { readdirSync } = await import('node:fs');
+  const { gzipSync } = await import('node:zlib');
+  const verzeichnis = join(DATEN, 'ergebnisse');
+  const texte = {};
+  const zeilen = [];
+  for (const datei of readdirSync(verzeichnis).filter((f) => f.endsWith('.json')).sort()) {
+    for (const s of JSON.parse(readFileSync(join(verzeichnis, datei), 'utf8')).leistungen) {
+      const t = Object.fromEntries(TEXTFELDER.map((k) => [k, s[k] ?? null]));
+      const id = createHash('sha1').update(JSON.stringify(t)).digest('hex').slice(0, 16);
+      texte[id] = t;
+      const rest = Object.fromEntries(Object.entries(s).filter(([k]) => !TEXTFELDER.includes(k)));
+      zeilen.push({ ...rest, textId: id });
+    }
+  }
+  const paket = { erstellt: new Date().toISOString(), quelle: API, anzahl: zeilen.length, texte, zeilen };
+  writeFileSync(PAKET, gzipSync(JSON.stringify(paket), { level: 9 }));
+  console.log(`Paket: ${zeilen.length} Saetze, ${Object.keys(texte).length} Textbloecke -> ${PAKET}`);
+}
+
+/** Paket lesen und Saetze wieder vollstaendig zusammensetzen. */
+export async function paketLesen(datei = PAKET) {
+  const { gunzipSync } = await import('node:zlib');
+  const p = JSON.parse(gunzipSync(readFileSync(datei)).toString('utf8'));
+  return { ...p, saetze: p.zeilen.map((z) => ({ ...z, ...p.texte[z.textId] })) };
+}
+
 // ----------------------------------------------------------------- Start --
 const befehl = process.argv[2];
 if (befehl === 'zuordnen') await zuordnen({ ort: argWert('ort') ?? 'Köln' });
 else if (befehl === 'abrufen') await abrufen();
+else if (befehl === 'paket') await paketBauen();
 else if (import.meta.url === `file://${process.argv[1]}`) {
   console.log('Aufruf: node scripts/pvog.mjs zuordnen [--ort Köln] | abrufen [--top 10 | --orte Köln,München] [--leistungen a,b]');
 }

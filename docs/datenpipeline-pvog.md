@@ -74,6 +74,29 @@ Anmeldung, Unterlagen und Online-Formular, **keine Steuersätze**. 13 Leistungen
 haben in Köln keine passende PVOG-Leistung (u. a. Sperrmüll, Mülltonne,
 Fundbüro, Kirchenaustritt, Kita-Platz, Auskunftssperre).
 
+## Vollständiger Lauf (200 Kommunen, 64 Leistungen, 4. Oktober 2026)
+
+Rund 22.000 Anfragen in 74 Minuten (3 parallel, 200 ms Abstand), keine Fehler.
+
+| Kennzahl | Anzahl von 12.800 | Anteil |
+|---|---|---|
+| Beschreibung gefunden | 10.517 | 82 % |
+| Gebührenangabe vorhanden | 9.243 | 72 % |
+| davon strukturiert | 1.832 | 14 % |
+| Euro-Betrag erkannt | 3.266 | 26 % |
+| Quell-URL vorhanden | 9.906 | 77 % |
+| Freigabedatum vorhanden | 8.458 | 66 % |
+
+Je Kommune im Median 54 von 64 Leistungen. Vollständig in allen 200:
+Personalausweis, Reisepass, Altersrente, Steuer-ID. Am schwächsten:
+Sondernutzungserlaubnis (16), Baumfällgenehmigung (60), Online-Ausweisfunktion
+(89), Zweitwohnungsteuer (97), Hundesteuer (118, Gebühr nur bei 65).
+
+Regionalschlüssel gegen das PVOG abgeglichen: Hanau ist seit 1.1.2026
+kreisfrei (`064150000000` statt `064350014014` laut Destatis 2024). Beim
+Abgleich nur gleichnamige Orte im selben Land übernehmen (Schwerin traf einen
+Ort in Brandenburg).
+
 ## Regeln für die Verwendung im Assistenten
 
 1. **Ohne Quelle keine Zahl.** Ein Betrag wird nur genannt, wenn der Datensatz

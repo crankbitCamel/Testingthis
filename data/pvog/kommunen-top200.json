@@ -741,13 +741,15 @@
    "plz": "19053"
   },
   {
-   "ars": "064350014014",
-   "name": "Hanau, Brüder-Grimm-Stadt",
+   "ars": "064150000000",
+   "name": "Hanau",
    "nameAmtlich": "Hanau, Brüder-Grimm-Stadt",
    "land": "06",
    "bundesland": "Hessen",
    "einwohner": 97956,
-   "plz": "63450"
+   "plz": "63450",
+   "arsDestatis": "064350014014",
+   "hinweis": "seit 1.1.2026 kreisfrei, neuer Schluessel"
   },
   {
    "ars": "010010000000",
@@ -1802,5 +1804,6 @@
    "einwohner": 49202,
    "plz": "26721"
   }
- ]
+ ],
+ "hinweis": "ARS gegen PVOG abgeglichen (Oktober 2026); abweichende Destatis-Schluessel stehen in arsDestatis."
 }
